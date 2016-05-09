@@ -4,7 +4,7 @@
 
 #include "ModuleManager.h"
 
-class FSocketIOClientModule : public IModuleInterface
+class SOCKETIOCLIENT_API FSocketIOClientModule : public IModuleInterface
 {
 public:
 

@@ -1,0 +1,54 @@
+#pragma once
+
+#include "sio_client.h"
+#include "SocketIOClientComponent.generated.h"
+
+//DECLARE_DYNAMIC_MULTICAST_DELEGATE(FSIOCConnectedEventSignature);
+//DECLARE_DYNAMIC_MULTICAST_DELEGATE(FSIOCDisconnectedEventSignature);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FSIOCOnEventSignature, FString, Name, FString, Action);
+
+UCLASS(ClassGroup = "Networking", meta = (BlueprintSpawnableComponent))
+class SOCKETIOCLIENT_API USocketIOClientComponent : public UActorComponent
+{
+	GENERATED_UCLASS_BODY()
+public:
+
+	//Async events
+	/*UPROPERTY(BlueprintAssignable, Category = "SocketIO Events")
+		FSIOCConnectedEventSignature Connected;
+
+	UPROPERTY(BlueprintAssignable, Category = "SocketIO Events")
+		FSIOCDisconnectedEventSignature Disconnected;*/
+
+	UPROPERTY(BlueprintAssignable, Category = "SocketIO Events")
+		FSIOCOnEventSignature On;
+
+	/**
+	* Connect to a socket.io server
+	*
+	* @param AddressAndPort	the address in URL format with port
+	*/
+	UFUNCTION(BlueprintCallable, Category = "SocketIO Client Functions")
+		void Connect(FString AddressAndPort);
+
+	/**
+	* Emit a string event with a string action
+	*
+	* @param Name	Event name
+	* @param Action action string
+	*/
+	UFUNCTION(BlueprintCallable, Category = "SocketIO Client Functions")
+		void Emit(FString Name, FString Action);
+
+	/**
+	* Emit a string event with a string action
+	*
+	* @param Name	Event name
+	* @param Action action string
+	*/
+	UFUNCTION(BlueprintCallable, Category = "SocketIO Client Functions")
+		void Bind(FString Name);
+
+protected:
+	sio::client PrivateClient;
+};
