@@ -1,0 +1,24 @@
+{
+	"FileVersion": 3,
+	"Version": 1,
+	"VersionName": "1.0",
+	"FriendlyName": "SocketIOClient",
+	"Description": "",
+	"Category": "Networking",
+	"CreatedBy": "UE4 London Meetup",
+	"CreatedByURL": "",
+	"DocsURL": "",
+	"MarketplaceURL": "",
+	"SupportURL": "",
+	"EnabledByDefault": false,
+	"CanContainContent": false,
+	"IsBetaVersion": false,
+	"Installed": false,
+	"Modules": [
+		{
+			"Name": "SocketIOClient",
+			"Type": "Developer",
+			"LoadingPhase": "Default"
+		}
+	]
+}
