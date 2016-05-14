@@ -1,6 +1,7 @@
 #pragma once
 
 #include "sio_client.h"
+#include "Components/ActorComponent.h"
 #include "SocketIOClientComponent.generated.h"
 
 //DECLARE_DYNAMIC_MULTICAST_DELEGATE(FSIOCConnectedEventSignature);
@@ -12,6 +13,8 @@ class SOCKETIOCLIENT_API USocketIOClientComponent : public UActorComponent
 {
 	GENERATED_UCLASS_BODY()
 public:
+
+	USocketIOClientComponent();
 
 	//Async events
 	/*UPROPERTY(BlueprintAssignable, Category = "SocketIO Events")
@@ -38,7 +41,7 @@ public:
 	* @param Action action string
 	*/
 	UFUNCTION(BlueprintCallable, Category = "SocketIO Client Functions")
-		void Emit(FString Name, FString Action);
+		void Emit(FString Name, FString Data);
 
 	/**
 	* Emit a string event with a string action
