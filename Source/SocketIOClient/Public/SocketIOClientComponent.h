@@ -31,7 +31,7 @@ public:
 	*
 	* @param AddressAndPort	the address in URL format with port
 	*/
-	UFUNCTION(BlueprintCallable, Category = "SocketIO Client Functions")
+	UFUNCTION(BlueprintCallable, Category = "SocketIO Functions")
 		void Connect(FString AddressAndPort);
 
 	/**
@@ -40,7 +40,7 @@ public:
 	* @param Name	Event name
 	* @param Action action string
 	*/
-	UFUNCTION(BlueprintCallable, Category = "SocketIO Client Functions")
+	UFUNCTION(BlueprintCallable, Category = "SocketIO Functions")
 		void Emit(FString Name, FString Data);
 
 	/**
@@ -49,7 +49,7 @@ public:
 	* @param Name	Event name
 	* @param Action action string
 	*/
-	UFUNCTION(BlueprintCallable, Category = "SocketIO Client Functions")
+	UFUNCTION(BlueprintCallable, Category = "SocketIO Functions")
 		void Bind(FString Name);
 
 protected:
