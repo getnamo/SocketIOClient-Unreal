@@ -4,15 +4,10 @@
 #include "SocketIOClientComponent.h"
 
 
-// Sets default values for this component's properties
-USocketIOClientComponent::USocketIOClientComponent()
+USocketIOClientComponent::USocketIOClientComponent(const FObjectInitializer &init) : UActorComponent(init)
 {
-	// Set this component to be initialized when the game starts, and to be ticked every frame.  You can turn these features
-	// off to improve performance if you don't need them.
-	bWantsBeginPlay = true;
-	PrimaryComponentTick.bCanEverTick = true;
-
-	// ...
+	bWantsInitializeComponent = true;
+	bAutoActivate = true;
 }
 
 std::string StdString(FString UEString)
@@ -40,7 +35,7 @@ void USocketIOClientComponent::Connect(FString AddressAndPort)
 void USocketIOClientComponent::Emit(FString Name, FString Data)
 {
 	PrivateClient.socket()->emit(StdString(Name), StdString(Data));
-	UE_LOG(LogTemp, Log, TEXT("Emit %s with %s"), *Name, *Data);
+	//UE_LOG(LogTemp, Log, TEXT("Emit %s with %s"), *Name, *Data);
 }
 
 void USocketIOClientComponent::Bind(FString Name)

@@ -14,8 +14,6 @@ class SOCKETIOCLIENT_API USocketIOClientComponent : public UActorComponent
 	GENERATED_UCLASS_BODY()
 public:
 
-	USocketIOClientComponent();
-
 	//Async events
 	/*UPROPERTY(BlueprintAssignable, Category = "SocketIO Events")
 		FSIOCConnectedEventSignature Connected;
@@ -38,7 +36,7 @@ public:
 	* Emit a string event with a string action
 	*
 	* @param Name	Event name
-	* @param Action action string
+	* @param Data Data string
 	*/
 	UFUNCTION(BlueprintCallable, Category = "SocketIO Functions")
 		void Emit(FString Name, FString Data);

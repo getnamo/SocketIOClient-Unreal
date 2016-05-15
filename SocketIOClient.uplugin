@@ -1,23 +1,21 @@
 {
 	"FileVersion": 3,
 	"Version": 1,
-	"VersionName": "1.0",
+	"VersionName": "0.1.1",
 	"FriendlyName": "SocketIOClient",
-	"Description": "",
+	"Description": "Socket IO C++ Client ported to UE4",
 	"Category": "Networking",
 	"CreatedBy": "UE4 London Meetup",
-	"CreatedByURL": "",
-	"DocsURL": "",
+	"CreatedByURL": "http://getnamo.com",
+	"DocsURL": "https://github.com/getnamo/socketio-client-ue4",
 	"MarketplaceURL": "",
 	"SupportURL": "",
 	"EnabledByDefault": false,
 	"CanContainContent": false,
-	"IsBetaVersion": false,
-	"Installed": false,
 	"Modules": [
 		{
 			"Name": "SocketIOClient",
-			"Type": "Developer",
+			"Type": "Runtime",
 			"LoadingPhase": "Default"
 		}
 	]
