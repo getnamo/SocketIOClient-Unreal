@@ -52,4 +52,10 @@ public:
 
 protected:
 	sio::client PrivateClient;
+
+private:
+	sio::packet_manager manager;
+	std::mutex packetLock;
+	sio::message::ptr getMessage(const std::string& json);
+	std::string getJson(sio::message::ptr msg);
 };

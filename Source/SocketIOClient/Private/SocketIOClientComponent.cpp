@@ -50,3 +50,52 @@ void USocketIOClientComponent::Bind(FString Name)
 		}, TStatId(), nullptr, ENamedThreads::GameThread);
 	}));
 }
+
+
+sio::message::ptr USocketIOClientComponent::getMessage(const std::string& json)
+{
+	std::lock_guard< std::mutex > guard(packetLock);
+	sio::message::ptr message;
+	manager.set_decode_callback([&](sio::packet const& p)
+	{
+		message = p.get_message();
+	});
+
+	// Magic message type / ID
+	std::string payload = std::string("42") + json;
+	manager.put_payload(payload);
+
+	manager.reset();
+	return message;
+}
+
+std::string USocketIOClientComponent::getJson(sio::message::ptr msg)
+{
+	std::lock_guard< std::mutex > guard(packetLock);
+	std::stringstream ss;
+	sio::packet packet("/", msg);
+	manager.encode(packet, [&](bool isBinary, std::shared_ptr<const std::string> const& json)
+	{
+		ss << *json;
+		assert(!isBinary);
+	});
+	manager.reset();
+
+	// Need to strip off the message type flags (typically '42',
+	// but there are other possible combinations).
+	std::string result = ss.str();
+	std::size_t indexList = result.find('[');
+	std::size_t indexObject = result.find('{');
+	std::size_t indexString = result.find('"');
+	std::size_t index = indexList;
+	if (indexObject != std::string::npos && indexObject < index)
+		index = indexObject;
+	if (indexString != std::string::npos && indexString < index)
+		index = indexString;
+
+	if (index == std::string::npos) {
+		std::cerr << "Error decoding json object" << std::endl << " Body: " << result << std::endl;
+		return "";
+	}
+	return result.substr(index);
+}
