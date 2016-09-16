@@ -1,6 +1,6 @@
 {
-	"Changelist" : 3005592,
-	"BuildId" : "c1c33ba4-a939-4ff3-8594-963bca445c4f",
+	"Changelist" : 3106830,
+	"BuildId" : "2db6c40c-6bcd-45e2-8f9a-8f54b2af5aeb",
 	"Modules" : 
 	{
 		"SocketIOClient" : "UE4Editor-SocketIOClient.dll"
