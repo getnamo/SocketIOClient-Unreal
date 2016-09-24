@@ -54,9 +54,9 @@ void USocketIOClientComponent::Bind(FString Name)
 
 sio::message::ptr USocketIOClientComponent::getMessage(const std::string& json)
 {
-	std::lock_guard< std::mutex > guard(packetLock);
+	//std::lock_guard< std::mutex > guard(packetLock);
 	sio::message::ptr message;
-	manager.set_decode_callback([&](sio::packet const& p)
+	/*manager.set_decode_callback([&](sio::packet const& p)
 	{
 		message = p.get_message();
 	});
@@ -65,16 +65,17 @@ sio::message::ptr USocketIOClientComponent::getMessage(const std::string& json)
 	std::string payload = std::string("42") + json;
 	manager.put_payload(payload);
 
-	manager.reset();
+	manager.reset();*/
 	return message;
 }
 
 std::string USocketIOClientComponent::getJson(sio::message::ptr msg)
 {
-	std::lock_guard< std::mutex > guard(packetLock);
-	std::stringstream ss;
-	sio::packet packet("/", msg);
-	manager.encode(packet, [&](bool isBinary, std::shared_ptr<const std::string> const& json)
+	std::string result;// = ss.str();
+	//std::lock_guard< std::mutex > guard(packetLock);
+	//std::stringstream ss;
+	//sio::packet packet("/", msg);
+	/*manager.encode(packet, [&](bool isBinary, std::shared_ptr<const std::string> const& json)
 	{
 		ss << *json;
 		assert(!isBinary);
@@ -96,6 +97,6 @@ std::string USocketIOClientComponent::getJson(sio::message::ptr msg)
 	if (index == std::string::npos) {
 		std::cerr << "Error decoding json object" << std::endl << " Body: " << result << std::endl;
 		return "";
-	}
-	return result.substr(index);
+	}*/
+	return result;//.substr(index);
 }
