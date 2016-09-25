@@ -2,6 +2,7 @@
 
 #include "SocketIOClientPrivatePCH.h"
 #include "SocketIOClientComponent.h"
+#include "SIOLambdaRunnable.h"
 
 
 USocketIOClientComponent::USocketIOClientComponent(const FObjectInitializer &init) : UActorComponent(init)
@@ -22,14 +23,17 @@ FString FStringFromStd(std::string StdString)
 
 void USocketIOClientComponent::Connect(FString AddressAndPort)
 {
-	if (!AddressAndPort.IsEmpty())
+	std::string StdAddressString = StdString(AddressAndPort);
+	if (AddressAndPort.IsEmpty())
 	{
-		PrivateClient.connect(StdString(AddressAndPort));
+		StdAddressString = "http://localhost:3000";
 	}
-	else
+
+	//Connect to the server on a background thread
+	FSIOLambdaRunnable::RunLambdaOnBackGroundThread([&]
 	{
-		PrivateClient.connect("http://localhost:3000");
-	}
+		PrivateClient.connect(StdAddressString);
+	});
 }
 
 void USocketIOClientComponent::Emit(FString Name, FString Data)

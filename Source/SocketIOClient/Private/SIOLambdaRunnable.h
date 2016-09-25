@@ -4,7 +4,7 @@
 Long duration lambda wrapper, which are generally not supported by the taskgraph system. New thread per lambda and they will auto-delete upon
 completion.
 */
-class FLambdaRunnable : public FRunnable
+class FSIOLambdaRunnable : public FRunnable
 {
 private:
 	/** Thread to run the worker FRunnable on */
@@ -24,8 +24,8 @@ public:
 	//~~~ Thread Core Functions ~~~
 
 	//Constructor / Destructor
-	FLambdaRunnable(TFunction< void()> InFunction);
-	virtual ~FLambdaRunnable();
+	FSIOLambdaRunnable(TFunction< void()> InFunction);
+	virtual ~FSIOLambdaRunnable();
 
 	// Begin FRunnable interface.
 	virtual bool Init();
@@ -40,7 +40,7 @@ public:
 	/*
 	Runs the passed lambda on the background thread, new thread per call
 	*/
-	static FLambdaRunnable* RunLambdaOnBackGroundThread(TFunction< void()> InFunction);
+	static FSIOLambdaRunnable* RunLambdaOnBackGroundThread(TFunction< void()> InFunction);
 
 	static void ShutdownThreads();
 };

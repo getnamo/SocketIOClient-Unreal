@@ -1,9 +1,9 @@
 #pragma once
 
-#include "ZipUtilityPrivatePCH.h"
-#include "LambdaRunnable.h"
+#include "SocketIOClientPrivatePCH.h"
+#include "SIOLambdaRunnable.h"
 
-uint64 FLambdaRunnable::ThreadNumber = 0;
+uint64 FSIOLambdaRunnable::ThreadNumber = 0;
 
 FSIOLambdaRunnable::FSIOLambdaRunnable(TFunction< void()> InFunction)
 {
