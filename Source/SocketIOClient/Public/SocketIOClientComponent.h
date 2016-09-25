@@ -39,7 +39,7 @@ public:
 	* @param Data Data string
 	*/
 	UFUNCTION(BlueprintCallable, Category = "SocketIO Functions")
-		void Emit(FString Name, FString Data);
+		void Emit(FString Name, FString Data, FString Namespace = FString(TEXT("/")));
 
 	/**
 	* Emit a string event with a string action
@@ -48,7 +48,7 @@ public:
 	* @param Action action string
 	*/
 	UFUNCTION(BlueprintCallable, Category = "SocketIO Functions")
-		void Bind(FString Name);
+		void Bind(FString Name, FString Namespace = FString(TEXT("/")));
 
 protected:
 	sio::client PrivateClient;

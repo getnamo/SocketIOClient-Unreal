@@ -36,15 +36,15 @@ void USocketIOClientComponent::Connect(FString AddressAndPort)
 	});
 }
 
-void USocketIOClientComponent::Emit(FString Name, FString Data)
+void USocketIOClientComponent::Emit(FString Name, FString Data, FString Namespace /* = FString(TEXT("/"))*/)
 {
-	PrivateClient.socket()->emit(StdString(Name), StdString(Data));
+	PrivateClient.socket(StdString(Namespace))->emit(StdString(Name), StdString(Data));
 	//UE_LOG(LogTemp, Log, TEXT("Emit %s with %s"), *Name, *Data);
 }
 
-void USocketIOClientComponent::Bind(FString Name)
+void USocketIOClientComponent::Bind(FString Name, FString Namespace /* = FString(TEXT("/"))*/)
 {
-	PrivateClient.socket()->on(StdString(Name), sio::socket::event_listener_aux([&](std::string const& name, sio::message::ptr const& data, bool isAck, sio::message::list &ack_resp) {
+	PrivateClient.socket(StdString(Namespace))->on(StdString(Name), sio::socket::event_listener_aux([&](std::string const& name, sio::message::ptr const& data, bool isAck, sio::message::list &ack_resp) {
 
 		const FString SafeName = FStringFromStd(name);
 		const FString SafeData = FStringFromStd(data->get_string());
