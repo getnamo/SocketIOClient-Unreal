@@ -83,6 +83,11 @@ FSIOLambdaRunnable* FSIOLambdaRunnable::RunLambdaOnBackGroundThread(TFunction< v
 	}
 }
 
+FGraphEventRef FSIOLambdaRunnable::RunShortLambdaOnGameThread(TFunction< void()> InFunction)
+{
+	return FFunctionGraphTask::CreateAndDispatchWhenReady(InFunction, TStatId(), nullptr, ENamedThreads::GameThread);
+}
+
 void FSIOLambdaRunnable::ShutdownThreads()
 {
 	/*for (auto Runnable : Runnables)
