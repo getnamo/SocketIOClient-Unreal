@@ -8,6 +8,7 @@ Uses [Socket.io prebuild libraries for VS2015](https://github.com/getnamo/socket
 [Unreal Forum Thread](https://forums.unrealengine.com/showthread.php?110680-Plugin-Socket-io-Client)
 
 
+Recommended socket.io server: 1.2+ for regular (e.g. JSON or string transport), 1.4+ if you're using Binary data transport.
 
 
 ## Quick Install & Setup ##
