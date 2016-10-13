@@ -118,11 +118,12 @@ public:
 	void BindLambdaToEvent(TFunction< void()> InFunction, FString Name, FString Namespace = FString(TEXT("/")));
 
 	//When you care about the data you get
-	void BindDataLambdaToEvent(TFunction< void(const FString&, const FString&)> InFunction, FString Name, FString Namespace = FString(TEXT("/")));
-
-	//Typically for binary data events
-	void BindRawMessageLambdaToEvent(TFunction< void(const FString&, const sio::message::ptr&)> InFunction, FString Name, FString Namespace = FString(TEXT("/")));
+	void BindStringMessageLambdaToEvent(TFunction< void(const FString&, const FString&)> InFunction, FString Name, FString Namespace = FString(TEXT("/")));
 	void BindBinaryMessageLambdaToEvent(TFunction< void(const FString&, const TArray<uint8>&)> InFunction, FString Name, FString Namespace = FString(TEXT("/")));
+
+	//Raw sio::message lambda
+	void BindRawMessageLambdaToEvent(TFunction< void(const FString&, const sio::message::ptr&)> InFunction, FString Name, FString Namespace = FString(TEXT("/")));
+
 
 protected:
 	sio::client PrivateClient;

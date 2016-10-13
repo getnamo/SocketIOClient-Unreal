@@ -99,7 +99,7 @@ void USocketIOClientComponent::EmitBuffer(FString Name, uint8* Data, int32 DataL
 
 void USocketIOClientComponent::BindEvent(FString Name, FString Namespace /*= FString(TEXT("/"))*/)
 {
-	BindDataLambdaToEvent([&](const FString& EventName, const FString& EventData)
+	BindStringMessageLambdaToEvent([&](const FString& EventName, const FString& EventData)
 	{
 		On.Broadcast(EventName, EventData);
 	}, Name, Namespace);
@@ -137,7 +137,7 @@ void USocketIOClientComponent::BindLambdaToEvent(TFunction< void()> InFunction, 
 	}));
 }
 
-void USocketIOClientComponent::BindDataLambdaToEvent(
+void USocketIOClientComponent::BindStringMessageLambdaToEvent(
 	TFunction< void(const FString&, const FString&)> InFunction,
 	FString Name, FString Namespace /*= FString(TEXT("/"))*/)
 {

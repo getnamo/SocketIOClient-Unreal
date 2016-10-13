@@ -1,7 +1,7 @@
 {
 	"FileVersion": 3,
 	"Version": 1,
-	"VersionName": "0.2.1",
+	"VersionName": "0.2.2",
 	"FriendlyName": "SocketIOClient",
 	"Description": "Socket IO C++ Client ported to UE4",
 	"Category": "Networking",
