@@ -30,7 +30,7 @@ Specify your address and port, defaults to localhost (127.0.0.1) at port 3000
 
 ![IMG](http://i.imgur.com/rjm2pKw.png)
 
-Call bind for each event you wish the client to subscribe, e.g. 'chat message'
+Call *Bind Event* for each event you wish the client to subscribe, e.g. 'chat message'
 
 If you expect to receive events, select your component and in the Details pane press the + to add an 'On' event to your event graph
 
@@ -43,6 +43,118 @@ Handle this event for your event types, e.g. printing 'chat message' event strin
 If you want to send information to the server, emit events on the SocketIO Client Component, e.g. pressing M to emit a 'chat message' string
 
 ![IMG](http://i.imgur.com/EOadatA.png)
+
+## How to use - C++
+
+### Setup
+
+To use the C++ code from the plugin add it as a dependency module in your project build.cs
+
+```PublicDependencyModuleNames.AddRange(new string[] { "Core", "CoreUObject", "Engine", "InputCore", "SocketIOClient"});```
+
+```#include "SocketIOClientComponent.h"``` and add *USocketIoClientComponent* to your actor of choice or reference it from another component by getting it on begin play e.g.
+
+```
+SIOComponent = Cast<USocketIOClientComponent>(this->GetOwner()->GetComponentByClass(USocketIOClientComponent::StaticClass()));
+if (!SIOComponent)
+{
+	UE_LOG(LogTemp, Warning, TEXT("No sister socket IO component found"));
+	return;
+}
+else
+{
+	UE_LOG(LogTemp, Log, TEXT("Found SIOComponent: %s"), *SIOComponent->GetDesc());
+}
+```
+
+### Connect / Disconnect
+
+To connect simply change your address, the component will auto-connect on component initialization.
+
+
+```
+USocketIOClientComponent* SIOComponent; //get a reference or add as subobject in your actor
+
+//the component will autoconnect, but you may wish to change the url before it does that via
+SIOComponent->AddressAndPort = FString("http://127.0.0.1:3000"); //change your address
+```
+
+You can also connect at your own time of choosing by disabling auto-connect and connecting either to the default address or one of your choosing
+
+```
+//you can also disable auto connect and connect it at your own time via
+SIOComponent->ShouldAutoConnect = false;
+SIOComponent->Connect(); 
+
+//You can also easily disconnect at some point, reconnect to another address
+SIOComponent->Disconnect();
+SIOComponent->Connect(FString("http://127.0.0.1:3000"));
+```
+
+### Emitting Events
+
+####String
+
+```SIOComponent->Emit(FString("myevent"), FString(TEXT("some data or stringified json"));```
+
+####Binary or raw data
+
+```
+TArray<uint8> Buffer;
+
+//fill buffer with your data
+
+SIOComponent->EmitBuffer(FString("myBinarySendEvent"), Buffer.GetData(), Buffer.Num());
+```
+
+####Complex message using sio::message
+
+see [sio::message](https://github.com/socketio/socket.io-client-cpp/blob/master/src/sio_message.h) for how to form a raw message. Generally it supports a lot of std:: variants e.g. std::string or more complex messages e.g. [socket.io c++ emit readme](https://github.com/socketio/socket.io-client-cpp#emit-an-event)
+
+```
+SIOComponent->EmitRaw(FString("myRawMessageEvent"), std::make_shared<std::string>(buf,100));
+```
+
+with a callback
+
+```
+SIOComponent->EmitRawWithCallback(FString("myRawMessageEventWithAck"), string_message::create(username), [&](message::list const& msg) {
+	//got data, handle it here
+});```
+
+
+### Receiving Events
+
+To receive events you can bind lambdas which makes things awesomely easy e.g.
+
+#### String
+
+```
+SIOComponent->BindDataLambdaToEvent([&](const FString& Name, const FString& Data)
+		{
+			//do something with your string data
+		}, FString(TEXT("myStringReceiveEvent")));
+```
+
+#### Binary
+
+```
+SIOComponent->BindBinaryMessageLambdaToEvent([&](const FString& Name, const TArray<uint8>& Buffer)
+		{
+			//Do something with your buffer
+		}, FString(TEXT("myBinaryReceiveEvent")));
+```
+
+####Complex message using sio::message
+
+Currently the only way to handle json messages as the plugin doesn't auto-convert json types to UE4 types (contribute!)
+
+```
+SIOComponent->BindRawMessageLambdaToEvent([&](const FString& Name, const sio::message::ptr&)
+		{
+			//do something with your sio::message::ptr data 
+		}, FString(TEXT("myArbitraryReceiveEvent")));
+```
 
 ## License
 
