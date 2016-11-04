@@ -26,7 +26,7 @@ FString USocketIOClientComponent::FStringFromStd(std::string StdString)
 void USocketIOClientComponent::Connect(FString InAddressAndPort)
 {
 	std::string StdAddressString = StdString(InAddressAndPort);
-	if (AddressAndPort.IsEmpty())
+	if (InAddressAndPort.IsEmpty())
 	{
 		StdAddressString = StdString(AddressAndPort);
 	}
