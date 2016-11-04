@@ -135,7 +135,7 @@ To receive events you can bind lambdas which makes things awesomely easy e.g.
 #### String
 
 ```
-SIOComponent->BindDataLambdaToEvent([&](const FString& Name, const FString& Data)
+SIOComponent->BindStringMessageLambdaToEvent([&](const FString& Name, const FString& Data)
 		{
 			//do something with your string data
 		}, FString(TEXT("myStringReceiveEvent")));
