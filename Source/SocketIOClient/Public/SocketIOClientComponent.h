@@ -96,11 +96,15 @@ public:
 	* @param Data Data string
 	*/
 	UFUNCTION(BlueprintCallable, Category = "SocketIO Functions")
-	void Emit(FString Name, FString Data, FString Namespace = FString(TEXT("/")));
+	void Emit(FString Name, FString Data = FString(TEXT("")), FString Namespace = FString(TEXT("/")));
 
 	//Binary data version, only available in C++
 	void EmitBuffer(FString Name, uint8* Data, int32 DataLength, FString Namespace = FString(TEXT("/")));
 
+	//Raw sio::message emit, only available in C++
+	void EmitRaw(FString Name, const sio::message::list& MessageList = nullptr, FString Namespace = FString(TEXT("/")));
+	void EmitRawWithCallback(FString Name, const sio::message::list& MessageList = nullptr, TFunction<void(const sio::message::list&)> ResponseFunction = nullptr, FString Namespace = FString(TEXT("/")));
+	
 	/**
 	* Emit a string event with a string action
 	*
@@ -123,7 +127,13 @@ public:
 
 	//Raw sio::message lambda
 	void BindRawMessageLambdaToEvent(TFunction< void(const FString&, const sio::message::ptr&)> InFunction, FString Name, FString Namespace = FString(TEXT("/")));
+	
 
+
+
+	//Convenience conversion
+	static std::string StdString(FString UEString);
+	static FString FStringFromStd(std::string StdString);
 
 protected:
 	sio::client PrivateClient;

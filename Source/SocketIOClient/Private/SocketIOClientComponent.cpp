@@ -14,15 +14,14 @@ USocketIOClientComponent::USocketIOClientComponent(const FObjectInitializer &ini
 	SessionId = FString(TEXT("invalid"));
 }
 
-std::string StdString(FString UEString)
+std::string USocketIOClientComponent::StdString(FString UEString)
 {
 	return std::string(TCHAR_TO_UTF8(*UEString));	//TCHAR_TO_ANSI try this string instead?
 }
-FString FStringFromStd(std::string StdString)
+FString USocketIOClientComponent::FStringFromStd(std::string StdString)
 {
 	return FString(StdString.c_str());
 }
-
 
 void USocketIOClientComponent::Connect(FString InAddressAndPort)
 {
@@ -97,6 +96,25 @@ void USocketIOClientComponent::EmitBuffer(FString Name, uint8* Data, int32 DataL
 	PrivateClient.socket(StdString(Namespace))->emit(StdString(Name), std::make_shared<std::string>((char*)Data, DataLength));
 }
 
+void USocketIOClientComponent::EmitRaw(FString Name, const sio::message::list& MessageList, FString Namespace)
+{
+	PrivateClient.socket(StdString(Namespace))->emit(StdString(Name), MessageList);
+}
+
+//todo: collapse all of this into a single usable Emit
+void USocketIOClientComponent::EmitRawWithCallback(FString Name, const sio::message::list& MessageList, TFunction<void(const sio::message::list&)> ResponseFunction, FString Namespace)
+{
+	const TFunction<void(const sio::message::list&)> SafeFunction = ResponseFunction;
+
+	PrivateClient.socket(StdString(Namespace))->emit(StdString(Name), MessageList, [&, SafeFunction](const sio::message::list& response) {
+		//Call on gamethread
+		FFunctionGraphTask::CreateAndDispatchWhenReady([&, SafeFunction, response]
+		{
+			SafeFunction(response);
+		}, TStatId(), nullptr, ENamedThreads::GameThread);
+	});
+}
+
 void USocketIOClientComponent::BindEvent(FString Name, FString Namespace /*= FString(TEXT("/"))*/)
 {
 	BindStringMessageLambdaToEvent([&](const FString& EventName, const FString& EventData)
@@ -149,9 +167,33 @@ void USocketIOClientComponent::BindStringMessageLambdaToEvent(
 			[&, SafeFunction](std::string const& name, sio::message::ptr const& data, bool isAck, sio::message::list &ack_resp)
 	{
 		const FString SafeName = FStringFromStd(name);
+		FString TempData;
 		
+		//Convert number messages into strings, only supported bypass for now
+		if (data->get_flag() == data->flag_string)
+		{
+			TempData = FStringFromStd(data->get_string());
+		}
+		else if (data->get_flag() == data->flag_integer)
+		{
+			TempData = FStringFromStd(std::to_string(data->get_int()));
+		}
+		else if (data->get_flag() == data->flag_double)
+		{
+			TempData = FStringFromStd(std::to_string(data->get_double()));
+		}
+		else if (data->get_flag() == data->flag_boolean)
+		{
+			TempData = FStringFromStd(std::to_string(data->get_bool()));
+		}
+		else
+		{
+			TempData = FString(TEXT(""));
+			UE_LOG(LogTemp, Warning, TEXT("SocketIOClientComponent Unsupported data type for BindStringMessageLambdaToEvent, use C++ events for now."));
+		}
+
 		//Todo: modify data->get_string() to stringify if data is an object or binary
-		const FString SafeData = (data != nullptr) ? FStringFromStd(data->get_string()) : FString(TEXT(""));
+		const FString& SafeData = TempData;
 
 		FFunctionGraphTask::CreateAndDispatchWhenReady([&, SafeFunction, SafeName, SafeData]
 		{
