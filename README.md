@@ -95,11 +95,16 @@ SIOComponent->Connect(FString("http://127.0.0.1:3000"));
 
 ####String
 
+Emit a string via
+
 ```SIOComponent->Emit(FString("myevent"), FString(TEXT("some data or stringified json"));```
 
 ####Binary or raw data
 
-```TArray<uint8> Buffer;
+Emit raw data via
+
+```
+TArray<uint8> Buffer;
 
 //fill buffer with your data
 
