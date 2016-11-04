@@ -163,10 +163,26 @@ SIOComponent->BindBinaryMessageLambdaToEvent([&](const FString& Name, const TArr
 
 Currently the only way to handle json messages as the plugin doesn't auto-convert json types to UE4 types (contribute!). See [sio::message](https://github.com/socketio/socket.io-client-cpp/blob/master/src/sio_message.h) or [socket.io c++ readme](https://github.com/socketio/socket.io-client-cpp#emit-an-event) for examples.
 
+e.g. expecting a result {type:"some type"}
+
 ```
-SIOComponent->BindRawMessageLambdaToEvent([&](const FString& Name, const sio::message::ptr&)
+SIOComponent->BindRawMessageLambdaToEvent([&](const FString& Name, const sio::message::ptr& Message)
 		{
-			//do something with your sio::message::ptr data 
+		        //if you expected an object e.g. {}
+			if (Message->get_flag() != sio::message::flag_object)
+			{
+				UE_LOG(LogTemp, Warning, TEXT("Warning! event did not receive expected Object."));
+				return;
+			}
+			auto MessageMap = Message->get_map();
+			
+			//use the map to decode an object member e.g. type string
+			auto typeObject = MessageMap["type"];
+			if (uriObject->get_flag() == uriObject->flag_string)
+			{
+				FString TypeValue = USocketIOClientComponent::FStringFromStd(typeObject->get_string());
+			}
+			
 		}, FString(TEXT("myArbitraryReceiveEvent")));
 ```
 
