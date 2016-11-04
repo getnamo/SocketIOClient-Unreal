@@ -152,7 +152,7 @@ SIOComponent->BindBinaryMessageLambdaToEvent([&](const FString& Name, const TArr
 
 ####Complex message using sio::message
 
-Currently the only way to handle json messages as the plugin doesn't auto-convert json types to UE4 types (contribute!)
+Currently the only way to handle json messages as the plugin doesn't auto-convert json types to UE4 types (contribute!). See [sio::message](https://github.com/socketio/socket.io-client-cpp/blob/master/src/sio_message.h) or [socket.io c++ readme](https://github.com/socketio/socket.io-client-cpp#emit-an-event) for examples.
 
 ```
 SIOComponent->BindRawMessageLambdaToEvent([&](const FString& Name, const sio::message::ptr&)
