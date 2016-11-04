@@ -99,8 +99,7 @@ SIOComponent->Connect(FString("http://127.0.0.1:3000"));
 
 ####Binary or raw data
 
-```
-TArray<uint8> Buffer;
+```TArray<uint8> Buffer;
 
 //fill buffer with your data
 
@@ -120,7 +119,8 @@ with a callback
 ```
 SIOComponent->EmitRawWithCallback(FString("myRawMessageEventWithAck"), string_message::create(username), [&](message::list const& msg) {
 	//got data, handle it here
-});```
+});
+```
 
 
 ### Receiving Events
