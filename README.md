@@ -176,11 +176,13 @@ SIOComponent->BindRawMessageLambdaToEvent([&](const FString& Name, const sio::me
 			}
 			auto MessageMap = Message->get_map();
 			
-			//use the map to decode an object member e.g. type string
-			auto typeObject = MessageMap["type"];
-			if (uriObject->get_flag() == uriObject->flag_string)
+			//use the map to decode an object key e.g. type string
+			auto typeMessage = MessageMap["type"];
+			if (typeMessage->get_flag() == typeMessage->flag_string)
 			{
-				FString TypeValue = USocketIOClientComponent::FStringFromStd(typeObject->get_string());
+				FString TypeValue = USocketIOClientComponent::FStringFromStd(typeMessage->get_string());
+				
+				//do something with your received type value!
 			}
 			
 		}, FString(TEXT("myArbitraryReceiveEvent")));
