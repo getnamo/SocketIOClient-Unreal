@@ -115,8 +115,17 @@ SIOComponent->EmitBuffer(FString("myBinarySendEvent"), Buffer.GetData(), Buffer.
 
 see [sio::message](https://github.com/socketio/socket.io-client-cpp/blob/master/src/sio_message.h) for how to form a raw message. Generally it supports a lot of std:: variants e.g. std::string or more complex messages e.g. [socket.io c++ emit readme](https://github.com/socketio/socket.io-client-cpp#emit-an-event)
 
+e.g. emitting {type:"image"} object
+
 ```
-SIOComponent->EmitRaw(FString("myRawMessageEvent"), std::make_shared<std::string>(buf,100));
+//create object message
+auto message = sio::object_message::create();
+
+//set map property string
+message->get_map()["type"] = sio::string_message::create(std::string("image"));
+
+//emit message
+SIOComponent->EmitRaw(ShareResourceEventName, message);
 ```
 
 with a callback
