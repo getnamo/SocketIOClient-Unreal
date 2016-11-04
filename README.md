@@ -52,7 +52,13 @@ To use the C++ code from the plugin add it as a dependency module in your projec
 
 ```PublicDependencyModuleNames.AddRange(new string[] { "Core", "CoreUObject", "Engine", "InputCore", "SocketIOClient"});```
 
-```#include "SocketIOClientComponent.h"``` and add *USocketIoClientComponent* to your actor of choice or reference it from another component by getting it on begin play e.g.
+```#include "SocketIOClientComponent.h"``` and add *USocketIoClientComponent* to your actor of choice via e.g. a UProperty
+
+and *CreateDefaultSubobject* in your constructor
+
+```SocketIOClientComponent = CreateDefaultSubobject<USocketIOClientComponent>(TEXT("SocketIOClientComponent"));```
+
+or reference it from another component by getting it on begin play e.g.
 
 ```
 SIOComponent = Cast<USocketIOClientComponent>(this->GetOwner()->GetComponentByClass(USocketIOClientComponent::StaticClass()));
@@ -79,7 +85,7 @@ USocketIOClientComponent* SIOComponent; //get a reference or add as subobject in
 SIOComponent->AddressAndPort = FString("http://127.0.0.1:3000"); //change your address
 ```
 
-You can also connect at your own time of choosing by disabling auto-connect and connecting either to the default address or one of your choosing
+You can also connect at your own time by disabling auto-connect and connecting either to the default address or a custom one
 
 ```
 //you can also disable auto connect and connect it at your own time via
