@@ -121,8 +121,11 @@ SIOComponent->EmitBuffer(FString("myBinarySendEvent"), Buffer.GetData(), Buffer.
 
 see [sio::message](https://github.com/socketio/socket.io-client-cpp/blob/master/src/sio_message.h) for how to form a raw message. Generally it supports a lot of std:: variants e.g. std::string or more complex messages e.g. [socket.io c++ emit readme](https://github.com/socketio/socket.io-client-cpp#emit-an-event). Note that there are static helper functions attached to the component class to convert from std::string to FString and the reverse.
 
-```	static std::string StdString(FString UEString);
-	static FString FStringFromStd(std::string StdString);```
+```
+static std::string StdString(FString UEString);
+
+static FString FStringFromStd(std::string StdString);
+```
 	
 
 e.g. emitting {type:"image"} object
