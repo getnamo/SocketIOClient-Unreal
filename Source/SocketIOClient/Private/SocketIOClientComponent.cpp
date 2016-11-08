@@ -76,20 +76,29 @@ void USocketIOClientComponent::Connect(FString InAddressAndPort)
 
 void USocketIOClientComponent::Disconnect()
 {
-	if (PrivateClient.opened())
+	FSIOLambdaRunnable::RunLambdaOnBackGroundThread([&]
 	{
-		PrivateClient.socket()->off_all();
-		PrivateClient.socket()->off_error();
-		PrivateClient.close();
-	}
+		if (PrivateClient.opened())
+		{
+			PrivateClient.socket()->off_all();
+			PrivateClient.socket()->off_error();
+			PrivateClient.close();
+		}
+	});
 }
 
-void USocketIOClientComponent::Emit(FString Name, FString Data, FString Namespace /* = FString(TEXT("/"))*/)
+void USocketIOClientComponent::EmitString(FString Name, FString Data, FString Namespace /* = FString(TEXT("/"))*/)
 {
 	PrivateClient.socket(StdString(Namespace))->emit(StdString(Name), StdString(Data));
 	//UE_LOG(LogTemp, Log, TEXT("Emit %s with %s"), *Name, *Data);
 }
 
+
+void USocketIOClientComponent::Emit(FString Name, UVaRestJsonValue* Data, FString Namespace /*= FString(TEXT("/"))*/)
+{
+	//Todo: convert va json to FJsonValue and emit
+	//PrivateClient.socket(StdString(Namespace))->emit(StdString(Name), StdString(Data));
+}
 
 void USocketIOClientComponent::EmitBuffer(FString Name, uint8* Data, int32 DataLength, FString Namespace /*= FString(TEXT("/"))*/)
 {
@@ -115,14 +124,39 @@ void USocketIOClientComponent::EmitRawWithCallback(FString Name, const sio::mess
 	});
 }
 
-void USocketIOClientComponent::BindEvent(FString Name, FString Namespace /*= FString(TEXT("/"))*/)
+/*void USocketIOClientComponent::BindEvent(FString Name, FString Namespace )
 {
 	BindStringMessageLambdaToEvent([&](const FString& EventName, const FString& EventData)
 	{
 		On.Broadcast(EventName, EventData);
 	}, Name, Namespace);
+}*/
+
+
+void USocketIOClientComponent::OnEvent(FString Event, TFunction< void(const FString&, const sio::message::ptr&)> CallbackFunction, FString Namespace)
+{
+	const TFunction< void(const FString&, const sio::message::ptr&)> SafeFunction = CallbackFunction;	//copy the function so it remains in context
+
+	PrivateClient.socket(StdString(Namespace))->on(
+		StdString(Event),
+		sio::socket::event_listener_aux(
+			[&, SafeFunction](std::string const& name, sio::message::ptr const& data, bool isAck, sio::message::list &ack_resp)
+	{
+		const FString SafeName = FStringFromStd(name);
+
+		FFunctionGraphTask::CreateAndDispatchWhenReady([&, SafeFunction, SafeName, data]
+		{
+			SafeFunction(SafeName, data);
+		}, TStatId(), nullptr, ENamedThreads::GameThread);
+	}));
 }
 
+/*
+void USocketIOClientComponent::OnEvent(FString Event, FSIOCEventSignature CallbackEvent)
+{
+
+}
+*/
 
 void USocketIOClientComponent::InitializeComponent()
 {

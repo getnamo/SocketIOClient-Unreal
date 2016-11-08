@@ -42,6 +42,9 @@ DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FSIOCSocketEventSignature, FString, 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FSIOCOpenEventSignature, FString, SessionId);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FSIOCCloseEventSignature, TEnumAsByte<EConnectionCloseReason>, Reason);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FSIOCNameDataEventSignature, FString, Name, FString, Data);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FSIOCEventJsonSignature, FString, Name, FString, Data);
+
+//todo swap with fjsonvalue
 
 UCLASS(ClassGroup = "Networking", meta = (BlueprintSpawnableComponent))
 class SOCKETIOCLIENT_API USocketIOClientComponent : public UActorComponent
@@ -96,7 +99,10 @@ public:
 	* @param Data Data string
 	*/
 	UFUNCTION(BlueprintCallable, Category = "SocketIO Functions")
-	void Emit(FString Name, FString Data = FString(TEXT("")), FString Namespace = FString(TEXT("/")));
+	void EmitString(FString Name, FString Data = FString(TEXT("")), FString Namespace = FString(TEXT("/")));
+
+	UFUNCTION(BlueprintCallable, Category = "SocketIO Functions")
+	void Emit(FString Name, UVaRestJsonValue* Data, FString Namespace = FString(TEXT("/")));
 
 	//Binary data version, only available in C++
 	void EmitBuffer(FString Name, uint8* Data, int32 DataLength, FString Namespace = FString(TEXT("/")));
@@ -111,8 +117,16 @@ public:
 	* @param Name		Event name
 	* @param Namespace	Optional namespace, defaults to default namespace
 	*/
-	UFUNCTION(BlueprintCallable, Category = "SocketIO Functions")
-	void BindEvent(FString Name, FString Namespace = FString(TEXT("/")));
+	//UFUNCTION(BlueprintCallable, Category = "SocketIO Functions")
+	//void BindEvent(FString Name, FString Namespace = FString(TEXT("/")));
+
+
+	//UFUNCTION(Category = "SocketIO Functions")
+	void OnEvent(FString Event, TFunction< void(const FString&, const sio::message::ptr&)> CallbackFunction, FString Namespace = FString(TEXT("/")));
+
+	//Blueprint
+	//UFUNCTION(BlueprintCallable, Category = "SocketIO Functions")
+	//void OnEvent(FString Event, TFunction< void()> InFunction);
 
 
 	virtual void InitializeComponent() override;
