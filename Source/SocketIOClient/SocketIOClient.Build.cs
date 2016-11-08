@@ -68,6 +68,7 @@ namespace UnrealBuildTool.Rules
                 {
                 "Core",
                 "JSON",
+                "VaRestPlugin"
                     // ... add other public dependencies that you statically link with here ...
                 }
                 );
