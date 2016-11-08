@@ -1,7 +1,7 @@
 {
 	"FileVersion": 3,
 	"Version": 1,
-	"VersionName": "0.2.5",
+	"VersionName": "0.2.6",
 	"FriendlyName": "SocketIOClient",
 	"Description": "Socket IO C++ Client ported to UE4",
 	"Category": "Networking",
@@ -13,6 +13,15 @@
 	"EnabledByDefault": false,
 	"CanContainContent": false,
 	"Modules": [
+		{
+			"Name" : "VaRestPlugin",
+			"Type" : "Runtime",
+			"LoadingPhase": "PreDefault"
+		},
+		{
+			"Name": "VaRestEditorPlugin",
+			"Type": "Developer"
+		},
 		{
 			"Name": "SocketIOClient",
 			"Type": "Runtime",
