@@ -79,28 +79,28 @@ void USocketIOClientComponent::Disconnect()
 	});
 }
 
-void USocketIOClientComponent::EmitString(FString Name, FString Data, FString Namespace /* = FString(TEXT("/"))*/)
+/*void USocketIOClientComponent::EmitString(FString Name, FString Data, FString Namespace )
 {
 	PrivateClient.socket(USIOJsonConverter::StdString(Namespace))->emit(USIOJsonConverter::StdString(Name), USIOJsonConverter::StdString(Data));
 	//UE_LOG(LogTemp, Log, TEXT("Emit %s with %s"), *Name, *Data);
-}
-
+}*/
 
 void USocketIOClientComponent::Emit(FString Name, UVaRestJsonValue* Data, FString Namespace /*= FString(TEXT("/"))*/)
 {
-	//Todo: convert va json to FJsonValue and emit
-	//PrivateClient.socket(StdString(Namespace))->emit(StdString(Name), StdString(Data));
+	PrivateClient.socket(USIOJsonConverter::StdString(Namespace))->emit(
+		USIOJsonConverter::StdString(Name),
+		USIOJsonConverter::ToSIOMessage(Data->GetRootValue()));
 }
 
-void USocketIOClientComponent::EmitBuffer(FString Name, uint8* Data, int32 DataLength, FString Namespace /*= FString(TEXT("/"))*/)
+void USocketIOClientComponent::EmitBinary(FString Name, uint8* Data, int32 DataLength, FString Namespace /*= FString(TEXT("/"))*/)
 {
 	PrivateClient.socket(USIOJsonConverter::StdString(Namespace))->emit(USIOJsonConverter::StdString(Name), std::make_shared<std::string>((char*)Data, DataLength));
 }
 
-void USocketIOClientComponent::EmitRaw(FString Name, const sio::message::list& MessageList, FString Namespace)
+/*void USocketIOClientComponent::EmitRaw(FString Name, const sio::message::list& MessageList, FString Namespace)
 {
 	PrivateClient.socket(USIOJsonConverter::StdString(Namespace))->emit(USIOJsonConverter::StdString(Name), MessageList);
-}
+}*/
 
 //todo: collapse all of this into a single usable Emit
 void USocketIOClientComponent::EmitRawWithCallback(FString Name, const sio::message::list& MessageList, TFunction<void(const sio::message::list&)> ResponseFunction, FString Namespace)

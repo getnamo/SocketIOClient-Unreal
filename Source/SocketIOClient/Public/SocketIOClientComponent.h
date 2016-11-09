@@ -98,21 +98,20 @@ public:
 	* @param Name	Event name
 	* @param Data Data string
 	*/
-	UFUNCTION(BlueprintCallable, Category = "SocketIO Functions")
-	void EmitString(FString Name, FString Data = FString(TEXT("")), FString Namespace = FString(TEXT("/")));
+	//UFUNCTION(BlueprintCallable, Category = "SocketIO Functions")
+	//void EmitString(FString Name, FString Data = FString(TEXT("")), FString Namespace = FString(TEXT("/")));
 
 	UFUNCTION(BlueprintCallable, Category = "SocketIO Functions")
 	void Emit(FString Name, UVaRestJsonValue* Data, FString Namespace = FString(TEXT("/")));
 
 	//Binary data version, only available in C++
-	void EmitBuffer(FString Name, uint8* Data, int32 DataLength, FString Namespace = FString(TEXT("/")));
+	void EmitBinary(FString Name, uint8* Data, int32 DataLength, FString Namespace = FString(TEXT("/")));
 
 	//Raw sio::message emit, only available in C++
-	void EmitRaw(FString Name, const sio::message::list& MessageList = nullptr, FString Namespace = FString(TEXT("/")));
+	//void EmitRaw(FString Name, const sio::message::list& MessageList = nullptr, FString Namespace = FString(TEXT("/")));
 	void EmitRawWithCallback(FString Name, const sio::message::list& MessageList = nullptr, TFunction<void(const sio::message::list&)> ResponseFunction = nullptr, FString Namespace = FString(TEXT("/")));
 	
-
-
+	
 	/**
 	* Emit a message
 	*
@@ -120,8 +119,7 @@ public:
 	* @param TFunction	Lambda callback, raw flavor
 	* @param Namespace	Optional namespace, defaults to default namespace
 	*/
-
-
+	
 	void OnRawEvent(FString Event, TFunction< void(const FString&, const sio::message::ptr&)> CallbackFunction, FString Namespace = FString(TEXT("/")));
 	void OnEvent(FString Event, TFunction< void(const FString&, const FJsonValue&)> CallbackFunction, FString Namespace = FString(TEXT("/")));
 
