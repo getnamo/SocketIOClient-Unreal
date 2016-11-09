@@ -99,9 +99,8 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "SocketIO Functions")
 	void Emit(FString EventName, UVaRestJsonValue* Message, FString Namespace = FString(TEXT("/")));
 
-	//Binary data version, only available in C++
-	void EmitBinary(FString EventName, uint8* Data, int32 DataLength, FString Namespace = FString(TEXT("/")));
 
+	//Emit Json value object with callback. C++ only convenience emit event.
 	void EmitEvent(	FString EventName,
 					UVaRestJsonValue* Message = nullptr,
 					TFunction< void(const FString&, const TArray<TSharedPtr<FJsonValue>>&)> CallbackFunction = nullptr,
@@ -112,6 +111,9 @@ public:
 								const sio::message::list& MessageList = nullptr,
 								TFunction<void(const sio::message::list&)> ResponseFunction = nullptr, 
 								FString Namespace = FString(TEXT("/")));
+
+	//Binary data version, only available in C++
+	void EmitBinary(FString EventName, uint8* Data, int32 DataLength, FString Namespace = FString(TEXT("/")));
 	
 	
 

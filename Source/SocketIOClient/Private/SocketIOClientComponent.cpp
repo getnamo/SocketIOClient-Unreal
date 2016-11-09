@@ -107,11 +107,6 @@ void USocketIOClientComponent::Emit(FString Name, UVaRestJsonValue* Message, FSt
 		USIOJsonConverter::ToSIOMessage(Message->GetRootValue()));
 }
 
-void USocketIOClientComponent::EmitBinary(FString Name, uint8* Data, int32 DataLength, FString Namespace /*= FString(TEXT("/"))*/)
-{
-	PrivateClient.socket(USIOJsonConverter::StdString(Namespace))->emit(USIOJsonConverter::StdString(Name), std::make_shared<std::string>((char*)Data, DataLength));
-}
-
 void USocketIOClientComponent::EmitEvent(FString EventName, UVaRestJsonValue* Message /*= nullptr*/, TFunction< void(const FString&, const TArray<TSharedPtr<FJsonValue>>&)> CallbackFunction /*= nullptr*/, FString Namespace /*= FString(TEXT("/"))*/)
 {
 	EmitRawWithCallback(
@@ -142,6 +137,11 @@ void USocketIOClientComponent::EmitRawWithCallback(FString Name, const sio::mess
 			SafeFunction(response);
 		}, TStatId(), nullptr, ENamedThreads::GameThread);
 	});
+}
+
+void USocketIOClientComponent::EmitBinary(FString Name, uint8* Data, int32 DataLength, FString Namespace /*= FString(TEXT("/"))*/)
+{
+	PrivateClient.socket(USIOJsonConverter::StdString(Namespace))->emit(USIOJsonConverter::StdString(Name), std::make_shared<std::string>((char*)Data, DataLength));
 }
 
 #pragma endregion Emit
