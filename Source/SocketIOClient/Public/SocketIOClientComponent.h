@@ -42,11 +42,7 @@ DECLARE_DYNAMIC_MULTICAST_DELEGATE(FSIOCEventSignature);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FSIOCSocketEventSignature, FString, Namespace);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FSIOCOpenEventSignature, FString, SessionId);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FSIOCCloseEventSignature, TEnumAsByte<EConnectionCloseReason>, Reason);
-
-//DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FSIOCNameDataEventSignature, FString, Name, FString, Data);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FSIOCEventJsonSignature, FString, Name, class UVaRestJsonValue*, JsonValue);
-
-//todo swap with fjsonvalue
 
 UCLASS(ClassGroup = "Networking", meta = (BlueprintSpawnableComponent))
 class SOCKETIOCLIENT_API USocketIOClientComponent : public UActorComponent
@@ -101,51 +97,64 @@ public:
 	* @param Data	Data VaRestJsonValue
 	*/
 	UFUNCTION(BlueprintCallable, Category = "SocketIO Functions")
-	void Emit(FString Name, UVaRestJsonValue* Data, FString Namespace = FString(TEXT("/")));
+	void Emit(FString EventName, UVaRestJsonValue* Message, FString Namespace = FString(TEXT("/")));
 
 	//Binary data version, only available in C++
-	void EmitBinary(FString Name, uint8* Data, int32 DataLength, FString Namespace = FString(TEXT("/")));
+	void EmitBinary(FString EventName, uint8* Data, int32 DataLength, FString Namespace = FString(TEXT("/")));
+
+	void EmitEvent(	FString EventName,
+					UVaRestJsonValue* Message = nullptr,
+					TFunction< void(const FString&, const TArray<TSharedPtr<FJsonValue>>&)> CallbackFunction = nullptr,
+					FString Namespace = FString(TEXT("/")));
 
 	//Raw sio::message emit, only available in C++
-	//void EmitRaw(FString Name, const sio::message::list& MessageList = nullptr, FString Namespace = FString(TEXT("/")));
-	void EmitRawWithCallback(FString Name, const sio::message::list& MessageList = nullptr, TFunction<void(const sio::message::list&)> ResponseFunction = nullptr, FString Namespace = FString(TEXT("/")));
+	void EmitRawWithCallback(	FString EventName,
+								const sio::message::list& MessageList = nullptr,
+								TFunction<void(const sio::message::list&)> ResponseFunction = nullptr, 
+								FString Namespace = FString(TEXT("/")));
 	
 	
-	
-	/**
-	* Call function callback on receiving raw event. C++ only.
-	*
-	* @param Event		Event name
-	* @param TFunction	Lambda callback, raw flavor
-	* @param Namespace	Optional namespace, defaults to default namespace
-	*/
-	void OnRawEvent(FString Event, TFunction< void(const FString&, const sio::message::ptr&)> CallbackFunction, FString Namespace = FString(TEXT("/")));
-	/**
-	* Call function callback on receiving binary event. C++ only.
-	*
-	* @param Event		Event name
-	* @param TFunction	Lambda callback, raw flavor
-	* @param Namespace	Optional namespace, defaults to default namespace
-	*/
-	void OnBinaryEvent(FString Event, TFunction< void(const FString&, const TArray<uint8>&)> CallbackFunction, FString Namespace = FString(TEXT("/")));
-
-	/**
-	* Call function callback on receiving socket event. C++ only.
-	*
-	* @param Event		Event name
-	* @param TFunction	Lambda callback, JSONValue
-	* @param Namespace	Optional namespace, defaults to default namespace
-	*/
-	void OnEvent(FString Event, TFunction< void(const FString&, const TSharedPtr<FJsonValue>&)> CallbackFunction, FString Namespace = FString(TEXT("/")));
 
 	/**
 	* Bind an event, then respond to it with 'On' multicast delegate
 	*
-	* @param Event		Event name
+	* @param EventName	Event name
 	* @param Namespace	Optional namespace, defaults to default namespace
 	*/
 	UFUNCTION(BlueprintCallable, Category = "SocketIO Functions")
-	void BindEvent(FString Event, FString Namespace = FString(TEXT("/")));
+	void BindEvent(FString EventName, FString Namespace = FString(TEXT("/")));
+
+	/**
+	* Call function callback on receiving raw event. C++ only.
+	*
+	* @param EventName	Event name
+	* @param TFunction	Lambda callback, raw flavor
+	* @param Namespace	Optional namespace, defaults to default namespace
+	*/
+	void OnRawEvent(	FString EventName,
+						TFunction< void(const FString&, const sio::message::ptr&)> CallbackFunction,
+						FString Namespace = FString(TEXT("/")));
+	/**
+	* Call function callback on receiving binary event. C++ only.
+	*
+	* @param EventName	Event name
+	* @param TFunction	Lambda callback, raw flavor
+	* @param Namespace	Optional namespace, defaults to default namespace
+	*/
+	void OnBinaryEvent(	FString EventName,
+						TFunction< void(const FString&, const TArray<uint8>&)> CallbackFunction,
+						FString Namespace = FString(TEXT("/")));
+
+	/**
+	* Call function callback on receiving socket event. C++ only.
+	*
+	* @param EventName	Event name
+	* @param TFunction	Lambda callback, JSONValue
+	* @param Namespace	Optional namespace, defaults to default namespace
+	*/
+	void OnEvent(	FString EventName,
+					TFunction< void(const FString&, const TSharedPtr<FJsonValue>&)> CallbackFunction,
+					FString Namespace = FString(TEXT("/")));
 
 
 	virtual void InitializeComponent() override;

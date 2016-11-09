@@ -15,6 +15,23 @@ USocketIOClientComponent::USocketIOClientComponent(const FObjectInitializer &ini
 	SessionId = FString(TEXT("invalid"));
 }
 
+void USocketIOClientComponent::InitializeComponent()
+{
+	Super::InitializeComponent();
+	if (ShouldAutoConnect)
+	{
+		Connect(AddressAndPort);	//connect to default address
+	}
+}
+
+void USocketIOClientComponent::UninitializeComponent()
+{
+	Disconnect();
+	Super::UninitializeComponent();
+}
+
+#pragma region Connect
+
 void USocketIOClientComponent::Connect(FString InAddressAndPort)
 {
 	std::string StdAddressString = USIOJsonConverter::StdString(InAddressAndPort);
@@ -79,13 +96,15 @@ void USocketIOClientComponent::Disconnect()
 	});
 }
 
-#pragma 
+#pragma endregion Connect
 
-void USocketIOClientComponent::Emit(FString Name, UVaRestJsonValue* Data, FString Namespace /*= FString(TEXT("/"))*/)
+#pragma region Emit
+
+void USocketIOClientComponent::Emit(FString Name, UVaRestJsonValue* Message, FString Namespace /*= FString(TEXT("/"))*/)
 {
 	PrivateClient.socket(USIOJsonConverter::StdString(Namespace))->emit(
 		USIOJsonConverter::StdString(Name),
-		USIOJsonConverter::ToSIOMessage(Data->GetRootValue()));
+		USIOJsonConverter::ToSIOMessage(Message->GetRootValue()));
 }
 
 void USocketIOClientComponent::EmitBinary(FString Name, uint8* Data, int32 DataLength, FString Namespace /*= FString(TEXT("/"))*/)
@@ -93,12 +112,25 @@ void USocketIOClientComponent::EmitBinary(FString Name, uint8* Data, int32 DataL
 	PrivateClient.socket(USIOJsonConverter::StdString(Namespace))->emit(USIOJsonConverter::StdString(Name), std::make_shared<std::string>((char*)Data, DataLength));
 }
 
-/*void USocketIOClientComponent::EmitRaw(FString Name, const sio::message::list& MessageList, FString Namespace)
+void USocketIOClientComponent::EmitEvent(FString EventName, UVaRestJsonValue* Message /*= nullptr*/, TFunction< void(const FString&, const TArray<TSharedPtr<FJsonValue>>&)> CallbackFunction /*= nullptr*/, FString Namespace /*= FString(TEXT("/"))*/)
 {
-	PrivateClient.socket(USIOJsonConverter::StdString(Namespace))->emit(USIOJsonConverter::StdString(Name), MessageList);
-}*/
+	EmitRawWithCallback(
+		EventName,
+		USIOJsonConverter::ToSIOMessage(Message->GetRootValue()),
+		[&](const sio::message::list& MessageList)
+	{
+		TArray<TSharedPtr<FJsonValue>> ValueArray;
 
-//todo: collapse all of this into a single usable Emit
+		for (int i = 0; i < MessageList.size(); i++)
+		{
+			auto ItemMessagePtr = MessageList[i];
+			ValueArray.Add(USIOJsonConverter::ToJsonValue(ItemMessagePtr));
+		}
+
+		CallbackFunction(EventName, ValueArray);
+	}, Namespace);
+}
+
 void USocketIOClientComponent::EmitRawWithCallback(FString Name, const sio::message::list& MessageList, TFunction<void(const sio::message::list&)> ResponseFunction, FString Namespace)
 {
 	const TFunction<void(const sio::message::list&)> SafeFunction = ResponseFunction;
@@ -112,6 +144,22 @@ void USocketIOClientComponent::EmitRawWithCallback(FString Name, const sio::mess
 	});
 }
 
+#pragma endregion Emit
+
+#pragma region OnEvents
+
+void USocketIOClientComponent::BindEvent(FString Event, FString Namespace)
+{
+	UE_LOG(LogTemp, Log, TEXT("Bound event %s"), *Event);
+
+	OnRawEvent(Event, [&](const FString& EventName, const sio::message::ptr& RawMessage) {
+		UVaRestJsonValue* NewValue = NewObject<UVaRestJsonValue>();
+		auto Value = USIOJsonConverter::ToJsonValue(RawMessage);
+		NewValue->SetRootValue(Value);
+		On.Broadcast(EventName, NewValue);
+
+	}, Namespace);
+}
 
 void USocketIOClientComponent::OnEvent(FString Event, TFunction< void(const FString&, const TSharedPtr<FJsonValue>&)> CallbackFunction, FString Namespace /*= FString(TEXT("/"))*/)
 {
@@ -170,30 +218,4 @@ void USocketIOClientComponent::OnBinaryEvent(FString Event, TFunction< void(cons
 	}));
 }
 
-void USocketIOClientComponent::BindEvent(FString Event, FString Namespace)
-{
-	UE_LOG(LogTemp, Log, TEXT("Bound event %s"), *Event);
-	
-	OnRawEvent(Event, [&](const FString& EventName, const sio::message::ptr& RawMessage) {
-		UVaRestJsonValue* NewValue = NewObject<UVaRestJsonValue>();
-		auto Value = USIOJsonConverter::ToJsonValue(RawMessage);
-		NewValue->SetRootValue(Value);
-		On.Broadcast(EventName, NewValue);
-
-	}, Namespace);
-}
-
-void USocketIOClientComponent::InitializeComponent()
-{
-	Super::InitializeComponent();
-	if (ShouldAutoConnect)
-	{
-		Connect(AddressAndPort);	//connect to default address
-	}
-}
-
-void USocketIOClientComponent::UninitializeComponent()
-{
-	Disconnect();
-	Super::UninitializeComponent();
-}
+#pragma endregion OnEvents
