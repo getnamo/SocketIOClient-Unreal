@@ -95,14 +95,11 @@ public:
 	void Disconnect();
 
 	/**
-	* Emit a string event with a string action
+	* Emit an event with a Json data value
 	*
 	* @param Name	Event name
-	* @param Data Data string
+	* @param Data	Data VaRestJsonValue
 	*/
-	//UFUNCTION(BlueprintCallable, Category = "SocketIO Functions")
-	//void EmitString(FString Name, FString Data = FString(TEXT("")), FString Namespace = FString(TEXT("/")));
-
 	UFUNCTION(BlueprintCallable, Category = "SocketIO Functions")
 	void Emit(FString Name, UVaRestJsonValue* Data, FString Namespace = FString(TEXT("/")));
 
@@ -114,18 +111,39 @@ public:
 	void EmitRawWithCallback(FString Name, const sio::message::list& MessageList = nullptr, TFunction<void(const sio::message::list&)> ResponseFunction = nullptr, FString Namespace = FString(TEXT("/")));
 	
 	
+	
 	/**
-	* Emit a message
+	* Call function callback on receiving raw event. C++ only.
 	*
 	* @param Event		Event name
 	* @param TFunction	Lambda callback, raw flavor
 	* @param Namespace	Optional namespace, defaults to default namespace
 	*/
-	
 	void OnRawEvent(FString Event, TFunction< void(const FString&, const sio::message::ptr&)> CallbackFunction, FString Namespace = FString(TEXT("/")));
-	void OnEvent(FString Event, TFunction< void(const FString&, const FJsonValue&)> CallbackFunction, FString Namespace = FString(TEXT("/")));
+	/**
+	* Call function callback on receiving binary event. C++ only.
+	*
+	* @param Event		Event name
+	* @param TFunction	Lambda callback, raw flavor
+	* @param Namespace	Optional namespace, defaults to default namespace
+	*/
+	void OnBinaryEvent(FString Event, TFunction< void(const FString&, const TArray<uint8>&)> CallbackFunction, FString Namespace = FString(TEXT("/")));
 
-	//Blueprint
+	/**
+	* Call function callback on receiving socket event. C++ only.
+	*
+	* @param Event		Event name
+	* @param TFunction	Lambda callback, JSONValue
+	* @param Namespace	Optional namespace, defaults to default namespace
+	*/
+	void OnEvent(FString Event, TFunction< void(const FString&, const TSharedPtr<FJsonValue>&)> CallbackFunction, FString Namespace = FString(TEXT("/")));
+
+	/**
+	* Bind an event, then respond to it with 'On' multicast delegate
+	*
+	* @param Event		Event name
+	* @param Namespace	Optional namespace, defaults to default namespace
+	*/
 	UFUNCTION(BlueprintCallable, Category = "SocketIO Functions")
 	void BindEvent(FString Event, FString Namespace = FString(TEXT("/")));
 
@@ -133,16 +151,7 @@ public:
 	virtual void InitializeComponent() override;
 	virtual void UninitializeComponent() override;
 
-	//C++ version of binding arbitrary lambda functions to events, if you want only to be notified and don't care about arguments
-	void BindLambdaToEvent(TFunction< void()> InFunction, FString Name, FString Namespace = FString(TEXT("/")));
-
-	//When you care about the data you get
-	void BindStringMessageLambdaToEvent(TFunction< void(const FString&, const FString&)> InFunction, FString Name, FString Namespace = FString(TEXT("/")));
-	void BindBinaryMessageLambdaToEvent(TFunction< void(const FString&, const TArray<uint8>&)> InFunction, FString Name, FString Namespace = FString(TEXT("/")));
-
-	//Raw sio::message lambda
-	void BindRawMessageLambdaToEvent(TFunction< void(const FString&, const sio::message::ptr&)> InFunction, FString Name, FString Namespace = FString(TEXT("/")));
-
 protected:
+
 	sio::client PrivateClient;
 };
