@@ -22,7 +22,7 @@ TSharedPtr<FJsonValue> USIOJsonConverter::ToJsonValue(const sio::message::ptr& M
 	else if (flag == sio::message::flag_binary)
 	{
 		//Todo: add support for this
-		return MakeShareable(new FJsonValueString(FString("binary not supported")));
+		return MakeShareable(new FJsonValueString(FString("<binary not supported in FJsonValue>")));
 	}
 	else if (flag == sio::message::flag_array)
 	{

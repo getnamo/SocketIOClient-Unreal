@@ -10,7 +10,7 @@
  * 
  */
 UCLASS()
-class USIOJsonConverter : public UObject
+class SOCKETIOCLIENT_API USIOJsonConverter : public UObject
 {
 	GENERATED_BODY()
 public:
