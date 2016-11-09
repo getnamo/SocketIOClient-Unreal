@@ -152,6 +152,19 @@ void USocketIOClientComponent::OnEvent(FString Event, TFunction< void(const FStr
 	}, Namespace);
 }
 
+void USocketIOClientComponent::BindEvent(FString Event, FString Namespace)
+{
+	UE_LOG(LogTemp, Log, TEXT("Bound event %s"), *Event);
+	
+	OnRawEvent(Event, [&](const FString& EventName, const sio::message::ptr& RawMessage) {
+		UVaRestJsonValue* NewValue = NewObject<UVaRestJsonValue>();
+		auto Value = USIOJsonConverter::ToJsonValue(RawMessage);
+		NewValue->SetRootValue(Value);
+		On.Broadcast(EventName, NewValue);
+
+	}, Namespace);
+}
+
 /*
 void USocketIOClientComponent::OnEvent(FString Event, FSIOCEventSignature CallbackEvent)
 {

@@ -1,6 +1,7 @@
 #pragma once
 
 #include "sio_client.h"
+#include "VaRestJsonValue.h"
 #include "Components/ActorComponent.h"
 #include "SocketIOClientComponent.generated.h"
 
@@ -41,8 +42,9 @@ DECLARE_DYNAMIC_MULTICAST_DELEGATE(FSIOCEventSignature);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FSIOCSocketEventSignature, FString, Namespace);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FSIOCOpenEventSignature, FString, SessionId);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FSIOCCloseEventSignature, TEnumAsByte<EConnectionCloseReason>, Reason);
-DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FSIOCNameDataEventSignature, FString, Name, FString, Data);
-DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FSIOCEventJsonSignature, FString, Name, FString, Data);
+
+//DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FSIOCNameDataEventSignature, FString, Name, FString, Data);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FSIOCEventJsonSignature, FString, Name, class UVaRestJsonValue*, JsonValue);
 
 //todo swap with fjsonvalue
 
@@ -69,7 +71,7 @@ public:
 	FSIOCEventSignature OnFail;
 
 	UPROPERTY(BlueprintAssignable, Category = "SocketIO Events")
-	FSIOCNameDataEventSignature On;
+	FSIOCEventJsonSignature On;
 
 	//Default properties
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = defaults)
@@ -124,8 +126,8 @@ public:
 	void OnEvent(FString Event, TFunction< void(const FString&, const FJsonValue&)> CallbackFunction, FString Namespace = FString(TEXT("/")));
 
 	//Blueprint
-	//UFUNCTION(BlueprintCallable, Category = "SocketIO Functions")
-	//void OnEvent(FString Event, TFunction< void()> InFunction);
+	UFUNCTION(BlueprintCallable, Category = "SocketIO Functions")
+	void BindEvent(FString Event, FString Namespace = FString(TEXT("/")));
 
 
 	virtual void InitializeComponent() override;

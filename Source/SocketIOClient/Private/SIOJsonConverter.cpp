@@ -92,11 +92,11 @@ sio::message::ptr USIOJsonConverter::ToSIOMessage(const TSharedPtr<FJsonValue>& 
 	{
 		auto ValueArray = JsonValue->AsArray();
 		auto ArrayMessage = sio::array_message::create();
-		auto ArrayVector = ArrayMessage->get_vector();
 
 		for (auto ItemValue : ValueArray)
 		{
-			ArrayVector.push_back(ToSIOMessage(ItemValue));
+			//must use get_vector() for each
+			ArrayMessage->get_vector().push_back(ToSIOMessage(ItemValue));
 		}
 
 		return ArrayMessage;
@@ -106,11 +106,11 @@ sio::message::ptr USIOJsonConverter::ToSIOMessage(const TSharedPtr<FJsonValue>& 
 		auto ValueTmap = JsonValue->AsObject()->Values;
 
 		auto ObjectMessage = sio::object_message::create();
-		auto ObjectMap = ObjectMessage->get_map();
 
 		for (auto ItemPair : ValueTmap)
 		{
-			ObjectMap.at(StdString(ItemPair.Key)) = ToSIOMessage(ItemPair.Value);
+			//important to use get_map() directly to insert the key in the correct map and not a pointer copy
+			ObjectMessage->get_map()[StdString(ItemPair.Key)] = ToSIOMessage(ItemPair.Value);
 		}
 
 		return ObjectMessage;
