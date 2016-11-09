@@ -127,27 +127,6 @@ public:
 	void BindEvent(FString EventName, FString Namespace = FString(TEXT("/")));
 
 	/**
-	* Call function callback on receiving raw event. C++ only.
-	*
-	* @param EventName	Event name
-	* @param TFunction	Lambda callback, raw flavor
-	* @param Namespace	Optional namespace, defaults to default namespace
-	*/
-	void OnRawEvent(	FString EventName,
-						TFunction< void(const FString&, const sio::message::ptr&)> CallbackFunction,
-						FString Namespace = FString(TEXT("/")));
-	/**
-	* Call function callback on receiving binary event. C++ only.
-	*
-	* @param EventName	Event name
-	* @param TFunction	Lambda callback, raw flavor
-	* @param Namespace	Optional namespace, defaults to default namespace
-	*/
-	void OnBinaryEvent(	FString EventName,
-						TFunction< void(const FString&, const TArray<uint8>&)> CallbackFunction,
-						FString Namespace = FString(TEXT("/")));
-
-	/**
 	* Call function callback on receiving socket event. C++ only.
 	*
 	* @param EventName	Event name
@@ -158,6 +137,26 @@ public:
 					TFunction< void(const FString&, const TSharedPtr<FJsonValue>&)> CallbackFunction,
 					FString Namespace = FString(TEXT("/")));
 
+	/**
+	* Call function callback on receiving raw event. C++ only.
+	*
+	* @param EventName	Event name
+	* @param TFunction	Lambda callback, raw flavor
+	* @param Namespace	Optional namespace, defaults to default namespace
+	*/
+	void OnRawEvent(FString EventName,
+		TFunction< void(const FString&, const sio::message::ptr&)> CallbackFunction,
+		FString Namespace = FString(TEXT("/")));
+	/**
+	* Call function callback on receiving binary event. C++ only.
+	*
+	* @param EventName	Event name
+	* @param TFunction	Lambda callback, raw flavor
+	* @param Namespace	Optional namespace, defaults to default namespace
+	*/
+	void OnBinaryEvent(FString EventName,
+		TFunction< void(const FString&, const TArray<uint8>&)> CallbackFunction,
+		FString Namespace = FString(TEXT("/")));
 
 	virtual void InitializeComponent() override;
 	virtual void UninitializeComponent() override;

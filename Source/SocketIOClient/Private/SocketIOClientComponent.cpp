@@ -150,7 +150,7 @@ void USocketIOClientComponent::EmitBinary(FString Name, uint8* Data, int32 DataL
 
 void USocketIOClientComponent::BindEvent(FString Event, FString Namespace)
 {
-	UE_LOG(LogTemp, Log, TEXT("Bound event %s"), *Event);
+	//UE_LOG(LogTemp, Log, TEXT("Bound event %s"), *Event);
 
 	OnRawEvent(Event, [&](const FString& EventName, const sio::message::ptr& RawMessage) {
 		UVaRestJsonValue* NewValue = NewObject<UVaRestJsonValue>();
@@ -164,7 +164,7 @@ void USocketIOClientComponent::BindEvent(FString Event, FString Namespace)
 void USocketIOClientComponent::OnEvent(FString Event, TFunction< void(const FString&, const TSharedPtr<FJsonValue>&)> CallbackFunction, FString Namespace /*= FString(TEXT("/"))*/)
 {
 	OnRawEvent(Event, [&](const FString& EventName, const sio::message::ptr& RawMessage) {
-
+		CallbackFunction(EventName, USIOJsonConverter::ToJsonValue(RawMessage));
 	}, Namespace);
 }
 
