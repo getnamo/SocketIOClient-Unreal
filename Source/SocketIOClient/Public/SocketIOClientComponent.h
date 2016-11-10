@@ -85,7 +85,7 @@ public:
 	* @param AddressAndPort	the address in URL format with port
 	*/
 	UFUNCTION(BlueprintCallable, Category = "SocketIO Functions")
-	void Connect(FString InAddressAndPort);
+	void Connect(const FString& InAddressAndPort);
 
 	UFUNCTION(BlueprintCallable, Category = "SocketIO Functions")
 	void Disconnect();
@@ -98,7 +98,7 @@ public:
 	* @param Namespace	Namespace within socket.io
 	*/
 	UFUNCTION(BlueprintCallable, Category = "SocketIO Functions")
-	void Emit(FString EventName, USIOJsonValue* Message = nullptr, FString Namespace = FString(TEXT("/")));
+	void Emit(const FString& EventName, USIOJsonValue* Message = nullptr, const FString& Namespace = FString(TEXT("/")));
 
 
 	/**
@@ -111,26 +111,26 @@ public:
 	* @param Namespace				Namespace within socket.io
 	*/
 	UFUNCTION(BlueprintCallable, Category = "SocketIO Functions")
-	void EmitWithCallBack(	FString EventName,
+	void EmitWithCallBack(	const FString& EventName,
 							USIOJsonValue* Message = nullptr,
-							FString CallbackFunctionName = FString(""),
+							const FString& CallbackFunctionName = FString(""),
 							UObject* Target = nullptr,
-							FString Namespace = FString(TEXT("/")));
+							const FString& Namespace = FString(TEXT("/")));
 
 	//Emit Json value object with callback. C++ only convenience emit event.
-	void EmitNative(FString EventName,
+	void EmitNative(const FString& EventName,
 					const TSharedPtr<FJsonValue>& Message = nullptr,
 					TFunction< void(const TArray<TSharedPtr<FJsonValue>>&)> CallbackFunction = nullptr,
-					FString Namespace = FString(TEXT("/")));
+					const FString& Namespace = FString(TEXT("/")));
 
 	//Raw sio::message emit, only available in C++
-	void EmitRawWithCallback(	FString EventName,
+	void EmitRawWithCallback(	const FString& EventName,
 								const sio::message::list& MessageList = nullptr,
 								TFunction<void(const sio::message::list&)> ResponseFunction = nullptr, 
-								FString Namespace = FString(TEXT("/")));
+								const FString& Namespace = FString(TEXT("/")));
 
 	//Binary data version, only available in C++
-	void EmitBinary(FString EventName, uint8* Data, int32 DataLength, FString Namespace = FString(TEXT("/")));
+	void EmitBinary(const FString& EventName, uint8* Data, int32 DataLength, const FString& Namespace = FString(TEXT("/")));
 	
 	
 
@@ -141,7 +141,7 @@ public:
 	* @param Namespace	Optional namespace, defaults to default namespace
 	*/
 	UFUNCTION(BlueprintCallable, Category = "SocketIO Functions")
-	void BindEvent(FString EventName, FString Namespace = FString(TEXT("/")));
+	void BindEvent(const FString& EventName, const FString& Namespace = FString(TEXT("/")));
 
 
 	/**
@@ -165,9 +165,9 @@ public:
 	* @param TFunction	Lambda callback, JSONValue
 	* @param Namespace	Optional namespace, defaults to default namespace
 	*/
-	void OnNativeEvent(	FString EventName,
+	void OnNativeEvent(	const FString& EventName,
 						TFunction< void(const FString&, const TSharedPtr<FJsonValue>&)> CallbackFunction,
-						FString Namespace = FString(TEXT("/")));
+						const FString& Namespace = FString(TEXT("/")));
 
 	/**
 	* Call function callback on receiving raw event. C++ only.
@@ -176,9 +176,9 @@ public:
 	* @param TFunction	Lambda callback, raw flavor
 	* @param Namespace	Optional namespace, defaults to default namespace
 	*/
-	void OnRawEvent(FString EventName,
+	void OnRawEvent(const FString& EventName,
 		TFunction< void(const FString&, const sio::message::ptr&)> CallbackFunction,
-		FString Namespace = FString(TEXT("/")));
+		const FString& Namespace = FString(TEXT("/")));
 	/**
 	* Call function callback on receiving binary event. C++ only.
 	*
@@ -186,9 +186,9 @@ public:
 	* @param TFunction	Lambda callback, raw flavor
 	* @param Namespace	Optional namespace, defaults to default namespace
 	*/
-	void OnBinaryEvent(FString EventName,
+	void OnBinaryEvent(const FString& EventName,
 		TFunction< void(const FString&, const TArray<uint8>&)> CallbackFunction,
-		FString Namespace = FString(TEXT("/")));
+		const FString& Namespace = FString(TEXT("/")));
 
 	virtual void InitializeComponent() override;
 	virtual void UninitializeComponent() override;
