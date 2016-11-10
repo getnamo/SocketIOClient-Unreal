@@ -1,12 +1,12 @@
 // Copyright 2015 Vladimir Alyamkin. All Rights Reserved.
 // Original code by https://github.com/unktomi
 
-#include "VaRestEditorPluginPrivatePCH.h"
-#include "VaRest_BreakJson.h"
+#include "SIOJEditorPluginPrivatePCH.h"
+#include "SIOJ_BreakJson.h"
 
 #include "Runtime/Launch/Resources/Version.h"
 
-#define LOCTEXT_NAMESPACE "VaRest_BreakJson"
+#define LOCTEXT_NAMESPACE "SIOJ_BreakJson"
 
 class FKCHandler_BreakJson : public FNodeHandlingFunctor
 {
@@ -32,7 +32,7 @@ public:
 		}
 
 		UEdGraphPin *InNet = FEdGraphUtilities::GetNetFromPin(InputPin);
-		UClass *Class = Cast<UClass>(StaticLoadObject(UClass::StaticClass(), NULL, TEXT("class'VaRestPlugin.VaRestJsonObject'")));
+		UClass *Class = Cast<UClass>(StaticLoadObject(UClass::StaticClass(), NULL, TEXT("class'SIOJPlugin.SIOJJsonObject'")));
 
 		FBPTerminal **SourceTerm = Context.NetMap.Find(InNet);
 		if (SourceTerm == nullptr)
@@ -102,7 +102,7 @@ public:
 		}
 	}
 
-	FBPTerminal* RegisterInputTerm(FKismetFunctionContext& Context, UVaRest_BreakJson* Node)
+	FBPTerminal* RegisterInputTerm(FKismetFunctionContext& Context, USIOJ_BreakJson* Node)
 	{
 		// Find input pin
 		UEdGraphPin* InputPin = NULL;
@@ -141,7 +141,7 @@ public:
 
 	virtual void RegisterNets(FKismetFunctionContext& Context, UEdGraphNode* InNode) override
 	{
-		UVaRest_BreakJson* Node = Cast<UVaRest_BreakJson>(InNode);
+		USIOJ_BreakJson* Node = Cast<USIOJ_BreakJson>(InNode);
 		FNodeHandlingFunctor::RegisterNets(Context, Node);
 
 		check(NULL != Node);
@@ -163,21 +163,21 @@ public:
 /**
  * Main node class
  */
-UVaRest_BreakJson::UVaRest_BreakJson(const FObjectInitializer &ObjectInitializer)
+USIOJ_BreakJson::USIOJ_BreakJson(const FObjectInitializer &ObjectInitializer)
 	: Super(ObjectInitializer)
 {
 }
 
-FNodeHandlingFunctor* UVaRest_BreakJson::CreateNodeHandler(class FKismetCompilerContext& CompilerContext) const 
+FNodeHandlingFunctor* USIOJ_BreakJson::CreateNodeHandler(class FKismetCompilerContext& CompilerContext) const 
 {
 	return new FKCHandler_BreakJson(CompilerContext);
 }
 
-void UVaRest_BreakJson::AllocateDefaultPins()
+void USIOJ_BreakJson::AllocateDefaultPins()
 {
 	const UEdGraphSchema_K2* K2Schema = GetDefault<UEdGraphSchema_K2>();
 
-	UClass *Class = Cast<UClass>(StaticLoadObject(UClass::StaticClass(), NULL, TEXT("class'VaRestPlugin.VaRestJsonObject'")));
+	UClass *Class = Cast<UClass>(StaticLoadObject(UClass::StaticClass(), NULL, TEXT("class'SIOJPlugin.SIOJJsonObject'")));
 	UEdGraphPin* Pin = CreatePin(EGPD_Input, K2Schema->PC_Object, TEXT(""), Class, false, false, TEXT("Target"));
 
 	K2Schema->SetPinDefaultValueBasedOnType(Pin);
@@ -185,12 +185,12 @@ void UVaRest_BreakJson::AllocateDefaultPins()
 	CreateProjectionPins(Pin);
 }
 
-FLinearColor UVaRest_BreakJson::GetNodeTitleColor() const
+FLinearColor USIOJ_BreakJson::GetNodeTitleColor() const
 {
 	return FLinearColor(255.0f, 255.0f, 0.0f);
 }
 
-void UVaRest_BreakJson::PostEditChangeProperty(struct FPropertyChangedEvent& PropertyChangedEvent)
+void USIOJ_BreakJson::PostEditChangeProperty(struct FPropertyChangedEvent& PropertyChangedEvent)
 {
 	bool bIsDirty = false;
 
@@ -209,7 +209,7 @@ void UVaRest_BreakJson::PostEditChangeProperty(struct FPropertyChangedEvent& Pro
 	Super::PostEditChangeProperty(PropertyChangedEvent);
 }
 
-void UVaRest_BreakJson::GetMenuActions(FBlueprintActionDatabaseRegistrar& ActionRegistrar) const
+void USIOJ_BreakJson::GetMenuActions(FBlueprintActionDatabaseRegistrar& ActionRegistrar) const
 {
 	// actions get registered under specific object-keys; the idea is that 
 	// actions might have to be updated (or deleted) if their object-key is  
@@ -230,7 +230,7 @@ void UVaRest_BreakJson::GetMenuActions(FBlueprintActionDatabaseRegistrar& Action
 	}
 }
 
-FText UVaRest_BreakJson::GetMenuCategory() const
+FText USIOJ_BreakJson::GetMenuCategory() const
 {
 	static FNodeTextCache CachedCategory;
 
@@ -242,31 +242,31 @@ FText UVaRest_BreakJson::GetMenuCategory() const
 	return CachedCategory;
 }
 
-void UVaRest_BreakJson::CreateProjectionPins(UEdGraphPin *Source)
+void USIOJ_BreakJson::CreateProjectionPins(UEdGraphPin *Source)
 {
 	const UEdGraphSchema_K2* K2Schema = GetDefault<UEdGraphSchema_K2>();
-	UClass *Class = Cast<UClass>(StaticLoadObject(UClass::StaticClass(), NULL, TEXT("class'VaRestPlugin.VaRestJsonObject'")));
+	UClass *Class = Cast<UClass>(StaticLoadObject(UClass::StaticClass(), NULL, TEXT("class'SIOJPlugin.SIOJJsonObject'")));
 
-	for (TArray<FVaRest_NamedType>::TIterator it(Outputs); it; ++it)
+	for (TArray<FSIOJ_NamedType>::TIterator it(Outputs); it; ++it)
 	{
 		FString Type;
 		UObject *Subtype = nullptr;
 		FString FieldName = (*it).Name;
 
 		switch ((*it).Type) {
-			case EVaRest_JsonType::JSON_Bool:
+			case ESIOJ_JsonType::JSON_Bool:
 				Type = K2Schema->PC_Boolean;
 				break;
 
-			case EVaRest_JsonType::JSON_Number:
+			case ESIOJ_JsonType::JSON_Number:
 				Type = K2Schema->PC_Float;
 				break;
 
-			case EVaRest_JsonType::JSON_String:
+			case ESIOJ_JsonType::JSON_String:
 				Type = K2Schema->PC_String;
 				break;
 
-			case EVaRest_JsonType::JSON_Object:
+			case ESIOJ_JsonType::JSON_Object:
 				Type = K2Schema->PC_Object;
 				Subtype = Class;
 				break;
@@ -276,9 +276,9 @@ void UVaRest_BreakJson::CreateProjectionPins(UEdGraphPin *Source)
 	}
 }
 
-FText UVaRest_BreakJson::GetNodeTitle(ENodeTitleType::Type TitleType) const
+FText USIOJ_BreakJson::GetNodeTitle(ENodeTitleType::Type TitleType) const
 {
-	return LOCTEXT("VaRest_Break_Json.NodeTitle", "Break Json");
+	return LOCTEXT("SIOJ_Break_Json.NodeTitle", "Break Json");
 }
 
 #undef LOCTEXT_NAMESPACE

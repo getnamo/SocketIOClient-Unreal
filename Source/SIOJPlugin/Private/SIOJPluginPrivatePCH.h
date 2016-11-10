@@ -19,8 +19,8 @@
 // add includes for headers that are used in most of your module's source files though.
 #include "ModuleManager.h"
 
-DECLARE_LOG_CATEGORY_EXTERN(LogVaRest, Log, All);
+DECLARE_LOG_CATEGORY_EXTERN(LogSIOJ, Log, All);
 
-#include "IVaRestPlugin.h"
+#include "ISIOJPlugin.h"
 
-#include "VaRestPluginClasses.h"
+#include "SIOJPluginClasses.h"

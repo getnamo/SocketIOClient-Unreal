@@ -4,32 +4,32 @@
 
 #include "Kismet/BlueprintFunctionLibrary.h"
 
-#include "VaRestTypes.h"
-#include "VaRestLibrary.generated.h"
+#include "SIOJTypes.h"
+#include "SIOJLibrary.generated.h"
 
-class UVaRestRequestJSON;
-class UVaRestJsonObject;
+class USIOJRequestJSON;
+class USIOJJsonObject;
 
-DECLARE_DYNAMIC_DELEGATE_OneParam(FVaRestCallDelegate, UVaRestRequestJSON*, Request);
+DECLARE_DYNAMIC_DELEGATE_OneParam(FSIOJCallDelegate, USIOJRequestJSON*, Request);
 
 USTRUCT()
-struct FVaRestCallResponse
+struct FSIOJCallResponse
 {
 	GENERATED_USTRUCT_BODY()
 	
 	UPROPERTY()
-	UVaRestRequestJSON* Request;
+	USIOJRequestJSON* Request;
 	
 	UPROPERTY()
 	UObject* WorldContextObject;
 	
 	UPROPERTY()
-	FVaRestCallDelegate Callback;
+	FSIOJCallDelegate Callback;
 	
 	FDelegateHandle CompleteDelegateHandle;
 	FDelegateHandle FailDelegateHandle;
 	
-	FVaRestCallResponse()
+	FSIOJCallResponse()
 		: Request(nullptr)
 		, WorldContextObject(nullptr)
 	{
@@ -41,7 +41,7 @@ struct FVaRestCallResponse
  * Usefull tools for REST communications
  */
 UCLASS()
-class UVaRestLibrary : public UBlueprintFunctionLibrary
+class USIOJLibrary : public UBlueprintFunctionLibrary
 {
 	GENERATED_BODY()
 
@@ -51,7 +51,7 @@ class UVaRestLibrary : public UBlueprintFunctionLibrary
 
 public:
 	/** Applies percent-encoding to text */
-	UFUNCTION(BlueprintCallable, Category = "VaRest|Utility")
+	UFUNCTION(BlueprintCallable, Category = "SIOJ|Utility")
 	static FString PercentEncode(const FString& Source);
 
 	/**
@@ -60,7 +60,7 @@ public:
 	 * @param Source	The string data to convert
 	 * @return			A string that encodes the binary data in a way that can be safely transmitted via various Internet protocols
 	 */
-	UFUNCTION(BlueprintCallable, Category = "VaRest|Utility", meta = (DisplayName = "Base64 Encode"))
+	UFUNCTION(BlueprintCallable, Category = "SIOJ|Utility", meta = (DisplayName = "Base64 Encode"))
 	static FString Base64Encode(const FString& Source);
 
 	/**
@@ -70,7 +70,7 @@ public:
 	 * @param Dest		The out buffer that will be filled with the decoded data
 	 * @return			True if the buffer was decoded, false if it failed to decode
 	 */
-	UFUNCTION(BlueprintCallable, Category = "VaRest|Utility", meta = (DisplayName = "Base64 Decode"))
+	UFUNCTION(BlueprintCallable, Category = "SIOJ|Utility", meta = (DisplayName = "Base64 Decode"))
 	static bool Base64Decode(const FString& Source, FString& Dest);
 
 
@@ -79,13 +79,13 @@ public:
 
 public:
 	/** Easy way to process http requests */
-	UFUNCTION(BlueprintCallable, Category = "VaRest|Utility", meta = (WorldContext = "WorldContextObject"))
-	static void CallURL(UObject* WorldContextObject, const FString& URL, ERequestVerb Verb, ERequestContentType ContentType, UVaRestJsonObject* VaRestJson, const FVaRestCallDelegate& Callback);
+	UFUNCTION(BlueprintCallable, Category = "SIOJ|Utility", meta = (WorldContext = "WorldContextObject"))
+	static void CallURL(UObject* WorldContextObject, const FString& URL, ERequestVerb Verb, ERequestContentType ContentType, USIOJJsonObject* SIOJJson, const FSIOJCallDelegate& Callback);
 
 	/** Called when URL is processed (one for both success/unsuccess events)*/
-	static void OnCallComplete(UVaRestRequestJSON* Request);
+	static void OnCallComplete(USIOJRequestJSON* Request);
 
 private:
-	static TMap<UVaRestRequestJSON*, FVaRestCallResponse> RequestMap;
+	static TMap<USIOJRequestJSON*, FSIOJCallResponse> RequestMap;
 
 };

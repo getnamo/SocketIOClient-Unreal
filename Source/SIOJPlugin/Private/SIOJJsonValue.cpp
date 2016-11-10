@@ -1,44 +1,44 @@
 // Copyright 2014 Vladimir Alyamkin. All Rights Reserved.
 
-#include "VaRestPluginPrivatePCH.h"
+#include "SIOJPluginPrivatePCH.h"
 
-UVaRestJsonValue::UVaRestJsonValue(const class FObjectInitializer& PCIP)
+USIOJJsonValue::USIOJJsonValue(const class FObjectInitializer& PCIP)
 	: Super(PCIP)
 {
 
 }
 
-UVaRestJsonValue* UVaRestJsonValue::ConstructJsonValueNumber(UObject* WorldContextObject, float Number)
+USIOJJsonValue* USIOJJsonValue::ConstructJsonValueNumber(UObject* WorldContextObject, float Number)
 {
 	TSharedPtr<FJsonValue> NewVal = MakeShareable(new FJsonValueNumber(Number));
 
-	UVaRestJsonValue* NewValue = NewObject<UVaRestJsonValue>();
+	USIOJJsonValue* NewValue = NewObject<USIOJJsonValue>();
 	NewValue->SetRootValue(NewVal);
 
 	return NewValue;
 }
 
-UVaRestJsonValue* UVaRestJsonValue::ConstructJsonValueString(UObject* WorldContextObject, const FString& StringValue)
+USIOJJsonValue* USIOJJsonValue::ConstructJsonValueString(UObject* WorldContextObject, const FString& StringValue)
 {
 	TSharedPtr<FJsonValue> NewVal = MakeShareable(new FJsonValueString(StringValue));
 
-	UVaRestJsonValue* NewValue = NewObject<UVaRestJsonValue>();
+	USIOJJsonValue* NewValue = NewObject<USIOJJsonValue>();
 	NewValue->SetRootValue(NewVal);
 
 	return NewValue;
 }
 
-UVaRestJsonValue* UVaRestJsonValue::ConstructJsonValueBool(UObject* WorldContextObject, bool InValue)
+USIOJJsonValue* USIOJJsonValue::ConstructJsonValueBool(UObject* WorldContextObject, bool InValue)
 {
 	TSharedPtr<FJsonValue> NewVal = MakeShareable(new FJsonValueBoolean(InValue));
 
-	UVaRestJsonValue* NewValue = NewObject<UVaRestJsonValue>();
+	USIOJJsonValue* NewValue = NewObject<USIOJJsonValue>();
 	NewValue->SetRootValue(NewVal);
 
 	return NewValue;
 }
 
-UVaRestJsonValue* UVaRestJsonValue::ConstructJsonValueArray(UObject* WorldContextObject, const TArray<UVaRestJsonValue*>& InArray)
+USIOJJsonValue* USIOJJsonValue::ConstructJsonValueArray(UObject* WorldContextObject, const TArray<USIOJJsonValue*>& InArray)
 {
 	// Prepare data array to create new value
 	TArray< TSharedPtr<FJsonValue> > ValueArray;
@@ -49,38 +49,38 @@ UVaRestJsonValue* UVaRestJsonValue::ConstructJsonValueArray(UObject* WorldContex
 
 	TSharedPtr<FJsonValue> NewVal = MakeShareable(new FJsonValueArray(ValueArray));
 
-	UVaRestJsonValue* NewValue = NewObject<UVaRestJsonValue>();
+	USIOJJsonValue* NewValue = NewObject<USIOJJsonValue>();
 	NewValue->SetRootValue(NewVal);
 
 	return NewValue;
 }
 
-UVaRestJsonValue* UVaRestJsonValue::ConstructJsonValueObject(UObject* WorldContextObject, UVaRestJsonObject *JsonObject)
+USIOJJsonValue* USIOJJsonValue::ConstructJsonValueObject(UObject* WorldContextObject, USIOJJsonObject *JsonObject)
 {
 	TSharedPtr<FJsonValue> NewVal = MakeShareable(new FJsonValueObject(JsonObject->GetRootObject()));
 
-	UVaRestJsonValue* NewValue = NewObject<UVaRestJsonValue>();
+	USIOJJsonValue* NewValue = NewObject<USIOJJsonValue>();
 	NewValue->SetRootValue(NewVal);
 
 	return NewValue;
 }
 
-UVaRestJsonValue* ConstructJsonValue(UObject* WorldContextObject, const TSharedPtr<FJsonValue>& InValue)
+USIOJJsonValue* ConstructJsonValue(UObject* WorldContextObject, const TSharedPtr<FJsonValue>& InValue)
 {
 	TSharedPtr<FJsonValue> NewVal = InValue;
 
-	UVaRestJsonValue* NewValue = NewObject<UVaRestJsonValue>();
+	USIOJJsonValue* NewValue = NewObject<USIOJJsonValue>();
 	NewValue->SetRootValue(NewVal);
 
 	return NewValue;
 }
 
-TSharedPtr<FJsonValue>& UVaRestJsonValue::GetRootValue()
+TSharedPtr<FJsonValue>& USIOJJsonValue::GetRootValue()
 {
 	return JsonVal;
 }
 
-void UVaRestJsonValue::SetRootValue(TSharedPtr<FJsonValue>& JsonValue)
+void USIOJJsonValue::SetRootValue(TSharedPtr<FJsonValue>& JsonValue)
 {
 	JsonVal = JsonValue;
 }
@@ -89,7 +89,7 @@ void UVaRestJsonValue::SetRootValue(TSharedPtr<FJsonValue>& JsonValue)
 //////////////////////////////////////////////////////////////////////////
 // FJsonValue API
 
-EVaJson::Type UVaRestJsonValue::GetType() const
+EVaJson::Type USIOJJsonValue::GetType() const
 {
 	if (!JsonVal.IsValid())
 	{
@@ -124,7 +124,7 @@ EVaJson::Type UVaRestJsonValue::GetType() const
 	}
 }
 
-FString UVaRestJsonValue::GetTypeString() const
+FString USIOJJsonValue::GetTypeString() const
 {
 	if (!JsonVal.IsValid())
 	{
@@ -159,7 +159,7 @@ FString UVaRestJsonValue::GetTypeString() const
 	}
 }
 
-bool UVaRestJsonValue::IsNull() const 
+bool USIOJJsonValue::IsNull() const 
 {
 	if (!JsonVal.IsValid())
 	{
@@ -169,7 +169,7 @@ bool UVaRestJsonValue::IsNull() const
 	return JsonVal->IsNull();
 }
 
-float UVaRestJsonValue::AsNumber() const
+float USIOJJsonValue::AsNumber() const
 {
 	if (!JsonVal.IsValid())
 	{
@@ -180,7 +180,7 @@ float UVaRestJsonValue::AsNumber() const
 	return JsonVal->AsNumber();
 }
 
-FString UVaRestJsonValue::AsString() const
+FString USIOJJsonValue::AsString() const
 {
 	if (!JsonVal.IsValid())
 	{
@@ -191,7 +191,7 @@ FString UVaRestJsonValue::AsString() const
 	return JsonVal->AsString();
 }
 
-bool UVaRestJsonValue::AsBool() const
+bool USIOJJsonValue::AsBool() const
 {
 	if (!JsonVal.IsValid())
 	{
@@ -202,9 +202,9 @@ bool UVaRestJsonValue::AsBool() const
 	return JsonVal->AsBool();
 }
 
-TArray<UVaRestJsonValue*> UVaRestJsonValue::AsArray() const
+TArray<USIOJJsonValue*> USIOJJsonValue::AsArray() const
 {
-	TArray<UVaRestJsonValue*> OutArray;
+	TArray<USIOJJsonValue*> OutArray;
 
 	if (!JsonVal.IsValid())
 	{
@@ -215,7 +215,7 @@ TArray<UVaRestJsonValue*> UVaRestJsonValue::AsArray() const
 	TArray< TSharedPtr<FJsonValue> > ValArray = JsonVal->AsArray();
 	for (auto Value : ValArray)
 	{
-		UVaRestJsonValue* NewValue = NewObject<UVaRestJsonValue>();
+		USIOJJsonValue* NewValue = NewObject<USIOJJsonValue>();
 		NewValue->SetRootValue(Value);
 
 		OutArray.Add(NewValue);
@@ -224,7 +224,7 @@ TArray<UVaRestJsonValue*> UVaRestJsonValue::AsArray() const
 	return OutArray;
 }
 
-UVaRestJsonObject* UVaRestJsonValue::AsObject()
+USIOJJsonObject* USIOJJsonValue::AsObject()
 {
 	if (!JsonVal.IsValid())
 	{
@@ -234,7 +234,7 @@ UVaRestJsonObject* UVaRestJsonValue::AsObject()
 
 	TSharedPtr<FJsonObject> NewObj = JsonVal->AsObject();
 
-	UVaRestJsonObject* JsonObj = NewObject<UVaRestJsonObject>();
+	USIOJJsonObject* JsonObj = NewObject<USIOJJsonObject>();
 	JsonObj->SetRootObject(NewObj);
 
 	return JsonObj;
@@ -244,7 +244,7 @@ UVaRestJsonObject* UVaRestJsonValue::AsObject()
 //////////////////////////////////////////////////////////////////////////
 // Helpers
 
-void UVaRestJsonValue::ErrorMessage(const FString& InType) const
+void USIOJJsonValue::ErrorMessage(const FString& InType) const
 {
-	UE_LOG(LogVaRest, Error, TEXT("Json Value of type '%s' used as a '%s'."), *GetTypeString(), *InType);
+	UE_LOG(LogSIOJ, Error, TEXT("Json Value of type '%s' used as a '%s'."), *GetTypeString(), *InType);
 }

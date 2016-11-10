@@ -1,7 +1,7 @@
 #pragma once
 
 #include "sio_client.h"
-#include "VaRestJsonValue.h"
+#include "SIOJJsonValue.h"
 #include "Components/ActorComponent.h"
 #include "SocketIOClientComponent.generated.h"
 
@@ -42,7 +42,7 @@ DECLARE_DYNAMIC_MULTICAST_DELEGATE(FSIOCEventSignature);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FSIOCSocketEventSignature, FString, Namespace);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FSIOCOpenEventSignature, FString, SessionId);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FSIOCCloseEventSignature, TEnumAsByte<EConnectionCloseReason>, Reason);
-DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FSIOCEventJsonSignature, FString, Name, class UVaRestJsonValue*, JsonValue);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FSIOCEventJsonSignature, FString, Name, class USIOJJsonValue*, JsonValue);
 
 UCLASS(ClassGroup = "Networking", meta = (BlueprintSpawnableComponent))
 class SOCKETIOCLIENT_API USocketIOClientComponent : public UActorComponent
@@ -94,15 +94,15 @@ public:
 	* Emit an event with a Json data value
 	*
 	* @param Name	Event name
-	* @param Data	Data VaRestJsonValue
+	* @param Data	Data SIOJJsonValue
 	*/
 	UFUNCTION(BlueprintCallable, Category = "SocketIO Functions")
-	void Emit(FString EventName, UVaRestJsonValue* Message, FString Namespace = FString(TEXT("/")));
+	void Emit(FString EventName, USIOJJsonValue* Message, FString Namespace = FString(TEXT("/")));
 
 
 	//Emit Json value object with callback. C++ only convenience emit event.
 	void EmitEvent(	FString EventName,
-					UVaRestJsonValue* Message = nullptr,
+					USIOJJsonValue* Message = nullptr,
 					TFunction< void(const FString&, const TArray<TSharedPtr<FJsonValue>>&)> CallbackFunction = nullptr,
 					FString Namespace = FString(TEXT("/")));
 

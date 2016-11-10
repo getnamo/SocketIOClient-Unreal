@@ -2,15 +2,15 @@
 
 using UnrealBuildTool;
 
-public class VaRestEditorPlugin : ModuleRules
+public class SIOJEditorPlugin : ModuleRules
 {
-	public VaRestEditorPlugin(TargetInfo Target)
+	public SIOJEditorPlugin(TargetInfo Target)
 	{
 		
 		PublicIncludePaths.AddRange(
 			new string[] {
-				"VaRestPlugin",
-				"VaRestPlugin/Public"
+				"SIOJPlugin",
+				"SIOJPlugin/Public"
 				
 				// ... add public include paths required here ...
 			});
@@ -18,7 +18,7 @@ public class VaRestEditorPlugin : ModuleRules
 		
 		PrivateIncludePaths.AddRange(
 			new string[] {
-				"VaRestEditorPlugin/Private",
+				"SIOJEditorPlugin/Private",
 				
 				// ... add other private include paths required here ...
 			});
@@ -28,7 +28,7 @@ public class VaRestEditorPlugin : ModuleRules
 			new string[]
 			{
 				"Core",
-                "VaRestPlugin"
+                "SIOJPlugin"
 
 				// ... add other public dependencies that you statically link with here ...
 			});

@@ -6,10 +6,10 @@
 #include "Engine.h"
 #include "K2Node.h"
 
-#include "VaRest_BreakJson.generated.h"
+#include "SIOJ_BreakJson.generated.h"
 
 UENUM(BlueprintType)
-enum class EVaRest_JsonType : uint8
+enum class ESIOJ_JsonType : uint8
 {
 	//JSON_Null UMETA(DisplayName = "Null"),
 	JSON_Bool UMETA(DisplayName = "Boolean"),
@@ -19,7 +19,7 @@ enum class EVaRest_JsonType : uint8
 };
 
 USTRUCT(BlueprintType)
-struct FVaRest_NamedType
+struct FSIOJ_NamedType
 {
 	GENERATED_USTRUCT_BODY();
 
@@ -27,14 +27,14 @@ struct FVaRest_NamedType
 	FString Name;
 
 	UPROPERTY(EditAnywhere, Category = NamedType)
-	EVaRest_JsonType Type;
+	ESIOJ_JsonType Type;
 
 	UPROPERTY(EditAnywhere, Category = NamedType)
 	bool bIsArray;
 };
 
 UCLASS(BlueprintType, Blueprintable)
-class VARESTEDITORPLUGIN_API UVaRest_BreakJson : public UK2Node
+class SIOJEDITORPLUGIN_API USIOJ_BreakJson : public UK2Node
 {
 	GENERATED_UCLASS_BODY()
 
@@ -59,6 +59,6 @@ protected:
 
 public:
 	UPROPERTY(EditAnywhere, Category = PinOptions)
-	TArray<FVaRest_NamedType> Outputs;
+	TArray<FSIOJ_NamedType> Outputs;
 
 };

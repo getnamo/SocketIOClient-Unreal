@@ -14,12 +14,12 @@
 	"CanContainContent": false,
 	"Modules": [
 		{
-			"Name" : "VaRestPlugin",
+			"Name" : "SIOJPlugin",
 			"Type" : "Runtime",
 			"LoadingPhase": "PreDefault"
 		},
 		{
-			"Name": "VaRestEditorPlugin",
+			"Name": "SIOJEditorPlugin",
 			"Type": "Developer"
 		},
 		{

@@ -9,7 +9,7 @@
  * The public interface to this module.  In most cases, this interface is only public to sibling modules 
  * within this plugin.
  */
-class IVaRestPlugin : public IModuleInterface
+class ISIOJPlugin : public IModuleInterface
 {
 
 public:
@@ -20,9 +20,9 @@ public:
 	 *
 	 * @return Returns singleton instance, loading the module on demand if needed
 	 */
-	static inline IVaRestPlugin& Get()
+	static inline ISIOJPlugin& Get()
 	{
-		return FModuleManager::LoadModuleChecked< IVaRestPlugin >( "VaRestPlugin" );
+		return FModuleManager::LoadModuleChecked< ISIOJPlugin >( "SIOJPlugin" );
 	}
 
 	/**
@@ -32,7 +32,7 @@ public:
 	 */
 	static inline bool IsAvailable()
 	{
-		return FModuleManager::Get().IsModuleLoaded( "VaRestPlugin" );
+		return FModuleManager::Get().IsModuleLoaded( "SIOJPlugin" );
 	}
 };
 

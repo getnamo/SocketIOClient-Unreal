@@ -5,7 +5,7 @@
 
 #include "ModuleManager.h"
 
-class FVaRestEditorPluginModule : public IModuleInterface
+class FSIOJEditorPluginModule : public IModuleInterface
 {
 
 public:

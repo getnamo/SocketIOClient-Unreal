@@ -68,7 +68,7 @@ namespace UnrealBuildTool.Rules
                 {
                 "Core",
                 "Json",
-                "VaRestPlugin"
+                "SIOJPlugin"
                     // ... add other public dependencies that you statically link with here ...
                 }
                 );

@@ -7,13 +7,13 @@
 #include "Map.h"
 #include "Json.h"
 
-#include "VaRestTypes.h"
-#include "VaRestRequestJSON.generated.h"
+#include "SIOJTypes.h"
+#include "SIOJRequestJSON.generated.h"
 
 /**
  * @author Original latent action class by https://github.com/unktomi
  */
-template <class T> class FVaRestLatentAction : public FPendingLatentAction
+template <class T> class FSIOJLatentAction : public FPendingLatentAction
 {
 public:
 	virtual void Call(const T &Value) 
@@ -29,7 +29,7 @@ public:
 
 	void Cancel();
   
-	FVaRestLatentAction(FWeakObjectPtr RequestObj, T& ResultParam, const FLatentActionInfo& LatentInfo) :
+	FSIOJLatentAction(FWeakObjectPtr RequestObj, T& ResultParam, const FLatentActionInfo& LatentInfo) :
 		Called(false),
 		Request(RequestObj),
 		ExecutionFunction(LatentInfo.ExecutionFunction),
@@ -67,18 +67,18 @@ public:
 
 
 /** Generate a delegates for callback events */
-DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnRequestComplete, class UVaRestRequestJSON*, Request);
-DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnRequestFail, class UVaRestRequestJSON*, Request);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnRequestComplete, class USIOJRequestJSON*, Request);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnRequestFail, class USIOJRequestJSON*, Request);
 
-DECLARE_MULTICAST_DELEGATE_OneParam(FOnStaticRequestComplete, class UVaRestRequestJSON*);
-DECLARE_MULTICAST_DELEGATE_OneParam(FOnStaticRequestFail, class UVaRestRequestJSON*);
+DECLARE_MULTICAST_DELEGATE_OneParam(FOnStaticRequestComplete, class USIOJRequestJSON*);
+DECLARE_MULTICAST_DELEGATE_OneParam(FOnStaticRequestFail, class USIOJRequestJSON*);
 
 
 /**
  * General helper class http requests via blueprints
  */
 UCLASS(BlueprintType, Blueprintable)
-class VARESTPLUGIN_API UVaRestRequestJSON : public UObject
+class SIOJPLUGIN_API USIOJRequestJSON : public UObject
 {
 	GENERATED_UCLASS_BODY()
 
@@ -87,36 +87,36 @@ public:
 	// Construction
 
 	/** Creates new request (totally empty) */
-	UFUNCTION(BlueprintPure, meta = (DisplayName = "Construct Json Request (Empty)", HidePin = "WorldContextObject", DefaultToSelf = "WorldContextObject"), Category = "VaRest|Request")
-	static UVaRestRequestJSON* ConstructRequest(UObject* WorldContextObject);
+	UFUNCTION(BlueprintPure, meta = (DisplayName = "Construct Json Request (Empty)", HidePin = "WorldContextObject", DefaultToSelf = "WorldContextObject"), Category = "SIOJ|Request")
+	static USIOJRequestJSON* ConstructRequest(UObject* WorldContextObject);
 
 	/** Creates new request with defined verb and content type */
-	UFUNCTION(BlueprintPure, meta = (DisplayName = "Construct Json Request", HidePin = "WorldContextObject", DefaultToSelf = "WorldContextObject"), Category = "VaRest|Request")
-	static UVaRestRequestJSON* ConstructRequestExt(UObject* WorldContextObject, ERequestVerb Verb, ERequestContentType ContentType);
+	UFUNCTION(BlueprintPure, meta = (DisplayName = "Construct Json Request", HidePin = "WorldContextObject", DefaultToSelf = "WorldContextObject"), Category = "SIOJ|Request")
+	static USIOJRequestJSON* ConstructRequestExt(UObject* WorldContextObject, ERequestVerb Verb, ERequestContentType ContentType);
 
 	/** Set verb to the request */
-	UFUNCTION(BlueprintCallable, Category = "VaRest|Request")
+	UFUNCTION(BlueprintCallable, Category = "SIOJ|Request")
 	void SetVerb(ERequestVerb Verb);
 
 	/** Set custom verb to the request */
-	UFUNCTION(BlueprintCallable, Category = "VaRest|Request")
+	UFUNCTION(BlueprintCallable, Category = "SIOJ|Request")
 	void SetCustomVerb(FString Verb);
 
 	/** Set content type to the request. If you're using the x-www-form-urlencoded, 
 	 * params/constaints should be defined as key=ValueString pairs from Json data */
-	UFUNCTION(BlueprintCallable, Category = "VaRest|Request")
+	UFUNCTION(BlueprintCallable, Category = "SIOJ|Request")
 	void SetContentType(ERequestContentType ContentType);
 
 	/** Set content type of the request for binary post data */
-	UFUNCTION(BlueprintCallable, Category = "VaRest|Request")
+	UFUNCTION(BlueprintCallable, Category = "SIOJ|Request")
 	void SetBinaryContentType(const FString &ContentType);
 
 	/** Set content of the request for binary post data */
-	UFUNCTION(BlueprintCallable, Category = "VaRest|Request")
+	UFUNCTION(BlueprintCallable, Category = "SIOJ|Request")
 	void SetBinaryRequestContent(const TArray<uint8> &Content);
 
 	/** Sets optional header info */
-	UFUNCTION(BlueprintCallable, Category = "VaRest|Request")
+	UFUNCTION(BlueprintCallable, Category = "SIOJ|Request")
 	void SetHeader(const FString& HeaderName, const FString& HeaderValue);
 
 
@@ -124,19 +124,19 @@ public:
 	// Destruction and reset
 
 	/** Reset all internal saved data */
-	UFUNCTION(BlueprintCallable, Category = "VaRest|Utility")
+	UFUNCTION(BlueprintCallable, Category = "SIOJ|Utility")
 	void ResetData();
 
 	/** Reset saved request data */
-	UFUNCTION(BlueprintCallable, Category = "VaRest|Request")
+	UFUNCTION(BlueprintCallable, Category = "SIOJ|Request")
 	void ResetRequestData();
 
 	/** Reset saved response data */
-	UFUNCTION(BlueprintCallable, Category = "VaRest|Response")
+	UFUNCTION(BlueprintCallable, Category = "SIOJ|Response")
 	void ResetResponseData();
 
 	/** Cancel latent response waiting  */
-	UFUNCTION(BlueprintCallable, Category = "VaRest|Response")
+	UFUNCTION(BlueprintCallable, Category = "SIOJ|Response")
 	void Cancel();
 
 
@@ -144,43 +144,43 @@ public:
 	// JSON data accessors
 
 	/** Get the Request Json object */
-	UFUNCTION(BlueprintCallable, Category = "VaRest|Request")
-	UVaRestJsonObject* GetRequestObject();
+	UFUNCTION(BlueprintCallable, Category = "SIOJ|Request")
+	USIOJJsonObject* GetRequestObject();
 
 	/** Set the Request Json object */
-	UFUNCTION(BlueprintCallable, Category = "VaRest|Request")
-	void SetRequestObject(UVaRestJsonObject* JsonObject);
+	UFUNCTION(BlueprintCallable, Category = "SIOJ|Request")
+	void SetRequestObject(USIOJJsonObject* JsonObject);
 
 	/** Get the Response Json object */
-	UFUNCTION(BlueprintCallable, Category = "VaRest|Response")
-	UVaRestJsonObject* GetResponseObject();
+	UFUNCTION(BlueprintCallable, Category = "SIOJ|Response")
+	USIOJJsonObject* GetResponseObject();
 
 	/** Set the Response Json object */
-	UFUNCTION(BlueprintCallable, Category = "VaRest|Response")
-	void SetResponseObject(UVaRestJsonObject* JsonObject);
+	UFUNCTION(BlueprintCallable, Category = "SIOJ|Response")
+	void SetResponseObject(USIOJJsonObject* JsonObject);
 
 
 	///////////////////////////////////////////////////////////////////////////
 	// Request/response data access
 
 	/** Get url of http request */
-	UFUNCTION(BlueprintCallable, Category = "VaRest|Request")
+	UFUNCTION(BlueprintCallable, Category = "SIOJ|Request")
 	FString GetURL();
 
 	/** Get status of http request */
-	UFUNCTION(BlueprintCallable, Category = "VaRest|Request")
+	UFUNCTION(BlueprintCallable, Category = "SIOJ|Request")
 	ERequestStatus GetStatus();
 
 	/** Get the response code of the last query */
-	UFUNCTION(BlueprintCallable, Category = "VaRest|Response")
+	UFUNCTION(BlueprintCallable, Category = "SIOJ|Response")
 	int32 GetResponseCode();
 
 	/** Get value of desired response header */
-	UFUNCTION(BlueprintCallable, Category = "VaRest|Response")
+	UFUNCTION(BlueprintCallable, Category = "SIOJ|Response")
 	FString GetResponseHeader(const FString HeaderName);
 	
 	/** Get list of all response headers */
-	UFUNCTION(BlueprintCallable, Category = "VaRest|Response")
+	UFUNCTION(BlueprintCallable, Category = "SIOJ|Response")
 	TArray<FString> GetAllResponseHeaders();
 
 
@@ -188,12 +188,12 @@ public:
 	// URL processing
 
 	/** Open URL with current setup */
-	UFUNCTION(BlueprintCallable, Category = "VaRest|Request")
+	UFUNCTION(BlueprintCallable, Category = "SIOJ|Request")
 	virtual void ProcessURL(const FString& Url = TEXT("http://alyamkin.com"));
 
 	/** Open URL in latent mode */
-	UFUNCTION(BlueprintCallable, Category = "VaRest|Request", meta = (Latent, LatentInfo = "LatentInfo", HidePin = "WorldContextObject", DefaultToSelf = "WorldContextObject"))
-	virtual void ApplyURL(const FString& Url, UVaRestJsonObject *&Result, UObject* WorldContextObject, struct FLatentActionInfo LatentInfo);
+	UFUNCTION(BlueprintCallable, Category = "SIOJ|Request", meta = (Latent, LatentInfo = "LatentInfo", HidePin = "WorldContextObject", DefaultToSelf = "WorldContextObject"))
+	virtual void ApplyURL(const FString& Url, USIOJJsonObject *&Result, UObject* WorldContextObject, struct FLatentActionInfo LatentInfo);
 
 	/** Apply current internal setup to request and process it */
 	void ProcessRequest();
@@ -208,11 +208,11 @@ private:
 
 public:
 	/** Event occured when the request has been completed */
-	UPROPERTY(BlueprintAssignable, Category = "VaRest|Event")
+	UPROPERTY(BlueprintAssignable, Category = "SIOJ|Event")
 	FOnRequestComplete OnRequestComplete;
 
 	/** Event occured when the request wasn't successfull */
-	UPROPERTY(BlueprintAssignable, Category = "VaRest|Event")
+	UPROPERTY(BlueprintAssignable, Category = "SIOJ|Event")
 	FOnRequestFail OnRequestFail;
 	
 	/** Event occured when the request has been completed */
@@ -227,7 +227,7 @@ public:
 
 public:
 	/** Add tag to this request */
-	UFUNCTION(BlueprintCallable, Category = "VaRest|Utility")
+	UFUNCTION(BlueprintCallable, Category = "SIOJ|Utility")
 	void AddTag(FName Tag);
 
 	/** 
@@ -235,11 +235,11 @@ public:
 	 *
 	 * @return Number of removed elements 
 	 */
-	UFUNCTION(BlueprintCallable, Category = "VaRest|Utility")
+	UFUNCTION(BlueprintCallable, Category = "SIOJ|Utility")
 	int32 RemoveTag(FName Tag);
 
 	/** See if this request contains the supplied tag */
-	UFUNCTION(BlueprintCallable, Category = "VaRest|Utility")
+	UFUNCTION(BlueprintCallable, Category = "SIOJ|Utility")
 	bool HasTag(FName Tag) const;
 
 protected:
@@ -252,20 +252,20 @@ protected:
 
 public:
 	/** Request response stored as a string */
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "VaRest|Response")
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "SIOJ|Response")
 	FString ResponseContent;
 
 	/** Is the response valid JSON? */
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "VaRest|Response")
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "SIOJ|Response")
 	bool bIsValidJsonResponse;
 
 protected:
 	/** Latent action helper */
-	FVaRestLatentAction<UVaRestJsonObject*>* ContinueAction;
+	FSIOJLatentAction<USIOJJsonObject*>* ContinueAction;
 
 	/** Internal request data stored as JSON */
 	UPROPERTY()
-	UVaRestJsonObject* RequestJsonObj;
+	USIOJJsonObject* RequestJsonObj;
 
 	UPROPERTY()
 	TArray<uint8> RequestBytes;
@@ -275,7 +275,7 @@ protected:
 
 	/** Response data stored as JSON */
 	UPROPERTY()
-	UVaRestJsonObject* ResponseJsonObj;
+	USIOJJsonObject* ResponseJsonObj;
 
 	/** Verb for making request (GET,POST,etc) */
 	ERequestVerb RequestVerb;

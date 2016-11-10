@@ -1,12 +1,12 @@
 // Copyright 2016 Vladimir Alyamkin. All Rights Reserved.
 
-#include "VaRestPluginPrivatePCH.h"
+#include "SIOJPluginPrivatePCH.h"
 #include "Base64.h"
 
 //////////////////////////////////////////////////////////////////////////
 // Helpers
 
-FString UVaRestLibrary::PercentEncode(const FString& Source)
+FString USIOJLibrary::PercentEncode(const FString& Source)
 {
 	FString OutText = Source;
 
@@ -36,12 +36,12 @@ FString UVaRestLibrary::PercentEncode(const FString& Source)
 	return OutText;
 }
 
-FString UVaRestLibrary::Base64Encode(const FString& Source)
+FString USIOJLibrary::Base64Encode(const FString& Source)
 {
 	return FBase64::Encode(Source);
 }
 
-bool UVaRestLibrary::Base64Decode(const FString& Source, FString& Dest)
+bool USIOJLibrary::Base64Decode(const FString& Source, FString& Dest)
 {
 	return FBase64::Decode(Source, Dest);
 }
@@ -50,36 +50,36 @@ bool UVaRestLibrary::Base64Decode(const FString& Source, FString& Dest)
 //////////////////////////////////////////////////////////////////////////
 // Easy URL processing
 
-TMap<UVaRestRequestJSON*, FVaRestCallResponse> UVaRestLibrary::RequestMap;
+TMap<USIOJRequestJSON*, FSIOJCallResponse> USIOJLibrary::RequestMap;
 
-void UVaRestLibrary::CallURL(UObject* WorldContextObject, const FString& URL, ERequestVerb Verb, ERequestContentType ContentType, UVaRestJsonObject* VaRestJson, const FVaRestCallDelegate& Callback)
+void USIOJLibrary::CallURL(UObject* WorldContextObject, const FString& URL, ERequestVerb Verb, ERequestContentType ContentType, USIOJJsonObject* SIOJJson, const FSIOJCallDelegate& Callback)
 {
 	UWorld* World = GEngine->GetWorldFromContextObject(WorldContextObject);
 	if (World == nullptr)
 	{
-		UE_LOG(LogVaRest, Error, TEXT("UVaRestLibrary: Wrong world context"))
+		UE_LOG(LogSIOJ, Error, TEXT("USIOJLibrary: Wrong world context"))
 		return;
 	}
 
 	// Check we have valid data json
-	if (VaRestJson == nullptr)
+	if (SIOJJson == nullptr)
 	{
-		VaRestJson = UVaRestJsonObject::ConstructJsonObject(WorldContextObject);
+		SIOJJson = USIOJJsonObject::ConstructJsonObject(WorldContextObject);
 	}
 	
-	UVaRestRequestJSON* Request = NewObject<UVaRestRequestJSON>();
+	USIOJRequestJSON* Request = NewObject<USIOJRequestJSON>();
 	
 	Request->SetVerb(Verb);
 	Request->SetContentType(ContentType);
-	Request->SetRequestObject(VaRestJson);
+	Request->SetRequestObject(SIOJJson);
 	
-	FVaRestCallResponse Response;
+	FSIOJCallResponse Response;
 	Response.Request = Request;
 	Response.WorldContextObject = WorldContextObject;
 	Response.Callback = Callback;
 	
-	Response.CompleteDelegateHandle = Request->OnStaticRequestComplete.AddStatic(&UVaRestLibrary::OnCallComplete);
-	Response.FailDelegateHandle = Request->OnStaticRequestFail.AddStatic(&UVaRestLibrary::OnCallComplete);
+	Response.CompleteDelegateHandle = Request->OnStaticRequestComplete.AddStatic(&USIOJLibrary::OnCallComplete);
+	Response.FailDelegateHandle = Request->OnStaticRequestFail.AddStatic(&USIOJLibrary::OnCallComplete);
 	
 	RequestMap.Add(Request, Response);
 	
@@ -87,14 +87,14 @@ void UVaRestLibrary::CallURL(UObject* WorldContextObject, const FString& URL, ER
 	Request->ProcessURL(URL);
 }
 
-void UVaRestLibrary::OnCallComplete(UVaRestRequestJSON* Request)
+void USIOJLibrary::OnCallComplete(USIOJRequestJSON* Request)
 {
 	if (!RequestMap.Contains(Request))
 	{
 		return;
 	}
 	
-	FVaRestCallResponse* Response = RequestMap.Find(Request);
+	FSIOJCallResponse* Response = RequestMap.Find(Request);
 	
 	Request->OnStaticRequestComplete.Remove(Response->CompleteDelegateHandle);
 	Request->OnStaticRequestFail.Remove(Response->FailDelegateHandle);
