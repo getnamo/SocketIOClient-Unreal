@@ -47,7 +47,7 @@ bool USIOJLibrary::Base64Decode(const FString& Source, FString& Dest)
 }
 
 
-void USIOJLibrary::StringToJsonValueArray(const FString& JsonString, TArray<USIOJsonValue*>& OutJsonValueArray)
+bool USIOJLibrary::StringToJsonValueArray(const FString& JsonString, TArray<USIOJsonValue*>& OutJsonValueArray)
 {
 	TArray < TSharedPtr<FJsonValue>> RawJsonValueArray;
 	TSharedRef< TJsonReader<> > Reader = TJsonReaderFactory<>::Create(*JsonString);
@@ -59,6 +59,8 @@ void USIOJLibrary::StringToJsonValueArray(const FString& JsonString, TArray<USIO
 		SJsonValue->SetRootValue(Value);
 		OutJsonValueArray.Add(SJsonValue);
 	}
+
+	return OutJsonValueArray.Num() > 0;
 }
 
 //////////////////////////////////////////////////////////////////////////

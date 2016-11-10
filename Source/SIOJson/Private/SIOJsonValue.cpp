@@ -1,6 +1,7 @@
 // Copyright 2014 Vladimir Alyamkin. All Rights Reserved.
 
 #include "SIOJsonPrivatePCH.h"
+#include "SIOJConvert.h"
 
 USIOJsonValue::USIOJsonValue(const class FObjectInitializer& PCIP)
 	: Super(PCIP)
@@ -68,6 +69,17 @@ USIOJsonValue* USIOJsonValue::ConstructJsonValueObject(UObject* WorldContextObje
 USIOJsonValue* ConstructJsonValue(UObject* WorldContextObject, const TSharedPtr<FJsonValue>& InValue)
 {
 	TSharedPtr<FJsonValue> NewVal = InValue;
+
+	USIOJsonValue* NewValue = NewObject<USIOJsonValue>();
+	NewValue->SetRootValue(NewVal);
+
+	return NewValue;
+}
+
+
+USIOJsonValue* USIOJsonValue::ValueFromJsonString(UObject* WorldContextObject, const FString& StringValue)
+{
+	TSharedPtr<FJsonValue> NewVal = USIOJConvert::ToJsonValue(StringValue);
 
 	USIOJsonValue* NewValue = NewObject<USIOJsonValue>();
 	NewValue->SetRootValue(NewVal);
@@ -240,6 +252,11 @@ USIOJsonObject* USIOJsonValue::AsObject()
 	return JsonObj;
 }
 
+
+FString USIOJsonValue::EncodeJson() const
+{ 
+	return USIOJConvert::ToJsonString(JsonVal);
+}
 
 //////////////////////////////////////////////////////////////////////////
 // Helpers

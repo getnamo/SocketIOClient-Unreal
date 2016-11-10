@@ -57,6 +57,10 @@ class SIOJSON_API USIOJsonValue : public UObject
 	/** Create new Json value from FJsonValue (to be used from SIOJJsonObject) */
 	static USIOJsonValue* ConstructJsonValue(UObject* WorldContextObject, const TSharedPtr<FJsonValue>& InValue);
 
+	/** Create new Json value from JSON encoded string*/
+	UFUNCTION(BlueprintPure, meta = (DisplayName = "Value From Json String", HidePin = "WorldContextObject", DefaultToSelf = "WorldContextObject"), Category = "SIOJ|Json")
+	static USIOJsonValue* ValueFromJsonString(UObject* WorldContextObject, const FString& StringValue);
+
 	/** Get the root Json value */
 	TSharedPtr<FJsonValue>& GetRootValue();
 
@@ -100,6 +104,9 @@ class SIOJSON_API USIOJsonValue : public UObject
 	UFUNCTION(BlueprintCallable, Category = "SIOJ|Json")
 	USIOJsonObject* AsObject();
 
+
+	UFUNCTION(BlueprintCallable, Category = "SIOJ|Json")
+	FString EncodeJson() const;
 
 	//////////////////////////////////////////////////////////////////////////
 	// Data

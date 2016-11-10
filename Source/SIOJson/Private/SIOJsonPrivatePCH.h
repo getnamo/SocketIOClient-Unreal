@@ -22,6 +22,7 @@
 DECLARE_LOG_CATEGORY_EXTERN(LogSIOJ, Log, All);
 
 #include "ISIOJson.h"
+#include "SIOJConvert.h"
 #include "SIOJsonObject.h"
 #include "SIOJsonValue.h"
 #include "SIOJLibrary.h"

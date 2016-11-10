@@ -80,7 +80,7 @@ public:
 	* @param OutJsonValueArray		The decoded Array of JsonValue 
 	*/
 	UFUNCTION(BlueprintPure, Category = "SIOJ|Utility")
-	static void StringToJsonValueArray(const FString& JsonString, TArray<USIOJsonValue*>& OutJsonValueArray);
+	static bool StringToJsonValueArray(const FString& JsonString, TArray<USIOJsonValue*>& OutJsonValueArray);
 
 	//////////////////////////////////////////////////////////////////////////
 	// Easy URL processing
