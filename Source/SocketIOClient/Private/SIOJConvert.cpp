@@ -1,9 +1,9 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 
 #include "SocketIOClientPrivatePCH.h"
-#include "SIOJsonConverter.h"
+#include "SIOJConvert.h"
 
-TSharedPtr<FJsonValue> USIOJsonConverter::ToJsonValue(const sio::message::ptr& Message)
+TSharedPtr<FJsonValue> USIOJConvert::ToJsonValue(const sio::message::ptr& Message)
 {
 	auto flag = Message->get_flag();
 
@@ -66,7 +66,7 @@ TSharedPtr<FJsonValue> USIOJsonConverter::ToJsonValue(const sio::message::ptr& M
 	}
 }
 
-sio::message::ptr USIOJsonConverter::ToSIOMessage(const TSharedPtr<FJsonValue>& JsonValue)
+sio::message::ptr USIOJConvert::ToSIOMessage(const TSharedPtr<FJsonValue>& JsonValue)
 {
 	if (JsonValue->Type == EJson::None)
 	{
@@ -121,12 +121,12 @@ sio::message::ptr USIOJsonConverter::ToSIOMessage(const TSharedPtr<FJsonValue>& 
 	}
 }
 
-std::string USIOJsonConverter::StdString(FString UEString)
+std::string USIOJConvert::StdString(FString UEString)
 {
 	return std::string(TCHAR_TO_UTF8(*UEString));	//TCHAR_TO_ANSI try this string instead?
 }
 
-FString USIOJsonConverter::FStringFromStd(std::string StdString)
+FString USIOJConvert::FStringFromStd(std::string StdString)
 {
 	return FString(StdString.c_str());
 }

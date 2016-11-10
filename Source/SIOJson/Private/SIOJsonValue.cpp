@@ -1,6 +1,6 @@
 // Copyright 2014 Vladimir Alyamkin. All Rights Reserved.
 
-#include "SIOJPluginPrivatePCH.h"
+#include "SIOJsonPrivatePCH.h"
 
 USIOJsonValue::USIOJsonValue(const class FObjectInitializer& PCIP)
 	: Super(PCIP)

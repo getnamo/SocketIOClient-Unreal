@@ -1,6 +1,6 @@
 // Copyright 2016 Vladimir Alyamkin. All Rights Reserved.
 
-#include "SIOJPluginPrivatePCH.h"
+#include "SIOJsonPrivatePCH.h"
 #include "Base64.h"
 
 //////////////////////////////////////////////////////////////////////////

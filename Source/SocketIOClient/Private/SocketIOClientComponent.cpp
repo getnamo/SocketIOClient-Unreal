@@ -3,7 +3,7 @@
 #include "SocketIOClientPrivatePCH.h"
 #include "SocketIOClientComponent.h"
 #include "SIOLambdaRunnable.h"
-#include "SIOJsonConverter.h"
+#include "SIOJConvert.h"
 
 
 USocketIOClientComponent::USocketIOClientComponent(const FObjectInitializer &init) : UActorComponent(init)
@@ -34,10 +34,10 @@ void USocketIOClientComponent::UninitializeComponent()
 
 void USocketIOClientComponent::Connect(FString InAddressAndPort)
 {
-	std::string StdAddressString = USIOJsonConverter::StdString(InAddressAndPort);
+	std::string StdAddressString = USIOJConvert::StdString(InAddressAndPort);
 	if (InAddressAndPort.IsEmpty())
 	{
-		StdAddressString = USIOJsonConverter::StdString(AddressAndPort);
+		StdAddressString = USIOJConvert::StdString(AddressAndPort);
 	}
 
 	//Connect to the server on a background thread
@@ -46,7 +46,7 @@ void USocketIOClientComponent::Connect(FString InAddressAndPort)
 		//Attach the specific connection status events events
 
 		PrivateClient.set_open_listener(sio::client::con_listener([&]() {
-			SessionId = USIOJsonConverter::FStringFromStd(PrivateClient.get_sessionid());
+			SessionId = USIOJConvert::FStringFromStd(PrivateClient.get_sessionid());
 			UE_LOG(LogTemp, Log, TEXT("SocketIO Connected with session: %s"), *SessionId);
 			OnConnected.Broadcast(SessionId);
 		}));
@@ -60,16 +60,16 @@ void USocketIOClientComponent::Connect(FString InAddressAndPort)
 
 		PrivateClient.set_socket_open_listener(sio::client::socket_listener([&](std::string const& nsp)
 		{
-			FString Namespace = USIOJsonConverter::FStringFromStd(nsp);
+			FString Namespace = USIOJConvert::FStringFromStd(nsp);
 			UE_LOG(LogTemp, Log, TEXT("SocketIO connected to namespace: %s"), *Namespace);
 			OnSocketNamespaceConnected.Broadcast(Namespace);
 		}));
 
 		PrivateClient.set_socket_close_listener(sio::client::socket_listener([&](std::string const& nsp)
 		{
-			FString Namespace = USIOJsonConverter::FStringFromStd(nsp);
+			FString Namespace = USIOJConvert::FStringFromStd(nsp);
 			UE_LOG(LogTemp, Log, TEXT("SocketIO disconnected from namespace: %s"), *Namespace);
-			OnSocketNamespaceDisconnected.Broadcast(USIOJsonConverter::FStringFromStd(nsp));
+			OnSocketNamespaceDisconnected.Broadcast(USIOJConvert::FStringFromStd(nsp));
 		}));
 
 		PrivateClient.set_fail_listener(sio::client::con_listener([&]()
@@ -102,16 +102,16 @@ void USocketIOClientComponent::Disconnect()
 
 void USocketIOClientComponent::Emit(FString Name, USIOJsonValue* Message, FString Namespace /*= FString(TEXT("/"))*/)
 {
-	PrivateClient.socket(USIOJsonConverter::StdString(Namespace))->emit(
-		USIOJsonConverter::StdString(Name),
-		USIOJsonConverter::ToSIOMessage(Message->GetRootValue()));
+	PrivateClient.socket(USIOJConvert::StdString(Namespace))->emit(
+		USIOJConvert::StdString(Name),
+		USIOJConvert::ToSIOMessage(Message->GetRootValue()));
 }
 
 void USocketIOClientComponent::EmitNative(FString EventName, const TSharedPtr<FJsonValue>& Message /*= nullptr*/, TFunction< void(const FString&, const TArray<TSharedPtr<FJsonValue>>&)> CallbackFunction /*= nullptr*/, FString Namespace /*= FString(TEXT("/"))*/)
 {
 	EmitRawWithCallback(
 		EventName,
-		USIOJsonConverter::ToSIOMessage(Message),
+		USIOJConvert::ToSIOMessage(Message),
 		[&](const sio::message::list& MessageList)
 	{
 		TArray<TSharedPtr<FJsonValue>> ValueArray;
@@ -119,7 +119,7 @@ void USocketIOClientComponent::EmitNative(FString EventName, const TSharedPtr<FJ
 		for (int i = 0; i < MessageList.size(); i++)
 		{
 			auto ItemMessagePtr = MessageList[i];
-			ValueArray.Add(USIOJsonConverter::ToJsonValue(ItemMessagePtr));
+			ValueArray.Add(USIOJConvert::ToJsonValue(ItemMessagePtr));
 		}
 
 		CallbackFunction(EventName, ValueArray);
@@ -130,7 +130,7 @@ void USocketIOClientComponent::EmitRawWithCallback(FString Name, const sio::mess
 {
 	const TFunction<void(const sio::message::list&)> SafeFunction = ResponseFunction;
 
-	PrivateClient.socket(USIOJsonConverter::StdString(Namespace))->emit(USIOJsonConverter::StdString(Name), MessageList, [&, SafeFunction](const sio::message::list& response) {
+	PrivateClient.socket(USIOJConvert::StdString(Namespace))->emit(USIOJConvert::StdString(Name), MessageList, [&, SafeFunction](const sio::message::list& response) {
 		//Call on gamethread
 		FFunctionGraphTask::CreateAndDispatchWhenReady([&, SafeFunction, response]
 		{
@@ -141,7 +141,7 @@ void USocketIOClientComponent::EmitRawWithCallback(FString Name, const sio::mess
 
 void USocketIOClientComponent::EmitBinary(FString Name, uint8* Data, int32 DataLength, FString Namespace /*= FString(TEXT("/"))*/)
 {
-	PrivateClient.socket(USIOJsonConverter::StdString(Namespace))->emit(USIOJsonConverter::StdString(Name), std::make_shared<std::string>((char*)Data, DataLength));
+	PrivateClient.socket(USIOJConvert::StdString(Namespace))->emit(USIOJConvert::StdString(Name), std::make_shared<std::string>((char*)Data, DataLength));
 }
 
 #pragma endregion Emit
@@ -154,7 +154,7 @@ void USocketIOClientComponent::BindEvent(FString Event, FString Namespace)
 
 	OnRawEvent(Event, [&](const FString& EventName, const sio::message::ptr& RawMessage) {
 		USIOJsonValue* NewValue = NewObject<USIOJsonValue>();
-		auto Value = USIOJsonConverter::ToJsonValue(RawMessage);
+		auto Value = USIOJConvert::ToJsonValue(RawMessage);
 		NewValue->SetRootValue(Value);
 		On.Broadcast(EventName, NewValue);
 
@@ -164,7 +164,7 @@ void USocketIOClientComponent::BindEvent(FString Event, FString Namespace)
 void USocketIOClientComponent::OnNativeEvent(FString Event, TFunction< void(const FString&, const TSharedPtr<FJsonValue>&)> CallbackFunction, FString Namespace /*= FString(TEXT("/"))*/)
 {
 	OnRawEvent(Event, [&](const FString& EventName, const sio::message::ptr& RawMessage) {
-		CallbackFunction(EventName, USIOJsonConverter::ToJsonValue(RawMessage));
+		CallbackFunction(EventName, USIOJConvert::ToJsonValue(RawMessage));
 	}, Namespace);
 }
 
@@ -172,12 +172,12 @@ void USocketIOClientComponent::OnRawEvent(FString Event, TFunction< void(const F
 {
 	const TFunction< void(const FString&, const sio::message::ptr&)> SafeFunction = CallbackFunction;	//copy the function so it remains in context
 
-	PrivateClient.socket(USIOJsonConverter::StdString(Namespace))->on(
-		USIOJsonConverter::StdString(Event),
+	PrivateClient.socket(USIOJConvert::StdString(Namespace))->on(
+		USIOJConvert::StdString(Event),
 		sio::socket::event_listener_aux(
 			[&, SafeFunction](std::string const& name, sio::message::ptr const& data, bool isAck, sio::message::list &ack_resp)
 	{
-		const FString SafeName = USIOJsonConverter::FStringFromStd(name);
+		const FString SafeName = USIOJConvert::FStringFromStd(name);
 
 		FFunctionGraphTask::CreateAndDispatchWhenReady([&, SafeFunction, SafeName, data]
 		{
@@ -191,12 +191,12 @@ void USocketIOClientComponent::OnBinaryEvent(FString Event, TFunction< void(cons
 {
 	const TFunction< void(const FString&, const TArray<uint8>&)> SafeFunction = CallbackFunction;	//copy the function so it remains in context
 
-	PrivateClient.socket(USIOJsonConverter::StdString(Namespace))->on(
-		USIOJsonConverter::StdString(Event),
+	PrivateClient.socket(USIOJConvert::StdString(Namespace))->on(
+		USIOJConvert::StdString(Event),
 		sio::socket::event_listener_aux(
 			[&, SafeFunction](std::string const& name, sio::message::ptr const& data, bool isAck, sio::message::list &ack_resp)
 	{
-		const FString SafeName = USIOJsonConverter::FStringFromStd(name);
+		const FString SafeName = USIOJConvert::FStringFromStd(name);
 
 		//Construct raw buffer
 		if (data->get_flag() == sio::message::flag_binary)

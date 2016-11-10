@@ -3,14 +3,13 @@
 #pragma once
 
 #include "Object.h"
-#include "sio_client.h"
-#include "SIOJsonConverter.generated.h"
+#include "SIOJConvert.generated.h"
 
 /**
  * 
  */
 UCLASS()
-class SOCKETIOCLIENT_API USIOJsonConverter : public UObject
+class SOCKETIOCLIENT_API USIOJConvert : public UObject
 {
 	GENERATED_BODY()
 public:

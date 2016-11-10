@@ -1,6 +1,6 @@
 // Copyright 2014 Vladimir Alyamkin. All Rights Reserved.
 
-#include "SIOJPluginPrivatePCH.h"
+#include "SIOJsonPrivatePCH.h"
 #include "CoreMisc.h"
 
 template <class T> void FSIOJLatentAction<T>::Cancel()
