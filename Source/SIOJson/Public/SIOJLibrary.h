@@ -73,6 +73,14 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "SIOJ|Utility", meta = (DisplayName = "Base64 Decode"))
 	static bool Base64Decode(const FString& Source, FString& Dest);
 
+	/**
+	* Decodes a json string into an array of stringified json Values
+	*
+	* @param JsonString				Input stringified json
+	* @param OutJsonValueArray		The decoded Array of JsonValue 
+	*/
+	UFUNCTION(BlueprintPure, Category = "SIOJ|Utility")
+	static void StringToJsonValueArray(const FString& JsonString, TArray<USIOJsonValue*>& OutJsonValueArray);
 
 	//////////////////////////////////////////////////////////////////////////
 	// Easy URL processing

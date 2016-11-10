@@ -47,6 +47,20 @@ bool USIOJLibrary::Base64Decode(const FString& Source, FString& Dest)
 }
 
 
+void USIOJLibrary::StringToJsonValueArray(const FString& JsonString, TArray<USIOJsonValue*>& OutJsonValueArray)
+{
+	TArray < TSharedPtr<FJsonValue>> RawJsonValueArray;
+	TSharedRef< TJsonReader<> > Reader = TJsonReaderFactory<>::Create(*JsonString);
+	FJsonSerializer::Deserialize(Reader, RawJsonValueArray);
+
+	for (auto Value : RawJsonValueArray)
+	{
+		auto SJsonValue = NewObject<USIOJsonValue>();
+		SJsonValue->SetRootValue(Value);
+		OutJsonValueArray.Add(SJsonValue);
+	}
+}
+
 //////////////////////////////////////////////////////////////////////////
 // Easy URL processing
 
