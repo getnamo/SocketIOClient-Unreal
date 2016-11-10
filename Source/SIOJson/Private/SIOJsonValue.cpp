@@ -2,43 +2,43 @@
 
 #include "SIOJPluginPrivatePCH.h"
 
-USIOJJsonValue::USIOJJsonValue(const class FObjectInitializer& PCIP)
+USIOJsonValue::USIOJsonValue(const class FObjectInitializer& PCIP)
 	: Super(PCIP)
 {
 
 }
 
-USIOJJsonValue* USIOJJsonValue::ConstructJsonValueNumber(UObject* WorldContextObject, float Number)
+USIOJsonValue* USIOJsonValue::ConstructJsonValueNumber(UObject* WorldContextObject, float Number)
 {
 	TSharedPtr<FJsonValue> NewVal = MakeShareable(new FJsonValueNumber(Number));
 
-	USIOJJsonValue* NewValue = NewObject<USIOJJsonValue>();
+	USIOJsonValue* NewValue = NewObject<USIOJsonValue>();
 	NewValue->SetRootValue(NewVal);
 
 	return NewValue;
 }
 
-USIOJJsonValue* USIOJJsonValue::ConstructJsonValueString(UObject* WorldContextObject, const FString& StringValue)
+USIOJsonValue* USIOJsonValue::ConstructJsonValueString(UObject* WorldContextObject, const FString& StringValue)
 {
 	TSharedPtr<FJsonValue> NewVal = MakeShareable(new FJsonValueString(StringValue));
 
-	USIOJJsonValue* NewValue = NewObject<USIOJJsonValue>();
+	USIOJsonValue* NewValue = NewObject<USIOJsonValue>();
 	NewValue->SetRootValue(NewVal);
 
 	return NewValue;
 }
 
-USIOJJsonValue* USIOJJsonValue::ConstructJsonValueBool(UObject* WorldContextObject, bool InValue)
+USIOJsonValue* USIOJsonValue::ConstructJsonValueBool(UObject* WorldContextObject, bool InValue)
 {
 	TSharedPtr<FJsonValue> NewVal = MakeShareable(new FJsonValueBoolean(InValue));
 
-	USIOJJsonValue* NewValue = NewObject<USIOJJsonValue>();
+	USIOJsonValue* NewValue = NewObject<USIOJsonValue>();
 	NewValue->SetRootValue(NewVal);
 
 	return NewValue;
 }
 
-USIOJJsonValue* USIOJJsonValue::ConstructJsonValueArray(UObject* WorldContextObject, const TArray<USIOJJsonValue*>& InArray)
+USIOJsonValue* USIOJsonValue::ConstructJsonValueArray(UObject* WorldContextObject, const TArray<USIOJsonValue*>& InArray)
 {
 	// Prepare data array to create new value
 	TArray< TSharedPtr<FJsonValue> > ValueArray;
@@ -49,38 +49,38 @@ USIOJJsonValue* USIOJJsonValue::ConstructJsonValueArray(UObject* WorldContextObj
 
 	TSharedPtr<FJsonValue> NewVal = MakeShareable(new FJsonValueArray(ValueArray));
 
-	USIOJJsonValue* NewValue = NewObject<USIOJJsonValue>();
+	USIOJsonValue* NewValue = NewObject<USIOJsonValue>();
 	NewValue->SetRootValue(NewVal);
 
 	return NewValue;
 }
 
-USIOJJsonValue* USIOJJsonValue::ConstructJsonValueObject(UObject* WorldContextObject, USIOJJsonObject *JsonObject)
+USIOJsonValue* USIOJsonValue::ConstructJsonValueObject(UObject* WorldContextObject, USIOJsonObject *JsonObject)
 {
 	TSharedPtr<FJsonValue> NewVal = MakeShareable(new FJsonValueObject(JsonObject->GetRootObject()));
 
-	USIOJJsonValue* NewValue = NewObject<USIOJJsonValue>();
+	USIOJsonValue* NewValue = NewObject<USIOJsonValue>();
 	NewValue->SetRootValue(NewVal);
 
 	return NewValue;
 }
 
-USIOJJsonValue* ConstructJsonValue(UObject* WorldContextObject, const TSharedPtr<FJsonValue>& InValue)
+USIOJsonValue* ConstructJsonValue(UObject* WorldContextObject, const TSharedPtr<FJsonValue>& InValue)
 {
 	TSharedPtr<FJsonValue> NewVal = InValue;
 
-	USIOJJsonValue* NewValue = NewObject<USIOJJsonValue>();
+	USIOJsonValue* NewValue = NewObject<USIOJsonValue>();
 	NewValue->SetRootValue(NewVal);
 
 	return NewValue;
 }
 
-TSharedPtr<FJsonValue>& USIOJJsonValue::GetRootValue()
+TSharedPtr<FJsonValue>& USIOJsonValue::GetRootValue()
 {
 	return JsonVal;
 }
 
-void USIOJJsonValue::SetRootValue(TSharedPtr<FJsonValue>& JsonValue)
+void USIOJsonValue::SetRootValue(TSharedPtr<FJsonValue>& JsonValue)
 {
 	JsonVal = JsonValue;
 }
@@ -89,42 +89,42 @@ void USIOJJsonValue::SetRootValue(TSharedPtr<FJsonValue>& JsonValue)
 //////////////////////////////////////////////////////////////////////////
 // FJsonValue API
 
-EVaJson::Type USIOJJsonValue::GetType() const
+ESIOJson::Type USIOJsonValue::GetType() const
 {
 	if (!JsonVal.IsValid())
 	{
-		return EVaJson::None;
+		return ESIOJson::None;
 	}
 
 	switch (JsonVal->Type)
 	{
 	case EJson::None:
-		return EVaJson::None;
+		return ESIOJson::None;
 
 	case EJson::Null:
-		return EVaJson::Null;
+		return ESIOJson::Null;
 
 	case EJson::String:
-		return EVaJson::String;
+		return ESIOJson::String;
 
 	case EJson::Number:
-		return EVaJson::Number;
+		return ESIOJson::Number;
 
 	case EJson::Boolean:
-		return EVaJson::Boolean;
+		return ESIOJson::Boolean;
 
 	case EJson::Array:
-		return EVaJson::Array;
+		return ESIOJson::Array;
 
 	case EJson::Object:
-		return EVaJson::Object;
+		return ESIOJson::Object;
 
 	default:
-		return EVaJson::None;
+		return ESIOJson::None;
 	}
 }
 
-FString USIOJJsonValue::GetTypeString() const
+FString USIOJsonValue::GetTypeString() const
 {
 	if (!JsonVal.IsValid())
 	{
@@ -159,7 +159,7 @@ FString USIOJJsonValue::GetTypeString() const
 	}
 }
 
-bool USIOJJsonValue::IsNull() const 
+bool USIOJsonValue::IsNull() const 
 {
 	if (!JsonVal.IsValid())
 	{
@@ -169,7 +169,7 @@ bool USIOJJsonValue::IsNull() const
 	return JsonVal->IsNull();
 }
 
-float USIOJJsonValue::AsNumber() const
+float USIOJsonValue::AsNumber() const
 {
 	if (!JsonVal.IsValid())
 	{
@@ -180,7 +180,7 @@ float USIOJJsonValue::AsNumber() const
 	return JsonVal->AsNumber();
 }
 
-FString USIOJJsonValue::AsString() const
+FString USIOJsonValue::AsString() const
 {
 	if (!JsonVal.IsValid())
 	{
@@ -191,7 +191,7 @@ FString USIOJJsonValue::AsString() const
 	return JsonVal->AsString();
 }
 
-bool USIOJJsonValue::AsBool() const
+bool USIOJsonValue::AsBool() const
 {
 	if (!JsonVal.IsValid())
 	{
@@ -202,9 +202,9 @@ bool USIOJJsonValue::AsBool() const
 	return JsonVal->AsBool();
 }
 
-TArray<USIOJJsonValue*> USIOJJsonValue::AsArray() const
+TArray<USIOJsonValue*> USIOJsonValue::AsArray() const
 {
-	TArray<USIOJJsonValue*> OutArray;
+	TArray<USIOJsonValue*> OutArray;
 
 	if (!JsonVal.IsValid())
 	{
@@ -215,7 +215,7 @@ TArray<USIOJJsonValue*> USIOJJsonValue::AsArray() const
 	TArray< TSharedPtr<FJsonValue> > ValArray = JsonVal->AsArray();
 	for (auto Value : ValArray)
 	{
-		USIOJJsonValue* NewValue = NewObject<USIOJJsonValue>();
+		USIOJsonValue* NewValue = NewObject<USIOJsonValue>();
 		NewValue->SetRootValue(Value);
 
 		OutArray.Add(NewValue);
@@ -224,7 +224,7 @@ TArray<USIOJJsonValue*> USIOJJsonValue::AsArray() const
 	return OutArray;
 }
 
-USIOJJsonObject* USIOJJsonValue::AsObject()
+USIOJsonObject* USIOJsonValue::AsObject()
 {
 	if (!JsonVal.IsValid())
 	{
@@ -234,7 +234,7 @@ USIOJJsonObject* USIOJJsonValue::AsObject()
 
 	TSharedPtr<FJsonObject> NewObj = JsonVal->AsObject();
 
-	USIOJJsonObject* JsonObj = NewObject<USIOJJsonObject>();
+	USIOJsonObject* JsonObj = NewObject<USIOJsonObject>();
 	JsonObj->SetRootObject(NewObj);
 
 	return JsonObj;
@@ -244,7 +244,7 @@ USIOJJsonObject* USIOJJsonValue::AsObject()
 //////////////////////////////////////////////////////////////////////////
 // Helpers
 
-void USIOJJsonValue::ErrorMessage(const FString& InType) const
+void USIOJsonValue::ErrorMessage(const FString& InType) const
 {
 	UE_LOG(LogSIOJ, Error, TEXT("Json Value of type '%s' used as a '%s'."), *GetTypeString(), *InType);
 }

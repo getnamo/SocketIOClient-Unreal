@@ -1,7 +1,7 @@
 {
 	"FileVersion": 3,
 	"Version": 1,
-	"VersionName": "0.2.7",
+	"VersionName": "0.2.8",
 	"FriendlyName": "SocketIOClient",
 	"Description": "Socket IO C++ Client ported to UE4",
 	"Category": "Networking",
@@ -14,18 +14,18 @@
 	"CanContainContent": false,
 	"Modules": [
 		{
-			"Name" : "SIOJPlugin",
+			"Name": "SocketIOClient",
+			"Type": "Runtime",
+			"LoadingPhase": "Default"
+		},
+		{
+			"Name" : "SIOJson",
 			"Type" : "Runtime",
 			"LoadingPhase": "PreDefault"
 		},
 		{
 			"Name": "SIOJEditorPlugin",
 			"Type": "Developer"
-		},
-		{
-			"Name": "SocketIOClient",
-			"Type": "Runtime",
-			"LoadingPhase": "Default"
 		}
 	]
 }

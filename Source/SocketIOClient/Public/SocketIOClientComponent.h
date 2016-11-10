@@ -1,7 +1,7 @@
 #pragma once
 
 #include "sio_client.h"
-#include "SIOJJsonValue.h"
+#include "SIOJsonValue.h"
 #include "Components/ActorComponent.h"
 #include "SocketIOClientComponent.generated.h"
 
@@ -42,7 +42,7 @@ DECLARE_DYNAMIC_MULTICAST_DELEGATE(FSIOCEventSignature);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FSIOCSocketEventSignature, FString, Namespace);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FSIOCOpenEventSignature, FString, SessionId);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FSIOCCloseEventSignature, TEnumAsByte<EConnectionCloseReason>, Reason);
-DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FSIOCEventJsonSignature, FString, Name, class USIOJJsonValue*, JsonValue);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FSIOCEventJsonSignature, FString, Event, class USIOJsonValue*, MessageJson);
 
 UCLASS(ClassGroup = "Networking", meta = (BlueprintSpawnableComponent))
 class SOCKETIOCLIENT_API USocketIOClientComponent : public UActorComponent
@@ -70,10 +70,10 @@ public:
 	FSIOCEventJsonSignature On;
 
 	//Default properties
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = defaults)
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "SocketIO Properties")
 	FString AddressAndPort;
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = defaults)
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "SocketIO Properties")
 	bool ShouldAutoConnect;
 
 	UPROPERTY(BlueprintReadWrite, Category = "SocketIO Properties")
@@ -97,12 +97,12 @@ public:
 	* @param Data	Data SIOJJsonValue
 	*/
 	UFUNCTION(BlueprintCallable, Category = "SocketIO Functions")
-	void Emit(FString EventName, USIOJJsonValue* Message, FString Namespace = FString(TEXT("/")));
+	void Emit(FString EventName, USIOJsonValue* Message, FString Namespace = FString(TEXT("/")));
 
 
 	//Emit Json value object with callback. C++ only convenience emit event.
-	void EmitEvent(	FString EventName,
-					USIOJJsonValue* Message = nullptr,
+	void EmitNative(FString EventName,
+					const TSharedPtr<FJsonValue>& Message = nullptr,
 					TFunction< void(const FString&, const TArray<TSharedPtr<FJsonValue>>&)> CallbackFunction = nullptr,
 					FString Namespace = FString(TEXT("/")));
 
@@ -133,9 +133,9 @@ public:
 	* @param TFunction	Lambda callback, JSONValue
 	* @param Namespace	Optional namespace, defaults to default namespace
 	*/
-	void OnEvent(	FString EventName,
-					TFunction< void(const FString&, const TSharedPtr<FJsonValue>&)> CallbackFunction,
-					FString Namespace = FString(TEXT("/")));
+	void OnNativeEvent(	FString EventName,
+						TFunction< void(const FString&, const TSharedPtr<FJsonValue>&)> CallbackFunction,
+						FString Namespace = FString(TEXT("/")));
 
 	/**
 	* Call function callback on receiving raw event. C++ only.

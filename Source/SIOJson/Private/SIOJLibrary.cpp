@@ -52,7 +52,7 @@ bool USIOJLibrary::Base64Decode(const FString& Source, FString& Dest)
 
 TMap<USIOJRequestJSON*, FSIOJCallResponse> USIOJLibrary::RequestMap;
 
-void USIOJLibrary::CallURL(UObject* WorldContextObject, const FString& URL, ERequestVerb Verb, ERequestContentType ContentType, USIOJJsonObject* SIOJJson, const FSIOJCallDelegate& Callback)
+void USIOJLibrary::CallURL(UObject* WorldContextObject, const FString& URL, ERequestVerb Verb, ERequestContentType ContentType, USIOJsonObject* SIOJJson, const FSIOJCallDelegate& Callback)
 {
 	UWorld* World = GEngine->GetWorldFromContextObject(WorldContextObject);
 	if (World == nullptr)
@@ -64,7 +64,7 @@ void USIOJLibrary::CallURL(UObject* WorldContextObject, const FString& URL, EReq
 	// Check we have valid data json
 	if (SIOJJson == nullptr)
 	{
-		SIOJJson = USIOJJsonObject::ConstructJsonObject(WorldContextObject);
+		SIOJJson = USIOJsonObject::ConstructJsonObject(WorldContextObject);
 	}
 	
 	USIOJRequestJSON* Request = NewObject<USIOJRequestJSON>();

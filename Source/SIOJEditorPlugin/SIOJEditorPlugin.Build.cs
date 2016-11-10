@@ -9,8 +9,8 @@ public class SIOJEditorPlugin : ModuleRules
 		
 		PublicIncludePaths.AddRange(
 			new string[] {
-				"SIOJPlugin",
-				"SIOJPlugin/Public"
+				"SIOJson",
+                "SIOJson/Public"
 				
 				// ... add public include paths required here ...
 			});
@@ -28,7 +28,7 @@ public class SIOJEditorPlugin : ModuleRules
 			new string[]
 			{
 				"Core",
-                "SIOJPlugin"
+                "SIOJson"
 
 				// ... add other public dependencies that you statically link with here ...
 			});

@@ -5,18 +5,18 @@
 typedef TJsonWriterFactory< TCHAR, TCondensedJsonPrintPolicy<TCHAR> > FCondensedJsonStringWriterFactory;
 typedef TJsonWriter< TCHAR, TCondensedJsonPrintPolicy<TCHAR> > FCondensedJsonStringWriter;
 
-USIOJJsonObject::USIOJJsonObject(const class FObjectInitializer& PCIP)
+USIOJsonObject::USIOJsonObject(const class FObjectInitializer& PCIP)
 	: Super(PCIP)
 {
 	Reset();
 }
 
-USIOJJsonObject* USIOJJsonObject::ConstructJsonObject(UObject* WorldContextObject)
+USIOJsonObject* USIOJsonObject::ConstructJsonObject(UObject* WorldContextObject)
 {
-	return NewObject<USIOJJsonObject>();
+	return NewObject<USIOJsonObject>();
 }
 
-void USIOJJsonObject::Reset()
+void USIOJsonObject::Reset()
 {
 	if (JsonObj.IsValid())
 	{
@@ -26,12 +26,12 @@ void USIOJJsonObject::Reset()
 	JsonObj = MakeShareable(new FJsonObject());
 }
 
-TSharedPtr<FJsonObject>& USIOJJsonObject::GetRootObject()
+TSharedPtr<FJsonObject>& USIOJsonObject::GetRootObject()
 {
 	return JsonObj;
 }
 
-void USIOJJsonObject::SetRootObject(TSharedPtr<FJsonObject>& JsonObject)
+void USIOJsonObject::SetRootObject(TSharedPtr<FJsonObject>& JsonObject)
 {
 	JsonObj = JsonObject;
 }
@@ -40,7 +40,7 @@ void USIOJJsonObject::SetRootObject(TSharedPtr<FJsonObject>& JsonObject)
 //////////////////////////////////////////////////////////////////////////
 // Serialization
 
-FString USIOJJsonObject::EncodeJson() const
+FString USIOJsonObject::EncodeJson() const
 {
 	if (!JsonObj.IsValid())
 	{
@@ -54,7 +54,7 @@ FString USIOJJsonObject::EncodeJson() const
 	return OutputString;
 }
 
-FString USIOJJsonObject::EncodeJsonToSingleString() const
+FString USIOJsonObject::EncodeJsonToSingleString() const
 {
 	FString OutputString = EncodeJson();
 
@@ -67,7 +67,7 @@ FString USIOJJsonObject::EncodeJsonToSingleString() const
 	return OutputString;
 }
 
-bool USIOJJsonObject::DecodeJson(const FString& JsonString)
+bool USIOJsonObject::DecodeJson(const FString& JsonString)
 {
 	TSharedRef< TJsonReader<> > Reader = TJsonReaderFactory<>::Create(*JsonString);
 	if (FJsonSerializer::Deserialize(Reader, JsonObj) && JsonObj.IsValid())
@@ -87,7 +87,7 @@ bool USIOJJsonObject::DecodeJson(const FString& JsonString)
 //////////////////////////////////////////////////////////////////////////
 // FJsonObject API
 
-TArray<FString> USIOJJsonObject::GetFieldNames()
+TArray<FString> USIOJsonObject::GetFieldNames()
 {
 	TArray<FString> Result;
 	
@@ -101,7 +101,7 @@ TArray<FString> USIOJJsonObject::GetFieldNames()
 	return Result;
 }
 
-bool USIOJJsonObject::HasField(const FString& FieldName) const
+bool USIOJsonObject::HasField(const FString& FieldName) const
 {
 	if (!JsonObj.IsValid() || FieldName.IsEmpty())
 	{
@@ -111,7 +111,7 @@ bool USIOJJsonObject::HasField(const FString& FieldName) const
 	return JsonObj->HasField(FieldName);
 }
 
-void USIOJJsonObject::RemoveField(const FString& FieldName)
+void USIOJsonObject::RemoveField(const FString& FieldName)
 {
 	if (!JsonObj.IsValid() || FieldName.IsEmpty())
 	{
@@ -121,7 +121,7 @@ void USIOJJsonObject::RemoveField(const FString& FieldName)
 	JsonObj->RemoveField(FieldName);
 }
 
-USIOJJsonValue* USIOJJsonObject::GetField(const FString& FieldName) const
+USIOJsonValue* USIOJsonObject::GetField(const FString& FieldName) const
 {
 	if (!JsonObj.IsValid() || FieldName.IsEmpty())
 	{
@@ -131,7 +131,7 @@ USIOJJsonValue* USIOJJsonObject::GetField(const FString& FieldName) const
 	TSharedPtr<FJsonValue> NewVal = JsonObj->TryGetField(FieldName);
 	if (NewVal.IsValid())
 	{
-		USIOJJsonValue* NewValue = NewObject<USIOJJsonValue>();
+		USIOJsonValue* NewValue = NewObject<USIOJsonValue>();
 		NewValue->SetRootValue(NewVal);
 
 		return NewValue;
@@ -140,7 +140,7 @@ USIOJJsonValue* USIOJJsonObject::GetField(const FString& FieldName) const
 	return nullptr;
 }
 
-void USIOJJsonObject::SetField(const FString& FieldName, USIOJJsonValue* JsonValue)
+void USIOJsonObject::SetField(const FString& FieldName, USIOJsonValue* JsonValue)
 {
 	if (!JsonObj.IsValid() || FieldName.IsEmpty())
 	{
@@ -154,7 +154,7 @@ void USIOJJsonObject::SetField(const FString& FieldName, USIOJJsonValue* JsonVal
 //////////////////////////////////////////////////////////////////////////
 // FJsonObject API Helpers (easy to use with simple Json objects)
 
-float USIOJJsonObject::GetNumberField(const FString& FieldName) const
+float USIOJsonObject::GetNumberField(const FString& FieldName) const
 {
 	if (!JsonObj.IsValid() || !JsonObj->HasTypedField<EJson::Number>(FieldName))
 	{
@@ -165,7 +165,7 @@ float USIOJJsonObject::GetNumberField(const FString& FieldName) const
 	return JsonObj->GetNumberField(FieldName);
 }
 
-void USIOJJsonObject::SetNumberField(const FString& FieldName, float Number)
+void USIOJsonObject::SetNumberField(const FString& FieldName, float Number)
 {
 	if (!JsonObj.IsValid() || FieldName.IsEmpty())
 	{
@@ -175,7 +175,7 @@ void USIOJJsonObject::SetNumberField(const FString& FieldName, float Number)
 	JsonObj->SetNumberField(FieldName, Number);
 }
 
-FString USIOJJsonObject::GetStringField(const FString& FieldName) const
+FString USIOJsonObject::GetStringField(const FString& FieldName) const
 {
 	if (!JsonObj.IsValid() || !JsonObj->HasTypedField<EJson::String>(FieldName))
 	{
@@ -186,7 +186,7 @@ FString USIOJJsonObject::GetStringField(const FString& FieldName) const
 	return JsonObj->GetStringField(FieldName);
 }
 
-void USIOJJsonObject::SetStringField(const FString& FieldName, const FString& StringValue)
+void USIOJsonObject::SetStringField(const FString& FieldName, const FString& StringValue)
 {
 	if (!JsonObj.IsValid() || FieldName.IsEmpty())
 	{
@@ -196,7 +196,7 @@ void USIOJJsonObject::SetStringField(const FString& FieldName, const FString& St
 	JsonObj->SetStringField(FieldName, StringValue);
 }
 
-bool USIOJJsonObject::GetBoolField(const FString& FieldName) const
+bool USIOJsonObject::GetBoolField(const FString& FieldName) const
 {
 	if (!JsonObj.IsValid() || !JsonObj->HasTypedField<EJson::Boolean>(FieldName))
 	{
@@ -207,7 +207,7 @@ bool USIOJJsonObject::GetBoolField(const FString& FieldName) const
 	return JsonObj->GetBoolField(FieldName);
 }
 
-void USIOJJsonObject::SetBoolField(const FString& FieldName, bool InValue)
+void USIOJsonObject::SetBoolField(const FString& FieldName, bool InValue)
 {
 	if (!JsonObj.IsValid() || FieldName.IsEmpty())
 	{
@@ -217,14 +217,14 @@ void USIOJJsonObject::SetBoolField(const FString& FieldName, bool InValue)
 	JsonObj->SetBoolField(FieldName, InValue);
 }
 
-TArray<USIOJJsonValue*> USIOJJsonObject::GetArrayField(const FString& FieldName)
+TArray<USIOJsonValue*> USIOJsonObject::GetArrayField(const FString& FieldName)
 {
 	if (!JsonObj->HasTypedField<EJson::Array>(FieldName))
 	{
 		UE_LOG(LogSIOJ, Warning, TEXT("No field with name %s of type Array"), *FieldName);
 	}
 
-	TArray<USIOJJsonValue*> OutArray;
+	TArray<USIOJsonValue*> OutArray;
 	if (!JsonObj.IsValid() || FieldName.IsEmpty())
 	{
 		return OutArray;
@@ -233,7 +233,7 @@ TArray<USIOJJsonValue*> USIOJJsonObject::GetArrayField(const FString& FieldName)
 	TArray< TSharedPtr<FJsonValue> > ValArray = JsonObj->GetArrayField(FieldName);
 	for (auto Value : ValArray)
 	{
-		USIOJJsonValue* NewValue = NewObject<USIOJJsonValue>();
+		USIOJsonValue* NewValue = NewObject<USIOJsonValue>();
 		NewValue->SetRootValue(Value);
 
 		OutArray.Add(NewValue);
@@ -242,7 +242,7 @@ TArray<USIOJJsonValue*> USIOJJsonObject::GetArrayField(const FString& FieldName)
 	return OutArray;
 }
 
-void USIOJJsonObject::SetArrayField(const FString& FieldName, const TArray<USIOJJsonValue*>& InArray)
+void USIOJsonObject::SetArrayField(const FString& FieldName, const TArray<USIOJsonValue*>& InArray)
 {
 	if (!JsonObj.IsValid() || FieldName.IsEmpty())
 	{
@@ -258,30 +258,30 @@ void USIOJJsonObject::SetArrayField(const FString& FieldName, const TArray<USIOJ
 
 		switch (InVal->GetType())
 		{
-		case EVaJson::None:
+		case ESIOJson::None:
 			break;
 
-		case EVaJson::Null:
+		case ESIOJson::Null:
 			ValArray.Add(MakeShareable(new FJsonValueNull()));
 			break;
 
-		case EVaJson::String:
+		case ESIOJson::String:
 			ValArray.Add(MakeShareable(new FJsonValueString(JsonVal->AsString())));
 			break;
 
-		case EVaJson::Number:
+		case ESIOJson::Number:
 			ValArray.Add(MakeShareable(new FJsonValueNumber(JsonVal->AsNumber())));
 			break;
 
-		case EVaJson::Boolean:
+		case ESIOJson::Boolean:
 			ValArray.Add(MakeShareable(new FJsonValueBoolean(JsonVal->AsBool())));
 			break;
 
-		case EVaJson::Array:
+		case ESIOJson::Array:
 			ValArray.Add(MakeShareable(new FJsonValueArray(JsonVal->AsArray())));
 			break;
 
-		case EVaJson::Object:
+		case ESIOJson::Object:
 			ValArray.Add(MakeShareable(new FJsonValueObject(JsonVal->AsObject())));
 			break;
 
@@ -293,7 +293,7 @@ void USIOJJsonObject::SetArrayField(const FString& FieldName, const TArray<USIOJ
 	JsonObj->SetArrayField(FieldName, ValArray);
 }
 
-void USIOJJsonObject::MergeJsonObject(USIOJJsonObject* InJsonObject, bool Overwrite)
+void USIOJsonObject::MergeJsonObject(USIOJsonObject* InJsonObject, bool Overwrite)
 {
 	TArray<FString> Keys = InJsonObject->GetFieldNames();
 	
@@ -308,7 +308,7 @@ void USIOJJsonObject::MergeJsonObject(USIOJJsonObject* InJsonObject, bool Overwr
 	}
 }
 
-USIOJJsonObject* USIOJJsonObject::GetObjectField(const FString& FieldName) const
+USIOJsonObject* USIOJsonObject::GetObjectField(const FString& FieldName) const
 {
 	if (!JsonObj.IsValid() || !JsonObj->HasTypedField<EJson::Object>(FieldName))
 	{
@@ -318,13 +318,13 @@ USIOJJsonObject* USIOJJsonObject::GetObjectField(const FString& FieldName) const
 
 	TSharedPtr<FJsonObject> JsonObjField = JsonObj->GetObjectField(FieldName);
 
-	USIOJJsonObject* OutRestJsonObj = NewObject<USIOJJsonObject>();
+	USIOJsonObject* OutRestJsonObj = NewObject<USIOJsonObject>();
 	OutRestJsonObj->SetRootObject(JsonObjField);
 
 	return OutRestJsonObj;
 }
 
-void USIOJJsonObject::SetObjectField(const FString& FieldName, USIOJJsonObject* JsonObject)
+void USIOJsonObject::SetObjectField(const FString& FieldName, USIOJsonObject* JsonObject)
 {
 	if (!JsonObj.IsValid() || FieldName.IsEmpty())
 	{
@@ -338,7 +338,7 @@ void USIOJJsonObject::SetObjectField(const FString& FieldName, USIOJJsonObject* 
 //////////////////////////////////////////////////////////////////////////
 // Array fields helpers (uniform arrays)
 
-TArray<float> USIOJJsonObject::GetNumberArrayField(const FString& FieldName)
+TArray<float> USIOJsonObject::GetNumberArrayField(const FString& FieldName)
 {
 	if (!JsonObj->HasTypedField<EJson::Array>(FieldName))
 	{
@@ -366,7 +366,7 @@ TArray<float> USIOJJsonObject::GetNumberArrayField(const FString& FieldName)
 	return NumberArray;
 }
 
-void USIOJJsonObject::SetNumberArrayField(const FString& FieldName, const TArray<float>& NumberArray)
+void USIOJsonObject::SetNumberArrayField(const FString& FieldName, const TArray<float>& NumberArray)
 {
 	if (!JsonObj.IsValid() || FieldName.IsEmpty())
 	{
@@ -383,7 +383,7 @@ void USIOJJsonObject::SetNumberArrayField(const FString& FieldName, const TArray
 	JsonObj->SetArrayField(FieldName, EntriesArray);
 }
 
-TArray<FString> USIOJJsonObject::GetStringArrayField(const FString& FieldName)
+TArray<FString> USIOJsonObject::GetStringArrayField(const FString& FieldName)
 {
 	if (!JsonObj->HasTypedField<EJson::Array>(FieldName))
 	{
@@ -411,7 +411,7 @@ TArray<FString> USIOJJsonObject::GetStringArrayField(const FString& FieldName)
 	return StringArray;
 }
 
-void USIOJJsonObject::SetStringArrayField(const FString& FieldName, const TArray<FString>& StringArray)
+void USIOJsonObject::SetStringArrayField(const FString& FieldName, const TArray<FString>& StringArray)
 {
 	if (!JsonObj.IsValid() || FieldName.IsEmpty())
 	{
@@ -427,7 +427,7 @@ void USIOJJsonObject::SetStringArrayField(const FString& FieldName, const TArray
 	JsonObj->SetArrayField(FieldName, EntriesArray);
 }
 
-TArray<bool> USIOJJsonObject::GetBoolArrayField(const FString& FieldName)
+TArray<bool> USIOJsonObject::GetBoolArrayField(const FString& FieldName)
 {
 	if (!JsonObj->HasTypedField<EJson::Array>(FieldName))
 	{
@@ -455,7 +455,7 @@ TArray<bool> USIOJJsonObject::GetBoolArrayField(const FString& FieldName)
 	return BoolArray;
 }
 
-void USIOJJsonObject::SetBoolArrayField(const FString& FieldName, const TArray<bool>& BoolArray)
+void USIOJsonObject::SetBoolArrayField(const FString& FieldName, const TArray<bool>& BoolArray)
 {
 	if (!JsonObj.IsValid() || FieldName.IsEmpty())
 	{
@@ -471,14 +471,14 @@ void USIOJJsonObject::SetBoolArrayField(const FString& FieldName, const TArray<b
 	JsonObj->SetArrayField(FieldName, EntriesArray);
 }
 
-TArray<USIOJJsonObject*> USIOJJsonObject::GetObjectArrayField(const FString& FieldName)
+TArray<USIOJsonObject*> USIOJsonObject::GetObjectArrayField(const FString& FieldName)
 {
 	if (!JsonObj->HasTypedField<EJson::Array>(FieldName))
 	{
 		UE_LOG(LogSIOJ, Warning, TEXT("No field with name %s of type Array"), *FieldName);
 	}
 
-	TArray<USIOJJsonObject*> OutArray;
+	TArray<USIOJsonObject*> OutArray;
 	if (!JsonObj.IsValid() || FieldName.IsEmpty())
 	{
 		return OutArray;
@@ -494,7 +494,7 @@ TArray<USIOJJsonObject*> USIOJJsonObject::GetObjectArrayField(const FString& Fie
 
 		TSharedPtr<FJsonObject> NewObj = Value->AsObject();
 
-		USIOJJsonObject* NewJson = NewObject<USIOJJsonObject>();
+		USIOJsonObject* NewJson = NewObject<USIOJsonObject>();
 		NewJson->SetRootObject(NewObj);
 
 		OutArray.Add(NewJson);
@@ -503,7 +503,7 @@ TArray<USIOJJsonObject*> USIOJJsonObject::GetObjectArrayField(const FString& Fie
 	return OutArray;
 }
 
-void USIOJJsonObject::SetObjectArrayField(const FString& FieldName, const TArray<USIOJJsonObject*>& ObjectArray)
+void USIOJsonObject::SetObjectArrayField(const FString& FieldName, const TArray<USIOJsonObject*>& ObjectArray)
 {
 	if (!JsonObj.IsValid() || FieldName.IsEmpty())
 	{

@@ -78,7 +78,7 @@ DECLARE_MULTICAST_DELEGATE_OneParam(FOnStaticRequestFail, class USIOJRequestJSON
  * General helper class http requests via blueprints
  */
 UCLASS(BlueprintType, Blueprintable)
-class SIOJPLUGIN_API USIOJRequestJSON : public UObject
+class SIOJSON_API USIOJRequestJSON : public UObject
 {
 	GENERATED_UCLASS_BODY()
 
@@ -145,19 +145,19 @@ public:
 
 	/** Get the Request Json object */
 	UFUNCTION(BlueprintCallable, Category = "SIOJ|Request")
-	USIOJJsonObject* GetRequestObject();
+	USIOJsonObject* GetRequestObject();
 
 	/** Set the Request Json object */
 	UFUNCTION(BlueprintCallable, Category = "SIOJ|Request")
-	void SetRequestObject(USIOJJsonObject* JsonObject);
+	void SetRequestObject(USIOJsonObject* JsonObject);
 
 	/** Get the Response Json object */
 	UFUNCTION(BlueprintCallable, Category = "SIOJ|Response")
-	USIOJJsonObject* GetResponseObject();
+	USIOJsonObject* GetResponseObject();
 
 	/** Set the Response Json object */
 	UFUNCTION(BlueprintCallable, Category = "SIOJ|Response")
-	void SetResponseObject(USIOJJsonObject* JsonObject);
+	void SetResponseObject(USIOJsonObject* JsonObject);
 
 
 	///////////////////////////////////////////////////////////////////////////
@@ -193,7 +193,7 @@ public:
 
 	/** Open URL in latent mode */
 	UFUNCTION(BlueprintCallable, Category = "SIOJ|Request", meta = (Latent, LatentInfo = "LatentInfo", HidePin = "WorldContextObject", DefaultToSelf = "WorldContextObject"))
-	virtual void ApplyURL(const FString& Url, USIOJJsonObject *&Result, UObject* WorldContextObject, struct FLatentActionInfo LatentInfo);
+	virtual void ApplyURL(const FString& Url, USIOJsonObject *&Result, UObject* WorldContextObject, struct FLatentActionInfo LatentInfo);
 
 	/** Apply current internal setup to request and process it */
 	void ProcessRequest();
@@ -261,11 +261,11 @@ public:
 
 protected:
 	/** Latent action helper */
-	FSIOJLatentAction<USIOJJsonObject*>* ContinueAction;
+	FSIOJLatentAction<USIOJsonObject*>* ContinueAction;
 
 	/** Internal request data stored as JSON */
 	UPROPERTY()
-	USIOJJsonObject* RequestJsonObj;
+	USIOJsonObject* RequestJsonObj;
 
 	UPROPERTY()
 	TArray<uint8> RequestBytes;
@@ -275,7 +275,7 @@ protected:
 
 	/** Response data stored as JSON */
 	UPROPERTY()
-	USIOJJsonObject* ResponseJsonObj;
+	USIOJsonObject* ResponseJsonObj;
 
 	/** Verb for making request (GET,POST,etc) */
 	ERequestVerb RequestVerb;

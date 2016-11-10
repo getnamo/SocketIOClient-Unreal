@@ -3,21 +3,21 @@
 
 #pragma once
 
-#include "SIOJJsonObject.generated.h"
+#include "SIOJsonObject.generated.h"
 
-class USIOJJsonValue;
+class USIOJsonValue;
 
 /**
  * Blueprintable FJsonObject wrapper
  */
 UCLASS(BlueprintType, Blueprintable)
-class SIOJPLUGIN_API USIOJJsonObject : public UObject
+class SIOJSON_API USIOJsonObject : public UObject
 {
 	GENERATED_UCLASS_BODY()
 
 	/** Create new Json object, cannot be pure  */
 	UFUNCTION(BlueprintCallable , meta = (DisplayName = "Construct Json Object", HidePin = "WorldContextObject", DefaultToSelf = "WorldContextObject"), Category = "SIOJ|Json")
-	static USIOJJsonObject* ConstructJsonObject(UObject* WorldContextObject);
+	static USIOJsonObject* ConstructJsonObject(UObject* WorldContextObject);
 
 	/** Reset all internal data */
 	UFUNCTION(BlueprintCallable, Category = "SIOJ|Json")
@@ -63,23 +63,23 @@ class SIOJPLUGIN_API USIOJJsonObject : public UObject
 
 	/** Get the field named FieldName as a JsonValue */
 	UFUNCTION(BlueprintCallable, Category = "SIOJ|Json")
-	USIOJJsonValue* GetField(const FString& FieldName) const;
+	USIOJsonValue* GetField(const FString& FieldName) const;
 
 	/** Add a field named FieldName with a Value */
 	UFUNCTION(BlueprintCallable, Category = "SIOJ|Json")
-	void SetField(const FString& FieldName, USIOJJsonValue* JsonValue);
+	void SetField(const FString& FieldName, USIOJsonValue* JsonValue);
 
 	/** Get the field named FieldName as a Json Array */
 	UFUNCTION(BlueprintCallable, Category = "SIOJ|Json")
-	TArray<USIOJJsonValue*> GetArrayField(const FString& FieldName);
+	TArray<USIOJsonValue*> GetArrayField(const FString& FieldName);
 
 	/** Set an ObjectField named FieldName and value of Json Array */
 	UFUNCTION(BlueprintCallable, Category = "SIOJ|Json")
-	void SetArrayField(const FString& FieldName, const TArray<USIOJJsonValue*>& InArray);
+	void SetArrayField(const FString& FieldName, const TArray<USIOJsonValue*>& InArray);
 	
 	/** Adds all of the fields from one json object to this one */
 	UFUNCTION(BlueprintCallable, Category = "SIOJ|Json")
-	void MergeJsonObject(USIOJJsonObject* InJsonObject, bool Overwrite);
+	void MergeJsonObject(USIOJsonObject* InJsonObject, bool Overwrite);
 
 
 	//////////////////////////////////////////////////////////////////////////
@@ -113,11 +113,11 @@ class SIOJPLUGIN_API USIOJJsonObject : public UObject
 
 	/** Get the field named FieldName as a Json object. */
 	UFUNCTION(BlueprintCallable, Category = "SIOJ|Json")
-	USIOJJsonObject* GetObjectField(const FString& FieldName) const;
+	USIOJsonObject* GetObjectField(const FString& FieldName) const;
 
 	/** Set an ObjectField named FieldName and value of JsonObject */
 	UFUNCTION(BlueprintCallable, Category = "SIOJ|Json")
-	void SetObjectField(const FString& FieldName, USIOJJsonObject* JsonObject);
+	void SetObjectField(const FString& FieldName, USIOJsonObject* JsonObject);
 
 
 	//////////////////////////////////////////////////////////////////////////
@@ -151,11 +151,11 @@ class SIOJPLUGIN_API USIOJJsonObject : public UObject
 
 	/** Get the field named FieldName as an Object Array. Use it only if you're sure that array is uniform! */
 	UFUNCTION(BlueprintCallable, Category = "SIOJ|Json")
-	TArray<USIOJJsonObject*> GetObjectArrayField(const FString& FieldName);
+	TArray<USIOJsonObject*> GetObjectArrayField(const FString& FieldName);
 
 	/** Set an ObjectField named FieldName and value of Ob Array */
 	UFUNCTION(BlueprintCallable, Category = "SIOJ|Json")
-	void SetObjectArrayField(const FString& FieldName, const TArray<USIOJJsonObject*>& ObjectArray);
+	void SetObjectArrayField(const FString& FieldName, const TArray<USIOJsonObject*>& ObjectArray);
 
 
 	//////////////////////////////////////////////////////////////////////////

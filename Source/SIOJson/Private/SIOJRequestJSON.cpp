@@ -88,7 +88,7 @@ void USIOJRequestJSON::ResetRequestData()
 	}
 	else
 	{
-		RequestJsonObj = NewObject<USIOJJsonObject>();
+		RequestJsonObj = NewObject<USIOJsonObject>();
 	}
 
 	HttpRequest = FHttpModule::Get().CreateRequest();
@@ -102,7 +102,7 @@ void USIOJRequestJSON::ResetResponseData()
 	}
 	else
 	{
-		ResponseJsonObj = NewObject<USIOJJsonObject>();
+		ResponseJsonObj = NewObject<USIOJsonObject>();
 	}
 
 	ResponseHeaders.Empty();
@@ -122,22 +122,22 @@ void USIOJRequestJSON::Cancel()
 //////////////////////////////////////////////////////////////////////////
 // JSON data accessors
 
-USIOJJsonObject* USIOJRequestJSON::GetRequestObject()
+USIOJsonObject* USIOJRequestJSON::GetRequestObject()
 {
 	return RequestJsonObj;
 }
 
-void USIOJRequestJSON::SetRequestObject(USIOJJsonObject* JsonObject)
+void USIOJRequestJSON::SetRequestObject(USIOJsonObject* JsonObject)
 {
 	RequestJsonObj = JsonObject;
 }
 
-USIOJJsonObject* USIOJRequestJSON::GetResponseObject()
+USIOJsonObject* USIOJRequestJSON::GetResponseObject()
 {
 	return ResponseJsonObj;
 }
 
-void USIOJRequestJSON::SetResponseObject(USIOJJsonObject* JsonObject)
+void USIOJRequestJSON::SetResponseObject(USIOJsonObject* JsonObject)
 {
 	ResponseJsonObj = JsonObject;
 }
@@ -195,7 +195,7 @@ void USIOJRequestJSON::ProcessURL(const FString& Url)
 	ProcessRequest();
 }
 
-void USIOJRequestJSON::ApplyURL(const FString& Url, USIOJJsonObject *&Result, UObject* WorldContextObject, FLatentActionInfo LatentInfo)
+void USIOJRequestJSON::ApplyURL(const FString& Url, USIOJsonObject *&Result, UObject* WorldContextObject, FLatentActionInfo LatentInfo)
 {
 	HttpRequest->SetURL(Url);
 
@@ -203,7 +203,7 @@ void USIOJRequestJSON::ApplyURL(const FString& Url, USIOJJsonObject *&Result, UO
 	if (UWorld* World = GEngine->GetWorldFromContextObject(WorldContextObject))
 	{
 		FLatentActionManager& LatentActionManager = World->GetLatentActionManager();
-		FSIOJLatentAction<USIOJJsonObject*> *Kont = LatentActionManager.FindExistingAction<FSIOJLatentAction<USIOJJsonObject*>>(LatentInfo.CallbackTarget, LatentInfo.UUID);
+		FSIOJLatentAction<USIOJsonObject*> *Kont = LatentActionManager.FindExistingAction<FSIOJLatentAction<USIOJsonObject*>>(LatentInfo.CallbackTarget, LatentInfo.UUID);
 
 		if (Kont != nullptr)
 		{
@@ -211,7 +211,7 @@ void USIOJRequestJSON::ApplyURL(const FString& Url, USIOJJsonObject *&Result, UO
 			LatentActionManager.RemoveActionsForObject(LatentInfo.CallbackTarget);
 		}
 
-		LatentActionManager.AddNewAction(LatentInfo.CallbackTarget, LatentInfo.UUID, ContinueAction = new FSIOJLatentAction<USIOJJsonObject*>(this, Result, LatentInfo));
+		LatentActionManager.AddNewAction(LatentInfo.CallbackTarget, LatentInfo.UUID, ContinueAction = new FSIOJLatentAction<USIOJsonObject*>(this, Result, LatentInfo));
 	}
 
 	ProcessRequest();
@@ -420,7 +420,7 @@ void USIOJRequestJSON::OnProcessRequestComplete(FHttpRequestPtr Request, FHttpRe
 	// Finish the latent action
 	if (ContinueAction)
 	{
-          FSIOJLatentAction<USIOJJsonObject*> *K = ContinueAction;
+          FSIOJLatentAction<USIOJsonObject*> *K = ContinueAction;
           ContinueAction = nullptr;
 
           K->Call(ResponseJsonObj);

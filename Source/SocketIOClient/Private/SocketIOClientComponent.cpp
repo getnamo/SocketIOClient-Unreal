@@ -100,18 +100,18 @@ void USocketIOClientComponent::Disconnect()
 
 #pragma region Emit
 
-void USocketIOClientComponent::Emit(FString Name, USIOJJsonValue* Message, FString Namespace /*= FString(TEXT("/"))*/)
+void USocketIOClientComponent::Emit(FString Name, USIOJsonValue* Message, FString Namespace /*= FString(TEXT("/"))*/)
 {
 	PrivateClient.socket(USIOJsonConverter::StdString(Namespace))->emit(
 		USIOJsonConverter::StdString(Name),
 		USIOJsonConverter::ToSIOMessage(Message->GetRootValue()));
 }
 
-void USocketIOClientComponent::EmitEvent(FString EventName, USIOJJsonValue* Message /*= nullptr*/, TFunction< void(const FString&, const TArray<TSharedPtr<FJsonValue>>&)> CallbackFunction /*= nullptr*/, FString Namespace /*= FString(TEXT("/"))*/)
+void USocketIOClientComponent::EmitNative(FString EventName, const TSharedPtr<FJsonValue>& Message /*= nullptr*/, TFunction< void(const FString&, const TArray<TSharedPtr<FJsonValue>>&)> CallbackFunction /*= nullptr*/, FString Namespace /*= FString(TEXT("/"))*/)
 {
 	EmitRawWithCallback(
 		EventName,
-		USIOJsonConverter::ToSIOMessage(Message->GetRootValue()),
+		USIOJsonConverter::ToSIOMessage(Message),
 		[&](const sio::message::list& MessageList)
 	{
 		TArray<TSharedPtr<FJsonValue>> ValueArray;
@@ -153,7 +153,7 @@ void USocketIOClientComponent::BindEvent(FString Event, FString Namespace)
 	//UE_LOG(LogTemp, Log, TEXT("Bound event %s"), *Event);
 
 	OnRawEvent(Event, [&](const FString& EventName, const sio::message::ptr& RawMessage) {
-		USIOJJsonValue* NewValue = NewObject<USIOJJsonValue>();
+		USIOJsonValue* NewValue = NewObject<USIOJsonValue>();
 		auto Value = USIOJsonConverter::ToJsonValue(RawMessage);
 		NewValue->SetRootValue(Value);
 		On.Broadcast(EventName, NewValue);
@@ -161,7 +161,7 @@ void USocketIOClientComponent::BindEvent(FString Event, FString Namespace)
 	}, Namespace);
 }
 
-void USocketIOClientComponent::OnEvent(FString Event, TFunction< void(const FString&, const TSharedPtr<FJsonValue>&)> CallbackFunction, FString Namespace /*= FString(TEXT("/"))*/)
+void USocketIOClientComponent::OnNativeEvent(FString Event, TFunction< void(const FString&, const TSharedPtr<FJsonValue>&)> CallbackFunction, FString Namespace /*= FString(TEXT("/"))*/)
 {
 	OnRawEvent(Event, [&](const FString& EventName, const sio::message::ptr& RawMessage) {
 		CallbackFunction(EventName, USIOJsonConverter::ToJsonValue(RawMessage));

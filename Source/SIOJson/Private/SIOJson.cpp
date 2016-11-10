@@ -2,14 +2,14 @@
 
 #include "SIOJPluginPrivatePCH.h"
 
-class FSIOJPlugin : public ISIOJPlugin
+class FSIOJson : public ISIOJson
 {
 	/** IModuleInterface implementation */
 	virtual void StartupModule() override
 	{
 		// @HACK Force classes to be compiled on shipping build
-		USIOJJsonObject::StaticClass();
-		USIOJJsonValue::StaticClass();
+		USIOJsonObject::StaticClass();
+		USIOJsonValue::StaticClass();
 		USIOJRequestJSON::StaticClass();
 	}
 
@@ -19,6 +19,6 @@ class FSIOJPlugin : public ISIOJPlugin
 	}
 };
 
-IMPLEMENT_MODULE( FSIOJPlugin, SIOJPlugin )
+IMPLEMENT_MODULE(FSIOJson, SIOJson)
 
 DEFINE_LOG_CATEGORY(LogSIOJ);

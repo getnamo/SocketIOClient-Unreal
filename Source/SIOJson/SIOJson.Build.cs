@@ -4,13 +4,13 @@ using System.IO;
 
 namespace UnrealBuildTool.Rules
 {
-	public class SIOJPlugin : ModuleRules
+	public class SIOJson : ModuleRules
 	{
-		public SIOJPlugin(TargetInfo Target)
+		public SIOJson(TargetInfo Target)
 		{
 			PrivateIncludePaths.AddRange(
 				new string[] {
-					"SIOJPlugin/Private",
+					"SIOJson/Private",
 					// ... add other private include paths required here ...
 				});
 

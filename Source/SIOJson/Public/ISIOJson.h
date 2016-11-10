@@ -9,7 +9,7 @@
  * The public interface to this module.  In most cases, this interface is only public to sibling modules 
  * within this plugin.
  */
-class ISIOJPlugin : public IModuleInterface
+class ISIOJson : public IModuleInterface
 {
 
 public:
@@ -20,9 +20,9 @@ public:
 	 *
 	 * @return Returns singleton instance, loading the module on demand if needed
 	 */
-	static inline ISIOJPlugin& Get()
+	static inline ISIOJson& Get()
 	{
-		return FModuleManager::LoadModuleChecked< ISIOJPlugin >( "SIOJPlugin" );
+		return FModuleManager::LoadModuleChecked< ISIOJson >( "SIOJson" );
 	}
 
 	/**
@@ -32,7 +32,7 @@ public:
 	 */
 	static inline bool IsAvailable()
 	{
-		return FModuleManager::Get().IsModuleLoaded( "SIOJPlugin" );
+		return FModuleManager::Get().IsModuleLoaded( "SIOJson" );
 	}
 };
 

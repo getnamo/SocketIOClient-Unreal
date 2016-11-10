@@ -21,6 +21,9 @@
 
 DECLARE_LOG_CATEGORY_EXTERN(LogSIOJ, Log, All);
 
-#include "ISIOJPlugin.h"
-
-#include "SIOJPluginClasses.h"
+#include "ISIOJson.h"
+#include "SIOJsonObject.h"
+#include "SIOJsonValue.h"
+#include "SIOJLibrary.h"
+#include "SIOJRequestJSON.h"
+#include "SIOJTypes.h"
