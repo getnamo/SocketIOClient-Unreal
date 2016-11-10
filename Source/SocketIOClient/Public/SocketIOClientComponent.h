@@ -91,14 +91,31 @@ public:
 	void Disconnect();
 
 	/**
-	* Emit an event with a Json data value
+	* Emit an event with a Json message value
 	*
-	* @param Name	Event name
-	* @param Data	Data SIOJJsonValue
+	* @param Name		Event name
+	* @param Message	SIOJJsonValue
+	* @param Namespace	Namespace within socket.io
 	*/
 	UFUNCTION(BlueprintCallable, Category = "SocketIO Functions")
-	void Emit(FString EventName, USIOJsonValue* Message, FString Namespace = FString(TEXT("/")));
+	void Emit(FString EventName, USIOJsonValue* Message = nullptr, FString Namespace = FString(TEXT("/")));
 
+
+	/**
+	* Emit an event with a Json message value
+	*
+	* @param Name					Event name
+	* @param Message				SIOJsonValue
+	* @param CallbackFunctionName	Name of the optional callback function with signature (String, SIOJsonValue)
+	* @param Target					CallbackFunction target object, typically self where this is called.
+	* @param Namespace				Namespace within socket.io
+	*/
+	UFUNCTION(BlueprintCallable, Category = "SocketIO Functions")
+	void EmitWithCallBack(	FString EventName,
+							USIOJsonValue* Message = nullptr,
+							FString CallbackFunctionName = FString(""),
+							UObject* Target = nullptr,
+							FString Namespace = FString(TEXT("/")));
 
 	//Emit Json value object with callback. C++ only convenience emit event.
 	void EmitNative(FString EventName,
@@ -125,6 +142,21 @@ public:
 	*/
 	UFUNCTION(BlueprintCallable, Category = "SocketIO Functions")
 	void BindEvent(FString EventName, FString Namespace = FString(TEXT("/")));
+
+
+	/**
+	* Bind an event to a function with the given name. 
+	* Expects a String message signature which can be decoded from JSON into SIOJsonObject
+	*
+	* @param EventName		Event name
+	* @param FunctionName	The function that gets called when the event is received
+	* @param Target			Optional, defaults to owner. Change to delegate to another class.
+	*/
+	UFUNCTION(BlueprintCallable, Category = "SocketIO Functions")
+	void BindEventToFunction(	const FString& EventName, 
+								const FString& FunctionName, 
+								UObject* Target, 
+								const FString& Namespace = FString(TEXT("/")));
 
 	/**
 	* Call function callback on receiving socket event. C++ only.

@@ -107,6 +107,30 @@ void USocketIOClientComponent::Emit(FString Name, USIOJsonValue* Message, FStrin
 		USIOJConvert::ToSIOMessage(Message->GetRootValue()));
 }
 
+void USocketIOClientComponent::EmitWithCallBack(FString EventName, USIOJsonValue* Message /*= nullptr*/, FString CallbackFunctionName /*= FString(TEXT(""))*/, UObject* Target /*= nullptr*/, FString Namespace /*= FString(TEXT("/"))*/)
+{
+	if (!CallbackFunctionName.IsEmpty())
+	{
+		if (Target == nullptr)
+		{
+			Target = GetOwner();
+		}
+		EmitNative(EventName, Message->GetRootValue(), [&, Target, CallbackFunctionName](auto Response)
+		{
+			//if we have a callback, call it
+
+				//Convert our results into a JSON string that can be decoded on the receiving end, not a perfect workaround...
+			FOutputDeviceNull ar;
+			const FString command = FString::Printf(TEXT("%s %s"), *CallbackFunctionName, *USIOJConvert::ToJsonString(Response));
+			Target->CallFunctionByNameWithArguments(*command, ar, NULL, true);
+		}, Namespace);
+	}
+	else 
+	{
+		EmitNative(EventName, Message->GetRootValue(),nullptr,Namespace);
+	}
+}
+
 void USocketIOClientComponent::EmitNative(FString EventName, const TSharedPtr<FJsonValue>& Message /*= nullptr*/, TFunction< void(const TArray<TSharedPtr<FJsonValue>>&)> CallbackFunction /*= nullptr*/, FString Namespace /*= FString(TEXT("/"))*/)
 {
 	const auto SafeCallback = CallbackFunction;
@@ -131,12 +155,19 @@ void USocketIOClientComponent::EmitRawWithCallback(FString Name, const sio::mess
 {
 	const TFunction<void(const sio::message::list&)> SafeFunction = ResponseFunction;
 
-	PrivateClient.socket(USIOJConvert::StdString(Namespace))->emit(USIOJConvert::StdString(Name), MessageList, [&, SafeFunction](const sio::message::list& response) {
-		//Call on game thread
-		FFunctionGraphTask::CreateAndDispatchWhenReady([&, SafeFunction, response]
+	PrivateClient.socket(USIOJConvert::StdString(Namespace))->emit(
+		USIOJConvert::StdString(Name), 
+		MessageList, 
+		[&, SafeFunction](const sio::message::list& response) 
+	{
+		if (SafeFunction != nullptr)
 		{
-			SafeFunction(response);
-		}, TStatId(), nullptr, ENamedThreads::GameThread);
+			//Callback on game thread
+			FFunctionGraphTask::CreateAndDispatchWhenReady([&, SafeFunction, response]
+			{
+				SafeFunction(response);
+			}, TStatId(), nullptr, ENamedThreads::GameThread);
+		}
 	});
 }
 
@@ -151,8 +182,6 @@ void USocketIOClientComponent::EmitBinary(FString Name, uint8* Data, int32 DataL
 
 void USocketIOClientComponent::BindEvent(FString Event, FString Namespace)
 {
-	//UE_LOG(LogTemp, Log, TEXT("Bound event %s"), *Event);
-
 	OnRawEvent(Event, [&](const FString& EventName, const sio::message::ptr& RawMessage) {
 		USIOJsonValue* NewValue = NewObject<USIOJsonValue>();
 		auto Value = USIOJConvert::ToJsonValue(RawMessage);
@@ -160,6 +189,28 @@ void USocketIOClientComponent::BindEvent(FString Event, FString Namespace)
 		On.Broadcast(EventName, NewValue);
 
 	}, Namespace);
+}
+
+void USocketIOClientComponent::BindEventToFunction(const FString& EventName, const FString& FunctionName, UObject* Target, const FString& Namespace /*= FString(TEXT("/"))*/)
+{
+	if (!FunctionName.IsEmpty())
+	{
+		if (Target == nullptr)
+		{
+			Target = GetOwner();
+		}
+		OnNativeEvent(EventName, [&, FunctionName](const FString& Event, const TSharedPtr<FJsonValue>& Message)
+		{
+			FOutputDeviceNull ar;
+			const FString command = FString::Printf(TEXT("%s %s"), *FunctionName, *USIOJConvert::ToJsonString(Message));
+			Target->CallFunctionByNameWithArguments(*command, ar, NULL, true);
+		}, Namespace);
+	}
+	else
+	{
+		//if we forgot our function name, fallback to regular bind event
+		BindEvent(EventName, Namespace);
+	}
 }
 
 void USocketIOClientComponent::OnNativeEvent(FString Event, TFunction< void(const FString&, const TSharedPtr<FJsonValue>&)> CallbackFunction, FString Namespace /*= FString(TEXT("/"))*/)
