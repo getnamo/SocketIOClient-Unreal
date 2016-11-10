@@ -107,12 +107,13 @@ void USocketIOClientComponent::Emit(FString Name, USIOJsonValue* Message, FStrin
 		USIOJConvert::ToSIOMessage(Message->GetRootValue()));
 }
 
-void USocketIOClientComponent::EmitNative(FString EventName, const TSharedPtr<FJsonValue>& Message /*= nullptr*/, TFunction< void(const FString&, const TArray<TSharedPtr<FJsonValue>>&)> CallbackFunction /*= nullptr*/, FString Namespace /*= FString(TEXT("/"))*/)
+void USocketIOClientComponent::EmitNative(FString EventName, const TSharedPtr<FJsonValue>& Message /*= nullptr*/, TFunction< void(const TArray<TSharedPtr<FJsonValue>>&)> CallbackFunction /*= nullptr*/, FString Namespace /*= FString(TEXT("/"))*/)
 {
+	const auto SafeCallback = CallbackFunction;
 	EmitRawWithCallback(
 		EventName,
 		USIOJConvert::ToSIOMessage(Message),
-		[&](const sio::message::list& MessageList)
+		[&, SafeCallback](const sio::message::list& MessageList)
 	{
 		TArray<TSharedPtr<FJsonValue>> ValueArray;
 
@@ -122,7 +123,7 @@ void USocketIOClientComponent::EmitNative(FString EventName, const TSharedPtr<FJ
 			ValueArray.Add(USIOJConvert::ToJsonValue(ItemMessagePtr));
 		}
 
-		CallbackFunction(EventName, ValueArray);
+		SafeCallback(ValueArray);
 	}, Namespace);
 }
 
@@ -131,7 +132,7 @@ void USocketIOClientComponent::EmitRawWithCallback(FString Name, const sio::mess
 	const TFunction<void(const sio::message::list&)> SafeFunction = ResponseFunction;
 
 	PrivateClient.socket(USIOJConvert::StdString(Namespace))->emit(USIOJConvert::StdString(Name), MessageList, [&, SafeFunction](const sio::message::list& response) {
-		//Call on gamethread
+		//Call on game thread
 		FFunctionGraphTask::CreateAndDispatchWhenReady([&, SafeFunction, response]
 		{
 			SafeFunction(response);

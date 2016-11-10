@@ -103,7 +103,7 @@ public:
 	//Emit Json value object with callback. C++ only convenience emit event.
 	void EmitNative(FString EventName,
 					const TSharedPtr<FJsonValue>& Message = nullptr,
-					TFunction< void(const FString&, const TArray<TSharedPtr<FJsonValue>>&)> CallbackFunction = nullptr,
+					TFunction< void(const TArray<TSharedPtr<FJsonValue>>&)> CallbackFunction = nullptr,
 					FString Namespace = FString(TEXT("/")));
 
 	//Raw sio::message emit, only available in C++
