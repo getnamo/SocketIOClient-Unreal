@@ -3,6 +3,7 @@
 #pragma once
 
 #include "Object.h"
+#include "sio_client.h"
 #include "SIOJConvert.generated.h"
 
 /**
@@ -23,4 +24,9 @@ public:
 	//std::string <-> FString
 	static std::string StdString(FString UEString);
 	static FString FStringFromStd(std::string StdString);
+
+	//encode/decode json
+	static FString ToJsonString(const TSharedPtr<FJsonObject>& JsonObject);
+	static TSharedPtr<FJsonObject> ToJsonObject(const FString& JsonString);
+
 }; 

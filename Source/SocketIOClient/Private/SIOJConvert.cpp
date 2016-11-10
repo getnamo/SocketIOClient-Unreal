@@ -3,6 +3,9 @@
 #include "SocketIOClientPrivatePCH.h"
 #include "SIOJConvert.h"
 
+typedef TJsonWriterFactory< TCHAR, TCondensedJsonPrintPolicy<TCHAR> > FCondensedJsonStringWriterFactory;
+typedef TJsonWriter< TCHAR, TCondensedJsonPrintPolicy<TCHAR> > FCondensedJsonStringWriter;
+
 TSharedPtr<FJsonValue> USIOJConvert::ToJsonValue(const sio::message::ptr& Message)
 {
 	auto flag = Message->get_flag();
@@ -21,8 +24,8 @@ TSharedPtr<FJsonValue> USIOJConvert::ToJsonValue(const sio::message::ptr& Messag
 	}
 	else if (flag == sio::message::flag_binary)
 	{
-		//Todo: add support for this
-		return MakeShareable(new FJsonValueString(FString("<binary not supported in FJsonValue>")));
+		//Todo: add support for this somehow?
+		return MakeShareable(new FJsonValueString(FString("<binary not supported in FJsonValue, use raw sio::message methods>")));
 	}
 	else if (flag == sio::message::flag_array)
 	{
@@ -129,4 +132,20 @@ std::string USIOJConvert::StdString(FString UEString)
 FString USIOJConvert::FStringFromStd(std::string StdString)
 {
 	return FString(StdString.c_str());
+}
+
+FString USIOJConvert::ToJsonString(const TSharedPtr<FJsonObject>& JsonObject)
+{
+	FString OutputString;
+	TSharedRef< FCondensedJsonStringWriter > Writer = FCondensedJsonStringWriterFactory::Create(&OutputString);
+	FJsonSerializer::Serialize(JsonObject.ToSharedRef(), Writer);
+	return OutputString;
+}
+
+TSharedPtr<FJsonObject> USIOJConvert::ToJsonObject(const FString& JsonString)
+{
+	TSharedPtr< FJsonObject > JsonObject = MakeShareable(new FJsonObject);
+	TSharedRef< TJsonReader<> > Reader = TJsonReaderFactory<>::Create(*JsonString);
+	FJsonSerializer::Deserialize(Reader, JsonObject);
+	return JsonObject;
 }
