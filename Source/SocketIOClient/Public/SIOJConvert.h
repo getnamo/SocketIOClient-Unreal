@@ -25,8 +25,13 @@ public:
 	static std::string StdString(FString UEString);
 	static FString FStringFromStd(std::string StdString);
 
-	//encode/decode json
+	//encode/decode json convenience wrappers
 	static FString ToJsonString(const TSharedPtr<FJsonObject>& JsonObject);
-	static TSharedPtr<FJsonObject> ToJsonObject(const FString& JsonString);
+	static FString ToJsonString(const TSharedPtr<FJsonValue>& JsonValue);
 
+	static TSharedPtr<FJsonObject> ToJsonObject(const FString& JsonString);
+	
+
+	//typically from callbacks
+	static FString ToJsonString(const TArray<TSharedPtr<FJsonValue>>& JsonValueArray);
 }; 

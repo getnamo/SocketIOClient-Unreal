@@ -69,6 +69,8 @@ TSharedPtr<FJsonValue> USIOJConvert::ToJsonValue(const sio::message::ptr& Messag
 	}
 }
 
+
+
 sio::message::ptr USIOJConvert::ToSIOMessage(const TSharedPtr<FJsonValue>& JsonValue)
 {
 	if (JsonValue->Type == EJson::None)
@@ -139,6 +141,22 @@ FString USIOJConvert::ToJsonString(const TSharedPtr<FJsonObject>& JsonObject)
 	FString OutputString;
 	TSharedRef< FCondensedJsonStringWriter > Writer = FCondensedJsonStringWriterFactory::Create(&OutputString);
 	FJsonSerializer::Serialize(JsonObject.ToSharedRef(), Writer);
+	return OutputString;
+}
+
+FString USIOJConvert::ToJsonString(const TArray<TSharedPtr<FJsonValue>>& JsonValueArray)
+{
+	FString OutputString;
+	TSharedRef< FCondensedJsonStringWriter > Writer = FCondensedJsonStringWriterFactory::Create(&OutputString);
+	FJsonSerializer::Serialize(JsonValueArray, Writer);
+	return OutputString;
+}
+
+FString USIOJConvert::ToJsonString(const TSharedPtr<FJsonValue>& JsonValue)
+{
+	FString OutputString;
+	TSharedRef< FCondensedJsonStringWriter > Writer = FCondensedJsonStringWriterFactory::Create(&OutputString);
+	FJsonSerializer::Serialize(JsonValue,FString(TEXT("value")), Writer);
 	return OutputString;
 }
 
