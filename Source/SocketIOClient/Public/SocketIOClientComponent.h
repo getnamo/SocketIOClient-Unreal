@@ -103,13 +103,18 @@ public:
 	void Emit(const FString& EventName, USIOJsonValue* Message = nullptr, const FString& Namespace = FString(TEXT("/")));
 
 
-	//debug function - move it into FJson later..
+	//debug function - move it into FJson global bp library
+	//todo split into C++ version with templating so we can just pass ::StaticStruct
 
+	/*UFUNCTION(BlueprintCallable, Category = "SocketIOFunctions", CustomThunk, meta = (CustomStructureParam = "AnyStruct"))
+	USIOJsonObject* StructToJsonObject(UProperty* AnyStruct);
+
+	//fills passed in struct with data from json object
 	UFUNCTION(BlueprintCallable, Category = "SocketIOFunctions", CustomThunk, meta = (CustomStructureParam = "AnyStruct"))
-	USIOJsonObject* ToJsonValue(UProperty* AnyStruct);
+	void JsonObjectToStruct(USIOJsonObject* JsonObject, UProperty* AnyStruct);
 
 	//Convert property into c++ accessible form
-	DECLARE_FUNCTION(execToJsonValue)
+	DECLARE_FUNCTION(execStructToJsonObject)
 	{
 		// Steps into the stack, walking to the next property in it
 		Stack.Step(Stack.Object, NULL);
@@ -125,8 +130,6 @@ public:
 		// We need this to wrap up the stack
 		P_FINISH;
 
-		//StructProperty->Struct
-
 		auto BPJsonObject = NewObject<USIOJsonObject>();
 
 		auto JsonObject = USIOJConvert::ToJsonObject(StructProperty->Struct, StructPtr);
@@ -134,10 +137,11 @@ public:
 
 		*(USIOJsonObject**)RESULT_PARAM = BPJsonObject;
 	}
-	void IterateThroughStructProperty(UStructProperty* StructProperty, void* StructPtr);
 
-
-
+	DECLARE_FUNCTION(execJsonObjectToStruct)
+	{
+		//todo: finish this one
+	}*/
 
 	/**
 	* Emit an event with a Json message value
