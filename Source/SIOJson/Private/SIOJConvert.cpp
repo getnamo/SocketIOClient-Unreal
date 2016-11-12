@@ -141,3 +141,8 @@ TSharedPtr<FJsonObject> USIOJConvert::ToJsonObject(UStruct* InStruct, void* Stru
 
 	return JsonObject;
 }
+
+bool USIOJConvert::JsonObjectToUStruct(TSharedRef<FJsonObject> JsonObject, UStruct* Struct, void* StructPtr)
+{
+	return FJsonObjectConverter::JsonObjectToUStruct(JsonObject, Struct, StructPtr, 0, 0);
+}

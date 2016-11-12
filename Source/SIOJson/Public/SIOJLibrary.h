@@ -86,7 +86,7 @@ public:
 	static bool StringToJsonValueArray(const FString& JsonString, TArray<USIOJsonValue*>& OutJsonValueArray);
 
 	/**
-	* Uses the reflection system to convert a unreal struct into a JsonObject
+	* Uses the reflection system to convert an unreal struct into a JsonObject
 	*
 	* @param AnyStruct		The struct you wish to convert
 	* @return				Converted Json Object
@@ -94,22 +94,22 @@ public:
 	UFUNCTION(BlueprintPure, Category = "SocketIOFunctions", CustomThunk, meta = (CustomStructureParam = "AnyStruct"))
 	static USIOJsonObject* StructToJsonObject(UProperty* AnyStruct);
 
-	//fills passed in struct with data from json object
+	/**
+	* Uses the reflection system to fill an unreal struct from data defined in JsonObject.
+	*
+	* @param JsonObject		The source JsonObject for properties to fill
+	* @param AnyStruct		The struct you wish to fill
+	* @return				Whether all properties filled correctly
+	*/
 	UFUNCTION(BlueprintCallable, Category = "SocketIOFunctions", CustomThunk, meta = (CustomStructureParam = "AnyStruct"))
-	static void JsonObjectToStruct(USIOJsonObject* JsonObject, UProperty* AnyStruct);
+	static bool JsonObjectToStruct(USIOJsonObject* JsonObject, UProperty* AnyStruct);
 
 	//Convert property into c++ accessible form
 	DECLARE_FUNCTION(execStructToJsonObject)
 	{
-		// Steps into the stack, walking to the next property in it
+		//Get properties and pointers from stack
 		Stack.Step(Stack.Object, NULL);
-
-		// Grab the last property found when we walked the stack
-		// This does not contains the property value, only its type information
 		UStructProperty* StructProperty = ExactCast<UStructProperty>(Stack.MostRecentProperty);
-
-		// Grab the base address where the struct actually stores its data
-		// This is where the property value is truly stored
 		void* StructPtr = Stack.MostRecentPropertyAddress;
 
 		// We need this to wrap up the stack
@@ -125,7 +125,21 @@ public:
 
 	DECLARE_FUNCTION(execJsonObjectToStruct)
 	{
-		//todo: finish this one
+		//Get properties and pointers from stack
+		P_GET_OBJECT(USIOJsonObject, JsonObject);
+
+		Stack.Step(Stack.Object, NULL);
+		UStructProperty* StructProperty = ExactCast<UStructProperty>(Stack.MostRecentProperty);
+		void* StructPtr = Stack.MostRecentPropertyAddress;
+
+		P_FINISH;
+
+		//Pass in the reference to the json object
+		TSharedRef<FJsonObject> RawJsonObject = JsonObject->GetRootObject().ToSharedRef();
+
+		bool Success = USIOJConvert::JsonObjectToUStruct(RawJsonObject, StructProperty->Struct, StructPtr);
+
+		*(bool*)RESULT_PARAM = Success;
 	}
 
 public:
