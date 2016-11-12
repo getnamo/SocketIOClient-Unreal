@@ -19,9 +19,10 @@ public:
 	static FString ToJsonString(const TSharedPtr<FJsonValue>& JsonValue);
 
 	static TSharedPtr<FJsonObject> ToJsonObject(const FString& JsonString);
-	static TSharedPtr<FJsonObject> ToJsonObject(UStruct* Struct, void* StructPtr);
 
-	//struct encoding, removing internal names
+	//struct encoding to json, todo: clean-up and match internal names
+	static TSharedPtr<FJsonObject> ToJsonObject(UStruct* Struct, void* StructPtr);
+	//struct encoding from json, todo: clean-up and match internal names
 	static bool JsonObjectToUStruct(TSharedRef<FJsonObject> JsonObject, UStruct* Struct, void* StructPtr);
 
 	//typically from callbacks

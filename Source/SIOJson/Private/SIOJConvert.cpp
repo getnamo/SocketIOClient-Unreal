@@ -126,18 +126,12 @@ TSharedPtr<FJsonObject> USIOJConvert::ToJsonObject(const FString& JsonString)
 	return JsonObject;
 }
 
-TSharedPtr<FJsonObject> USIOJConvert::ToJsonObject(UStruct* InStruct, void* StructPtr)
+TSharedPtr<FJsonObject> USIOJConvert::ToJsonObject(UStruct* Struct, void* StructPtr)
 {
-	UScriptStruct* Struct = StaticCast<UScriptStruct*>(InStruct);
-
 	USIOJsonValue* Value = NewObject<USIOJsonValue>();
-
 	TSharedRef<FJsonObject> JsonObject = MakeShareable(new FJsonObject);
 
-	//todo::eliminate
 	bool success = FJsonObjectConverter::UStructToJsonObject(Struct, StructPtr, JsonObject, 0, 0);
-
-	UE_LOG(LogTemp, Log, TEXT("Test: %d, %s"), success, *USIOJConvert::ToJsonString(JsonObject));
 
 	return JsonObject;
 }
