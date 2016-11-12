@@ -115,7 +115,19 @@ void USocketIOClientComponent::EmitWithCallBack(const FString& EventName, USIOJs
 		{
 			Target = GetOwner();
 		}
-		EmitNative(EventName, Message->GetRootValue(), [&, Target, CallbackFunctionName](auto Response)
+
+		//Set the message is not null
+		TSharedPtr<FJsonValue> JsonMessage = nullptr;
+		if (Message != nullptr)
+		{
+			JsonMessage = Message->GetRootValue();
+		}
+		else
+		{
+			JsonMessage = MakeShareable(new FJsonValueNull);
+		}
+
+		EmitNative(EventName, JsonMessage, [&, Target, CallbackFunctionName](auto Response)
 		{
 			//if we have a callback, call it
 
