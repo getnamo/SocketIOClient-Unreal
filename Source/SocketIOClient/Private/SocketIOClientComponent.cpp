@@ -107,6 +107,34 @@ void USocketIOClientComponent::Emit(const FString& EventName, USIOJsonValue* Mes
 		USIOMessageConvert::ToSIOMessage(Message->GetRootValue()));
 }
 
+/*USIOJsonValue* USocketIOClientComponent::ToJsonValue(UProperty* AnyStruct)
+{
+	UStructProperty* StructProperty = Cast<UStructProperty>(AnyStruct);
+
+	USIOJsonValue* Value = NewObject<USIOJsonValue>();
+
+	UE_LOG(LogTemp, Log, TEXT("Test: %s"),*StructProperty->StaticClass()->GetDesc());
+
+	//auto JsonObject = FJsonObjectConverter::UStructToJsonObject(InStruct::StaticStruct());
+	//Value.SetRootValue(JsonObject);
+	return Value;
+}*/
+
+void USocketIOClientComponent::IterateThroughStructProperty(UStructProperty* StructProperty, void* StructPtr)
+{
+	UScriptStruct* Struct = StructProperty->Struct;
+
+	USIOJsonValue* Value = NewObject<USIOJsonValue>();
+
+	UE_LOG(LogTemp, Log, TEXT("Test: %s"), *StructProperty->StaticClass()->GetDesc());
+
+	TSharedRef<FJsonObject> JsonObject = MakeShareable(new FJsonObject);
+
+	bool success = FJsonObjectConverter::UStructToJsonObject(Struct, StructPtr, JsonObject, 0, 0);
+
+	UE_LOG(LogTemp, Log, TEXT("Test: %d, %s"), success, *USIOJConvert::ToJsonString(JsonObject));
+}
+
 void USocketIOClientComponent::EmitWithCallBack(const FString& EventName, USIOJsonValue* Message /*= nullptr*/, const FString& CallbackFunctionName /*= FString(TEXT(""))*/, UObject* Target /*= nullptr*/, const FString& Namespace /*= FString(TEXT("/"))*/)
 {
 	if (!CallbackFunctionName.IsEmpty())

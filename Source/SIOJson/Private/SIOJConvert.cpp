@@ -125,3 +125,18 @@ TSharedPtr<FJsonObject> USIOJConvert::ToJsonObject(const FString& JsonString)
 	FJsonSerializer::Deserialize(Reader, JsonObject);
 	return JsonObject;
 }
+
+TSharedPtr<FJsonObject> USIOJConvert::ToJsonObject(UStruct* InStruct, void* StructPtr)
+{
+	UScriptStruct* Struct = StaticCast<UScriptStruct*>(InStruct);
+
+	USIOJsonValue* Value = NewObject<USIOJsonValue>();
+
+	TSharedRef<FJsonObject> JsonObject = MakeShareable(new FJsonObject);
+
+	bool success = FJsonObjectConverter::UStructToJsonObject(Struct, StructPtr, JsonObject, 0, 0);
+
+	UE_LOG(LogTemp, Log, TEXT("Test: %d, %s"), success, *USIOJConvert::ToJsonString(JsonObject));
+
+	return JsonObject;
+}

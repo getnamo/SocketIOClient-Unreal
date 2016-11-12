@@ -19,6 +19,7 @@ public:
 	static FString ToJsonString(const TSharedPtr<FJsonValue>& JsonValue);
 
 	static TSharedPtr<FJsonObject> ToJsonObject(const FString& JsonString);
+	static TSharedPtr<FJsonObject> ToJsonObject(UStruct* Struct, void* StructPtr);
 
 	//typically from callbacks
 	static FString ToJsonString(const TArray<TSharedPtr<FJsonValue>>& JsonValueArray);

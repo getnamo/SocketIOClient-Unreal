@@ -9,6 +9,7 @@
 #include "Http.h"
 #include "Map.h"
 #include "Json.h"
+#include "JsonUtilities.h"
 
 #include "LatentActions.h"
 #include "Core.h"

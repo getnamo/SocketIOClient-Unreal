@@ -6,6 +6,7 @@
 #include "Engine.h"
 #include "Object.h"
 #include "Json.h"
+#include "JsonUtilities.h"
 #include "SIOJsonValue.h"
 #include "sio_client.h"
 #include "SIOMessageConvert.h"

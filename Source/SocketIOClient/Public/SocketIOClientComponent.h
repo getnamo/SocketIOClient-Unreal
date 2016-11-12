@@ -1,7 +1,9 @@
 #pragma once
 
 #include "sio_client.h"
+#include "SIOJsonObject.h"
 #include "SIOJsonValue.h"
+#include "SIOJConvert.h"
 #include "Components/ActorComponent.h"
 #include "SocketIOClientComponent.generated.h"
 
@@ -99,6 +101,42 @@ public:
 	*/
 	UFUNCTION(BlueprintCallable, Category = "SocketIO Functions")
 	void Emit(const FString& EventName, USIOJsonValue* Message = nullptr, const FString& Namespace = FString(TEXT("/")));
+
+
+	//debug function - move it into FJson later..
+
+	UFUNCTION(BlueprintCallable, Category = "SocketIOFunctions", CustomThunk, meta = (CustomStructureParam = "AnyStruct"))
+	USIOJsonObject* ToJsonValue(UProperty* AnyStruct);
+
+	//Convert property into c++ accessible form
+	DECLARE_FUNCTION(execToJsonValue)
+	{
+		// Steps into the stack, walking to the next property in it
+		Stack.Step(Stack.Object, NULL);
+
+		// Grab the last property found when we walked the stack
+		// This does not contains the property value, only its type information
+		UStructProperty* StructProperty = ExactCast<UStructProperty>(Stack.MostRecentProperty);
+
+		// Grab the base address where the struct actually stores its data
+		// This is where the property value is truly stored
+		void* StructPtr = Stack.MostRecentPropertyAddress;
+
+		// We need this to wrap up the stack
+		P_FINISH;
+
+		//StructProperty->Struct
+
+		auto BPJsonObject = NewObject<USIOJsonObject>();
+
+		auto JsonObject = USIOJConvert::ToJsonObject(StructProperty->Struct, StructPtr);
+		BPJsonObject->SetRootObject(JsonObject);
+
+		*(USIOJsonObject**)RESULT_PARAM = BPJsonObject;
+	}
+	void IterateThroughStructProperty(UStructProperty* StructProperty, void* StructPtr);
+
+
 
 
 	/**
