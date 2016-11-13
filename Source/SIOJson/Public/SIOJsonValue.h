@@ -79,7 +79,7 @@ class SIOJSON_API USIOJsonValue : public UObject
 
 	/** Create new Json Object value */
 	UFUNCTION(BlueprintPure, meta = (DisplayName = "Construct Json Object Value", HidePin = "WorldContextObject", DefaultToSelf = "WorldContextObject"), Category = "SIOJ|Json")
-	static USIOJsonValue* ConstructJsonValueObject(UObject* WorldContextObject, USIOJsonObject *JsonObject);
+	static USIOJsonValue* ConstructJsonValueObject(USIOJsonObject *JsonObject, UObject* WorldContextObject);
 
 	/** Create new Json Binary value */
 	UFUNCTION(BlueprintPure, meta = (DisplayName = "Construct Json Binary Value", HidePin = "WorldContextObject", DefaultToSelf = "WorldContextObject"), Category = "SIOJ|Json")

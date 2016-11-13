@@ -56,7 +56,7 @@ USIOJsonValue* USIOJsonValue::ConstructJsonValueArray(UObject* WorldContextObjec
 	return NewValue;
 }
 
-USIOJsonValue* USIOJsonValue::ConstructJsonValueObject(UObject* WorldContextObject, USIOJsonObject *JsonObject)
+USIOJsonValue* USIOJsonValue::ConstructJsonValueObject(USIOJsonObject *JsonObject, UObject* WorldContextObject)
 {
 	TSharedPtr<FJsonValue> NewVal = MakeShareable(new FJsonValueObject(JsonObject->GetRootObject()));
 
