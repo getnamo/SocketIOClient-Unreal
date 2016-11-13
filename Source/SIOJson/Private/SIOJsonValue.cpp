@@ -3,6 +3,33 @@
 #include "SIOJsonPrivatePCH.h"
 #include "SIOJConvert.h"
 
+#pragma region FJsonValueBinary
+
+TArray<uint8> FJsonValueBinary::AsBinary(TSharedPtr<FJsonValue> InJsonValue)
+{
+	if (FJsonValueBinary::IsBinary(InJsonValue))
+	{
+		TSharedPtr<FJsonValueBinary> BinaryValue = StaticCastSharedPtr<FJsonValueBinary>(InJsonValue);
+		return BinaryValue->AsBinary();
+	}
+	else
+	{
+		TArray<uint8> EmptyArray;
+		return EmptyArray;
+	}
+}
+
+
+bool FJsonValueBinary::IsBinary(TSharedPtr<FJsonValue> InJsonValue)
+{
+	//use our hackery to determine if we got a binary string
+	bool IgnoreBool;
+	return InJsonValue->TryGetBool(IgnoreBool);
+}
+
+#pragma endregion FJsonValueBinary
+#pragma region USIOJsonValue
+
 USIOJsonValue::USIOJsonValue(const class FObjectInitializer& PCIP)
 	: Super(PCIP)
 {
@@ -119,8 +146,6 @@ ESIOJson::Type USIOJsonValue::GetType() const
 		return ESIOJson::None;
 	}
 
-	bool IsBinary;
-
 	switch (JsonVal->Type)
 	{
 	case EJson::None:
@@ -130,10 +155,7 @@ ESIOJson::Type USIOJsonValue::GetType() const
 		return ESIOJson::Null;
 
 	case EJson::String:
-		bool IgnoreBool;
-		IsBinary = !JsonVal->TryGetBool(IgnoreBool);
-
-		if (IsBinary)
+		if (FJsonValueBinary::IsBinary(JsonVal))
 		{
 			return ESIOJson::Binary;
 		}
@@ -283,22 +305,13 @@ TArray<uint8> USIOJsonValue::AsBinary()
 		TArray<uint8> ByteArray;
 		return ByteArray;
 	}
-
-	const TSharedPtr<FJsonValueBinary>& BinaryValue = StaticCastSharedPtr<FJsonValueBinary>(JsonVal);
-	
-	FString TestString;
-	BinaryValue->TryGetString(TestString);
-
-	//hack way to allow binaries as detectable in strings
-	bool throwAwayBool;
-	bool binaryWillSetThisFalse = BinaryValue->TryGetBool(throwAwayBool);
 	
 	//binary object pretending & starts with non-json format? it's our disguise binary
-	if (BinaryValue->Type == EJson::String && 
-		!binaryWillSetThisFalse)
+	if (JsonVal->Type == EJson::String && 
+		FJsonValueBinary::IsBinary(JsonVal))
 	{
 		//Valid binary available
-		return BinaryValue->AsBinary();
+		return FJsonValueBinary::AsBinary(JsonVal);
 	}
 	else
 	{
@@ -306,8 +319,6 @@ TArray<uint8> USIOJsonValue::AsBinary()
 		TArray<uint8> ByteArray;
 		return ByteArray;
 	}
-
-
 }
 
 FString USIOJsonValue::EncodeJson() const
@@ -322,3 +333,5 @@ void USIOJsonValue::ErrorMessage(const FString& InType) const
 {
 	UE_LOG(LogSIOJ, Error, TEXT("Json Value of type '%s' used as a '%s'."), *GetTypeString(), *InType);
 }
+
+#pragma endregion USIOJsonValue

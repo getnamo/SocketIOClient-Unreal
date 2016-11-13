@@ -31,20 +31,28 @@ class SIOJSON_API FJsonValueBinary : public FJsonValue
 public:
 	FJsonValueBinary(const TArray<uint8>& InBinary) : Value(InBinary) { Type = EJson::String; }	//pretends to be none
 
-	virtual bool TryGetString(FString& OutString) const override { 
-		//OutString = FString::Printf(TEXT("<binary size %d bytes>"), Value.Num());
+	virtual bool TryGetString(FString& OutString) const override 
+	{
 		OutString = FString::FromHexBlob(Value.GetData(), Value.Num());	//encode the binary into the string directly
-
-		//todo: encode this in a way we can decode as binary (e.g. json string with data -> decode it), this will add a workaround for binary from encoded json binaries
-		return true; 
+		return true;
 	}
-	virtual bool TryGetNumber(double& OutDouble) const override {
+	virtual bool TryGetNumber(double& OutDouble) const override 
+	{
 		OutDouble = Value.Num();
-		return true; 
+		return true;
 	}
-	virtual bool TryGetBool(bool& OutBool) const override { return false; } 	//we use this as an indicator we have a binary (strings don't normally do this)
 
+	//hackery: we use this as an indicator we have a binary (strings don't normally do this)
+	virtual bool TryGetBool(bool& OutBool) const override { return false; } 	
+
+	/** Return our binary data from this value */
 	TArray<uint8> AsBinary() { return Value; }
+
+	/** Convenience method to determine if passed FJsonValue is a FJsonValueBinary or not. */
+	static bool IsBinary(TSharedPtr<FJsonValue> InJsonValue);
+
+	/** Convenience method to get binary array from unknown JsonValue, test with IsBinary first. */
+	static TArray<uint8> AsBinary(TSharedPtr<FJsonValue> InJsonValue);
 
 protected:
 	TArray<uint8> Value;

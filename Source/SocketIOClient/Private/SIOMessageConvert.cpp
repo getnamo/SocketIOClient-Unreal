@@ -87,14 +87,9 @@ sio::message::ptr USIOMessageConvert::ToSIOMessage(const TSharedPtr<FJsonValue>&
 	}
 	else if (JsonValue->Type == EJson::String)
 	{
-		//hack to detect binary values
-		bool IgnoreBool;
-		bool isBinary = !JsonValue->TryGetBool(IgnoreBool);
-
-		if (isBinary)
+		if (FJsonValueBinary::IsBinary(JsonValue))
 		{
-			const TSharedPtr<FJsonValueBinary>& BinaryValue = StaticCastSharedPtr<FJsonValueBinary>(JsonValue);
-			auto BinaryArray = BinaryValue->AsBinary();
+			auto BinaryArray = FJsonValueBinary::AsBinary(JsonValue);
 			return sio::binary_message::create(std::make_shared<std::string>((char*)BinaryArray.GetData(), BinaryArray.Num()));
 		}
 		else

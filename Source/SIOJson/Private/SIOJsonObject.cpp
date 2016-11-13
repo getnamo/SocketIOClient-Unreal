@@ -342,13 +342,10 @@ TArray<uint8> USIOJsonObject::GetBinaryField(const FString& FieldName) const
 		UE_LOG(LogSIOJ, Warning, TEXT("No field with name %s of type String"), *FieldName);
 	}
 	TSharedPtr<FJsonValue> JsonValue = JsonObj->TryGetField(FieldName);
-	TSharedPtr<FJsonValueBinary> JsonValueBinary = StaticCastSharedPtr<FJsonValueBinary>(JsonValue);
-	
-	bool IgnoreBool;
-	bool IsBinary = !JsonValueBinary->TryGetBool(IgnoreBool);
-	if (IsBinary)
+
+	if (FJsonValueBinary::IsBinary(JsonValue))
 	{
-		return JsonValueBinary->AsBinary();
+		return FJsonValueBinary::AsBinary(JsonValue);
 	}
 	else
 	{
