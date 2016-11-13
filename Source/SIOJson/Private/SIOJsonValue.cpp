@@ -66,6 +66,17 @@ USIOJsonValue* USIOJsonValue::ConstructJsonValueObject(UObject* WorldContextObje
 	return NewValue;
 }
 
+
+USIOJsonValue* USIOJsonValue::ConstructJsonValueBinary(UObject* WorldContextObject, TArray<uint8> ByteArray)
+{
+	TSharedPtr<FJsonValue> NewVal = MakeShareable(new FJsonValueBinary(ByteArray));
+
+	USIOJsonValue* NewValue = NewObject<USIOJsonValue>();
+	NewValue->SetRootValue(NewVal);
+
+	return NewValue;
+}
+
 USIOJsonValue* ConstructJsonValue(UObject* WorldContextObject, const TSharedPtr<FJsonValue>& InValue)
 {
 	TSharedPtr<FJsonValue> NewVal = InValue;
@@ -252,6 +263,36 @@ USIOJsonObject* USIOJsonValue::AsObject()
 	return JsonObj;
 }
 
+
+TArray<uint8> USIOJsonValue::AsBinary()
+{
+	if (!JsonVal.IsValid())
+	{
+		ErrorMessage(TEXT("Binary"));
+		TArray<uint8> ByteArray;
+		return ByteArray;
+	}
+
+	const TSharedPtr<FJsonValueBinary>& BinaryValue = StaticCastSharedPtr<FJsonValueBinary>(JsonVal);
+	
+	FString TestString;
+	BinaryValue->TryGetString(TestString);
+	
+	//binary object pretending & starts with non-json format? it's our disguise binary
+	if (BinaryValue->Type == EJson::Object && TestString.StartsWith(TEXT("<")))
+	{
+		//Valid binary available
+		return BinaryValue->AsBinary();
+	}
+	else
+	{
+		//Empty array
+		TArray<uint8> ByteArray;
+		return ByteArray;
+	}
+
+
+}
 
 FString USIOJsonValue::EncodeJson() const
 { 

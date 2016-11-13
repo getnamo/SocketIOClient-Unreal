@@ -23,8 +23,13 @@ TSharedPtr<FJsonValue> USIOMessageConvert::ToJsonValue(const sio::message::ptr& 
 	}
 	else if (flag == sio::message::flag_binary)
 	{
-		//Todo: add support for this somehow?
-		return MakeShareable(new FJsonValueString(FString("<binary not supported in FJsonValue, use raw sio::message methods>")));
+		//FString WarningString = FString::Printf(TEXT("<binary (size %d bytes) not supported in FJsonValue, use raw sio::message methods>"), Binary->length());
+
+		//convert sio buffer ptr into the array
+		TArray<uint8> Buffer;
+		Buffer.Append((uint8*)(Message->get_binary()->data()), Message->get_binary()->size());
+		
+		return MakeShareable(new FJsonValueBinary(Buffer));
 	}
 	else if (flag == sio::message::flag_array)
 	{

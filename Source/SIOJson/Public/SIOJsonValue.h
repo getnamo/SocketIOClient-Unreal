@@ -22,8 +22,34 @@ namespace ESIOJson
 		Boolean,
 		Array,
 		Object,
+		Binary
 	};
 }
+
+class SIOJSON_API FJsonValueBinary : public FJsonValue
+{
+public:
+	FJsonValueBinary(const TArray<uint8>& InBinary) : Value(InBinary) { Type = EJson::Object; }	//pretends to be none
+
+	virtual bool TryGetString(FString& OutString) const override { 
+		OutString = FString::Printf(TEXT("<binary size %d bytes>"), Value.Num());
+		return true; 
+	}
+	virtual bool TryGetNumber(double& OutDouble) const override {
+		OutDouble = Value.Num();
+		return true; 
+	}
+	virtual bool TryGetBool(bool& OutBool) const override { return false; }
+
+	//void AsArgumentType(TArray<uint8>         & Value) { Value = AsObject(); }
+
+	TArray<uint8> AsBinary() { return Value; }
+
+protected:
+	TArray<uint8> Value;
+
+	virtual FString GetType() const override { return TEXT("Binary"); }
+};
 
 /**
  * Blueprintable FJsonValue wrapper
@@ -54,7 +80,11 @@ class SIOJSON_API USIOJsonValue : public UObject
 	UFUNCTION(BlueprintPure, meta = (DisplayName = "Construct Json Object Value", HidePin = "WorldContextObject", DefaultToSelf = "WorldContextObject"), Category = "SIOJ|Json")
 	static USIOJsonValue* ConstructJsonValueObject(UObject* WorldContextObject, USIOJsonObject *JsonObject);
 
-	/** Create new Json value from FJsonValue (to be used from SIOJJsonObject) */
+	/** Create new Json Binary value */
+	UFUNCTION(BlueprintPure, meta = (DisplayName = "Construct Json Binary Value", HidePin = "WorldContextObject", DefaultToSelf = "WorldContextObject"), Category = "SIOJ|Json")
+	static USIOJsonValue* ConstructJsonValueBinary(UObject* WorldContextObject, TArray<uint8> ByteArray);
+
+	/** Create new Json value from FJsonValue (to be used from USIOJsonObject) */
 	static USIOJsonValue* ConstructJsonValue(UObject* WorldContextObject, const TSharedPtr<FJsonValue>& InValue);
 
 	/** Create new Json value from JSON encoded string*/
@@ -104,6 +134,9 @@ class SIOJSON_API USIOJsonValue : public UObject
 	UFUNCTION(BlueprintCallable, Category = "SIOJ|Json")
 	USIOJsonObject* AsObject();
 
+	//todo: add basic binary e.g. tarray<byte>
+	UFUNCTION(BlueprintCallable, Category = "SIOJ|Json")
+	TArray<uint8> AsBinary();
 
 	UFUNCTION(BlueprintCallable, Category = "SIOJ|Json")
 	FString EncodeJson() const;
