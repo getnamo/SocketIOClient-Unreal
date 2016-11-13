@@ -119,6 +119,8 @@ ESIOJson::Type USIOJsonValue::GetType() const
 		return ESIOJson::None;
 	}
 
+	bool IsBinary;
+
 	switch (JsonVal->Type)
 	{
 	case EJson::None:
@@ -128,8 +130,17 @@ ESIOJson::Type USIOJsonValue::GetType() const
 		return ESIOJson::Null;
 
 	case EJson::String:
-		return ESIOJson::String;
+		bool IgnoreBool;
+		IsBinary = !JsonVal->TryGetBool(IgnoreBool);
 
+		if (IsBinary)
+		{
+			return ESIOJson::Binary;
+		}
+		else
+		{
+			return ESIOJson::String;
+		}
 	case EJson::Number:
 		return ESIOJson::Number;
 
