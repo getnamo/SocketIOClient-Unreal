@@ -32,17 +32,6 @@ void USocketIOClientComponent::UninitializeComponent()
 
 bool USocketIOClientComponent::CallResponseBPFunction(UObject* Target, const FString& FunctionName, TArray<TSharedPtr<FJsonValue>> Response)
 {
-	//Find the function
-
-	/*const FName Message = FName(*FunctionName, FNAME_Find);
-	if (Message == NAME_None)
-	{
-		UE_LOG(LogTemp, Log, TEXT("CallFunctionByNameWithArguments: Name not found '%s'"), *FunctionName);
-		return false;
-	}*/
-
-
-
 	UFunction* Function = Target->FindFunction(FName(*FunctionName));
 	if (nullptr == Function)
 	{
@@ -51,8 +40,6 @@ bool USocketIOClientComponent::CallResponseBPFunction(UObject* Target, const FSt
 	}
 
 	auto ResponseJsonValue = USIOJConvert::ToSIOJsonValue(Response);
-
-	//Set the argument
 
 	struct FDynamicArgs
 	{
@@ -69,8 +56,6 @@ bool USocketIOClientComponent::CallResponseBPFunction(UObject* Target, const FSt
 
 	//add the full response array as second param
 	Args.Arg02 = ResponseJsonValue;
-	
-	//Args.Arg02 = Target;
 
 	//Call the function
 	Target->ProcessEvent(Function, &Args);
