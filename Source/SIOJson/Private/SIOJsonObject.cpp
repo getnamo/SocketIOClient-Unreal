@@ -345,7 +345,7 @@ TArray<uint8> USIOJsonObject::GetBinaryField(const FString& FieldName) const
 	TSharedPtr<FJsonValueBinary> JsonValueBinary = StaticCastSharedPtr<FJsonValueBinary>(JsonValue);
 	
 	bool IgnoreBool;
-	bool IsBinary = JsonValueBinary->TryGetBool(IgnoreBool);
+	bool IsBinary = !JsonValueBinary->TryGetBool(IgnoreBool);
 	if (IsBinary)
 	{
 		return JsonValueBinary->AsBinary();
