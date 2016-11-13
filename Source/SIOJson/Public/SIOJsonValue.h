@@ -49,10 +49,10 @@ public:
 	TArray<uint8> AsBinary() { return Value; }
 
 	/** Convenience method to determine if passed FJsonValue is a FJsonValueBinary or not. */
-	static bool IsBinary(TSharedPtr<FJsonValue> InJsonValue);
+	static bool IsBinary(const TSharedPtr<FJsonValue>& InJsonValue);
 
 	/** Convenience method to get binary array from unknown JsonValue, test with IsBinary first. */
-	static TArray<uint8> AsBinary(TSharedPtr<FJsonValue> InJsonValue);
+	static TArray<uint8> AsBinary(const TSharedPtr<FJsonValue>& InJsonValue);
 
 protected:
 	TArray<uint8> Value;

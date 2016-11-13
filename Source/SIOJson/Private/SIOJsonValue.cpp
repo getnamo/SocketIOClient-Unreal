@@ -5,7 +5,7 @@
 
 #pragma region FJsonValueBinary
 
-TArray<uint8> FJsonValueBinary::AsBinary(TSharedPtr<FJsonValue> InJsonValue)
+TArray<uint8> FJsonValueBinary::AsBinary(const TSharedPtr<FJsonValue>& InJsonValue)
 {
 	if (FJsonValueBinary::IsBinary(InJsonValue))
 	{
@@ -20,11 +20,11 @@ TArray<uint8> FJsonValueBinary::AsBinary(TSharedPtr<FJsonValue> InJsonValue)
 }
 
 
-bool FJsonValueBinary::IsBinary(TSharedPtr<FJsonValue> InJsonValue)
+bool FJsonValueBinary::IsBinary(const TSharedPtr<FJsonValue>& InJsonValue)
 {
 	//use our hackery to determine if we got a binary string
 	bool IgnoreBool;
-	return InJsonValue->TryGetBool(IgnoreBool);
+	return !InJsonValue->TryGetBool(IgnoreBool);
 }
 
 #pragma endregion FJsonValueBinary
