@@ -30,7 +30,7 @@ void USocketIOClientComponent::UninitializeComponent()
 	Super::UninitializeComponent();
 }
 
-bool USocketIOClientComponent::CallResponseBPFunction(UObject* Target, const FString& FunctionName, TArray<TSharedPtr<FJsonValue>> Response)
+bool USocketIOClientComponent::CallBPFunctionWithResponse(UObject* Target, const FString& FunctionName, TArray<TSharedPtr<FJsonValue>> Response)
 {
 	UFunction* Function = Target->FindFunction(FName(*FunctionName));
 	if (nullptr == Function)
@@ -56,6 +56,30 @@ bool USocketIOClientComponent::CallResponseBPFunction(UObject* Target, const FSt
 
 	//add the full response array as second param
 	Args.Arg02 = ResponseJsonValue;
+
+	//Call the function
+	Target->ProcessEvent(Function, &Args);
+
+	return true;
+}
+
+bool USocketIOClientComponent::CallBPFunctionWithMessage(UObject* Target, const FString& FunctionName, TSharedPtr<FJsonValue> Message)
+{
+	UFunction* Function = Target->FindFunction(FName(*FunctionName));
+	if (nullptr == Function)
+	{
+		UE_LOG(LogTemp, Log, TEXT("CallFunctionByNameWithArguments: Function not found '%s'"), *FunctionName);
+		return false;
+	}
+
+	struct FDynamicArgs
+	{
+		USIOJsonValue* Arg01 = NULL;
+	};
+	FDynamicArgs Args = FDynamicArgs();
+
+	Args.Arg01 = NewObject<USIOJsonValue>();
+	Args.Arg01->SetRootValue(Message);
 
 	//Call the function
 	Target->ProcessEvent(Function, &Args);
@@ -159,18 +183,10 @@ void USocketIOClientComponent::EmitWithCallBack(const FString& EventName, USIOJs
 		{
 			JsonMessage = MakeShareable(new FJsonValueNull);
 		}
-		//const UObject* Self = this;
 
 		EmitNative(EventName, JsonMessage, [&, Target, CallbackFunctionName, this](auto Response)
 		{
-			//if we have a callback, call it
-
-			//Convert our results into a JSON string that can be decoded on the receiving end, not a perfect workaround...
-			//FOutputDeviceNull ar;
-			//const FString command = FString::Printf(TEXT("%s %s"), *CallbackFunctionName, *USIOJConvert::ToJsonString(Response));
-			//Target->CallFunctionByNameWithArguments(*command, ar, NULL, true);
-
-			CallResponseBPFunction(Target, CallbackFunctionName, Response);
+			CallBPFunctionWithResponse(Target, CallbackFunctionName, Response);
 		}, Namespace);
 	}
 	else 
@@ -249,9 +265,10 @@ void USocketIOClientComponent::BindEventToFunction(const FString& EventName, con
 		}
 		OnNativeEvent(EventName, [&, FunctionName, Target](const FString& Event, const TSharedPtr<FJsonValue>& Message)
 		{
-			FOutputDeviceNull ar;
-			const FString command = FString::Printf(TEXT("%s %s"), *FunctionName, *USIOJConvert::ToJsonString(Message));
-			Target->CallFunctionByNameWithArguments(*command, ar, NULL, true);
+			CallBPFunctionWithMessage(Target, FunctionName, Message);
+			//FOutputDeviceNull ar;
+			//const FString command = FString::Printf(TEXT("%s %s"), *FunctionName, *USIOJConvert::ToJsonString(Message));
+			//Target->CallFunctionByNameWithArguments(*command, ar, NULL, true);
 		}, Namespace);
 	}
 	else

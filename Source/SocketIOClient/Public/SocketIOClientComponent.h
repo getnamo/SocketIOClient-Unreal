@@ -196,7 +196,8 @@ public:
 
 protected:
 
-	bool CallResponseBPFunction(UObject* Target, const FString& FunctionName, TArray<TSharedPtr<FJsonValue>> Response);
+	bool CallBPFunctionWithResponse(UObject* Target, const FString& FunctionName, TArray<TSharedPtr<FJsonValue>> Response);
+	bool CallBPFunctionWithMessage(UObject* Target, const FString& FunctionName, TSharedPtr<FJsonValue> Message);
 
 	sio::client PrivateClient;
 };
