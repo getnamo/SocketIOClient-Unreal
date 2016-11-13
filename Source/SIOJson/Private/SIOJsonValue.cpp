@@ -277,9 +277,14 @@ TArray<uint8> USIOJsonValue::AsBinary()
 	
 	FString TestString;
 	BinaryValue->TryGetString(TestString);
+
+	//hack way to allow binaries as detectable in strings
+	bool throwAwayBool;
+	bool binaryWillSetThisFalse = BinaryValue->TryGetBool(throwAwayBool);
 	
 	//binary object pretending & starts with non-json format? it's our disguise binary
-	if (BinaryValue->Type == EJson::Object && TestString.StartsWith(TEXT("<")))
+	if (BinaryValue->Type == EJson::String && 
+		!binaryWillSetThisFalse)
 	{
 		//Valid binary available
 		return BinaryValue->AsBinary();

@@ -29,17 +29,18 @@ namespace ESIOJson
 class SIOJSON_API FJsonValueBinary : public FJsonValue
 {
 public:
-	FJsonValueBinary(const TArray<uint8>& InBinary) : Value(InBinary) { Type = EJson::Object; }	//pretends to be none
+	FJsonValueBinary(const TArray<uint8>& InBinary) : Value(InBinary) { Type = EJson::String; }	//pretends to be none
 
 	virtual bool TryGetString(FString& OutString) const override { 
-		OutString = FString::Printf(TEXT("<binary size %d bytes>"), Value.Num());
+		//OutString = FString::Printf(TEXT("<binary size %d bytes>"), Value.Num());
+		OutString = FString::FromBlob(Value.GetData(), Value.Num());	//encode the binary into the string directly
 		return true; 
 	}
 	virtual bool TryGetNumber(double& OutDouble) const override {
 		OutDouble = Value.Num();
 		return true; 
 	}
-	virtual bool TryGetBool(bool& OutBool) const override { return false; }
+	virtual bool TryGetBool(bool& OutBool) const override { return false; } 	//we use this as an indicator we have a binary (strings don't normally do this)
 
 	//void AsArgumentType(TArray<uint8>         & Value) { Value = AsObject(); }
 
