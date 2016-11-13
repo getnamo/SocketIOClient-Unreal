@@ -335,6 +335,38 @@ void USIOJsonObject::SetObjectField(const FString& FieldName, USIOJsonObject* Js
 }
 
 
+TArray<uint8> USIOJsonObject::GetBinaryField(const FString& FieldName) const
+{
+	if (!JsonObj->HasTypedField<EJson::String>(FieldName))
+	{
+		UE_LOG(LogSIOJ, Warning, TEXT("No field with name %s of type String"), *FieldName);
+	}
+	TSharedPtr<FJsonValue> JsonValue = JsonObj->TryGetField(FieldName);
+	TSharedPtr<FJsonValueBinary> JsonValueBinary = StaticCastSharedPtr<FJsonValueBinary>(JsonValue);
+	
+	bool IgnoreBool;
+	bool IsBinary = JsonValueBinary->TryGetBool(IgnoreBool);
+	if (IsBinary)
+	{
+		return JsonValueBinary->AsBinary();
+	}
+	else
+	{
+		TArray<uint8> EmptyArray;
+		return EmptyArray;
+	}
+}
+
+void USIOJsonObject::SetBinaryField(const FString& FieldName, const TArray<uint8>& Bytes)
+{
+	if (!JsonObj.IsValid() || FieldName.IsEmpty())
+	{
+		return;
+	}
+	TSharedPtr<FJsonValueBinary> JsonValue = MakeShareable(new FJsonValueBinary(Bytes));
+	JsonObj->SetField(FieldName, JsonValue);
+}
+
 //////////////////////////////////////////////////////////////////////////
 // Array fields helpers (uniform arrays)
 
