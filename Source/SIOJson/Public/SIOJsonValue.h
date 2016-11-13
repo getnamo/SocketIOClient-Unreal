@@ -33,7 +33,7 @@ public:
 
 	virtual bool TryGetString(FString& OutString) const override { 
 		//OutString = FString::Printf(TEXT("<binary size %d bytes>"), Value.Num());
-		OutString = FString::FromBlob(Value.GetData(), Value.Num());	//encode the binary into the string directly
+		OutString = FString::FromHexBlob(Value.GetData(), Value.Num());	//encode the binary into the string directly
 
 		//todo: encode this in a way we can decode as binary (e.g. json string with data -> decode it), this will add a workaround for binary from encoded json binaries
 		return true; 
