@@ -52,7 +52,13 @@ To use the C++ code from the plugin add it as a dependency module in your projec
 
 ```PublicDependencyModuleNames.AddRange(new string[] { "Core", "CoreUObject", "Engine", "InputCore", "SocketIOClient"});```
 
-```#include "SocketIOClientComponent.h"``` and add *USocketIoClientComponent* to your actor of choice or reference it from another component by getting it on begin play e.g.
+```#include "SocketIOClientComponent.h"``` and add *USocketIoClientComponent* to your actor of choice via e.g. a UProperty
+
+and *CreateDefaultSubobject* in your constructor
+
+```SocketIOClientComponent = CreateDefaultSubobject<USocketIOClientComponent>(TEXT("SocketIOClientComponent"));```
+
+or reference it from another component by getting it on begin play e.g.
 
 ```
 SIOComponent = Cast<USocketIOClientComponent>(this->GetOwner()->GetComponentByClass(USocketIOClientComponent::StaticClass()));
@@ -79,7 +85,7 @@ USocketIOClientComponent* SIOComponent; //get a reference or add as subobject in
 SIOComponent->AddressAndPort = FString("http://127.0.0.1:3000"); //change your address
 ```
 
-You can also connect at your own time of choosing by disabling auto-connect and connecting either to the default address or one of your choosing
+You can also connect at your own time by disabling auto-connect and connecting either to the default address or a custom one
 
 ```
 //you can also disable auto connect and connect it at your own time via
@@ -95,9 +101,13 @@ SIOComponent->Connect(FString("http://127.0.0.1:3000"));
 
 ####String
 
+Emit a string via
+
 ```SIOComponent->Emit(FString("myevent"), FString(TEXT("some data or stringified json"));```
 
 ####Binary or raw data
+
+Emit raw data via
 
 ```
 TArray<uint8> Buffer;
@@ -109,10 +119,26 @@ SIOComponent->EmitBuffer(FString("myBinarySendEvent"), Buffer.GetData(), Buffer.
 
 ####Complex message using sio::message
 
-see [sio::message](https://github.com/socketio/socket.io-client-cpp/blob/master/src/sio_message.h) for how to form a raw message. Generally it supports a lot of std:: variants e.g. std::string or more complex messages e.g. [socket.io c++ emit readme](https://github.com/socketio/socket.io-client-cpp#emit-an-event)
+see [sio::message](https://github.com/socketio/socket.io-client-cpp/blob/master/src/sio_message.h) for how to form a raw message. Generally it supports a lot of std:: variants e.g. std::string or more complex messages e.g. [socket.io c++ emit readme](https://github.com/socketio/socket.io-client-cpp#emit-an-event). Note that there are static helper functions attached to the component class to convert from std::string to FString and the reverse.
 
 ```
-SIOComponent->EmitRaw(FString("myRawMessageEvent"), std::make_shared<std::string>(buf,100));
+static std::string StdString(FString UEString);
+
+static FString FStringFromStd(std::string StdString);
+```
+	
+
+e.g. emitting {type:"image"} object
+
+```
+//create object message
+auto message = sio::object_message::create();
+
+//set map property string
+message->get_map()["type"] = sio::string_message::create(std::string("image"));
+
+//emit message
+SIOComponent->EmitRaw(ShareResourceEventName, message);
 ```
 
 with a callback
@@ -120,7 +146,8 @@ with a callback
 ```
 SIOComponent->EmitRawWithCallback(FString("myRawMessageEventWithAck"), string_message::create(username), [&](message::list const& msg) {
 	//got data, handle it here
-});```
+});
+```
 
 
 ### Receiving Events
@@ -130,7 +157,7 @@ To receive events you can bind lambdas which makes things awesomely easy e.g.
 #### String
 
 ```
-SIOComponent->BindDataLambdaToEvent([&](const FString& Name, const FString& Data)
+SIOComponent->BindStringMessageLambdaToEvent([&](const FString& Name, const FString& Data)
 		{
 			//do something with your string data
 		}, FString(TEXT("myStringReceiveEvent")));
@@ -147,12 +174,30 @@ SIOComponent->BindBinaryMessageLambdaToEvent([&](const FString& Name, const TArr
 
 ####Complex message using sio::message
 
-Currently the only way to handle json messages as the plugin doesn't auto-convert json types to UE4 types (contribute!)
+Currently the only way to handle json messages as the plugin doesn't auto-convert json types to UE4 types (contribute!). See [sio::message](https://github.com/socketio/socket.io-client-cpp/blob/master/src/sio_message.h) or [socket.io c++ readme](https://github.com/socketio/socket.io-client-cpp#emit-an-event) for examples.
+
+e.g. expecting a result {type:"some type"}
 
 ```
-SIOComponent->BindRawMessageLambdaToEvent([&](const FString& Name, const sio::message::ptr&)
+SIOComponent->BindRawMessageLambdaToEvent([&](const FString& Name, const sio::message::ptr& Message)
 		{
-			//do something with your sio::message::ptr data 
+		        //if you expected an object e.g. {}
+			if (Message->get_flag() != sio::message::flag_object)
+			{
+				UE_LOG(LogTemp, Warning, TEXT("Warning! event did not receive expected Object."));
+				return;
+			}
+			auto MessageMap = Message->get_map();
+			
+			//use the map to decode an object key e.g. type string
+			auto typeMessage = MessageMap["type"];
+			if (typeMessage->get_flag() == typeMessage->flag_string)
+			{
+				FString TypeValue = USocketIOClientComponent::FStringFromStd(typeMessage->get_string());
+				
+				//do something with your received type value!
+			}
+			
 		}, FString(TEXT("myArbitraryReceiveEvent")));
 ```
 
