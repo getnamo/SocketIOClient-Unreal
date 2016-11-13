@@ -30,6 +30,54 @@ void USocketIOClientComponent::UninitializeComponent()
 	Super::UninitializeComponent();
 }
 
+bool USocketIOClientComponent::CallResponseBPFunction(UObject* Target, const FString& FunctionName, TArray<TSharedPtr<FJsonValue>> Response)
+{
+	//Find the function
+
+	/*const FName Message = FName(*FunctionName, FNAME_Find);
+	if (Message == NAME_None)
+	{
+		UE_LOG(LogTemp, Log, TEXT("CallFunctionByNameWithArguments: Name not found '%s'"), *FunctionName);
+		return false;
+	}*/
+
+
+
+	UFunction* Function = Target->FindFunction(FName(*FunctionName));
+	if (nullptr == Function)
+	{
+		UE_LOG(LogTemp, Log, TEXT("CallFunctionByNameWithArguments: Function not found '%s'"), *FunctionName);
+		return false;
+	}
+
+	auto ResponseJsonValue = USIOJConvert::ToSIOJsonValue(Response);
+
+	//Set the argument
+
+	struct FDynamicArgs
+	{
+		USIOJsonValue* Arg01 = NULL;
+		USIOJsonValue* Arg02 = NULL;
+	};
+
+	//create the container
+	FDynamicArgs Args = FDynamicArgs();
+
+	//convenience wrapper, response is a single object
+	Args.Arg01 = NewObject<USIOJsonValue>();	
+	Args.Arg01->SetRootValue(Response[0]);
+
+	//add the full response array as second param
+	Args.Arg02 = ResponseJsonValue;
+	
+	//Args.Arg02 = Target;
+
+	//Call the function
+	Target->ProcessEvent(Function, &Args);
+
+	return true;
+}
+
 #pragma region Connect
 
 void USocketIOClientComponent::Connect(const FString& InAddressAndPort)
@@ -126,15 +174,18 @@ void USocketIOClientComponent::EmitWithCallBack(const FString& EventName, USIOJs
 		{
 			JsonMessage = MakeShareable(new FJsonValueNull);
 		}
+		//const UObject* Self = this;
 
-		EmitNative(EventName, JsonMessage, [&, Target, CallbackFunctionName](auto Response)
+		EmitNative(EventName, JsonMessage, [&, Target, CallbackFunctionName, this](auto Response)
 		{
 			//if we have a callback, call it
 
-				//Convert our results into a JSON string that can be decoded on the receiving end, not a perfect workaround...
-			FOutputDeviceNull ar;
-			const FString command = FString::Printf(TEXT("%s %s"), *CallbackFunctionName, *USIOJConvert::ToJsonString(Response));
-			Target->CallFunctionByNameWithArguments(*command, ar, NULL, true);
+			//Convert our results into a JSON string that can be decoded on the receiving end, not a perfect workaround...
+			//FOutputDeviceNull ar;
+			//const FString command = FString::Printf(TEXT("%s %s"), *CallbackFunctionName, *USIOJConvert::ToJsonString(Response));
+			//Target->CallFunctionByNameWithArguments(*command, ar, NULL, true);
+
+			CallResponseBPFunction(Target, CallbackFunctionName, Response);
 		}, Namespace);
 	}
 	else 

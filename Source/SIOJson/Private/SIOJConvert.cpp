@@ -57,6 +57,21 @@ FString USIOJConvert::ToJsonString(const TSharedPtr<FJsonValue>& JsonValue)
 	}
 }
 
+USIOJsonValue* USIOJConvert::ToSIOJsonValue(const TArray<TSharedPtr<FJsonValue>>& JsonValueArray)
+{
+	TArray< TSharedPtr<FJsonValue> > ValueArray;
+	for (auto InVal : JsonValueArray)
+	{
+		ValueArray.Add(InVal);
+	}
+	
+	USIOJsonValue* ResultValue = NewObject<USIOJsonValue>();
+	TSharedPtr<FJsonValue> NewVal = MakeShareable(new FJsonValueArray(ValueArray));
+	ResultValue->SetRootValue(NewVal);
+
+	return ResultValue;
+}
+
 TSharedPtr<FJsonValue> USIOJConvert::ToJsonValue(const FString& JsonString)
 {
 	//Null

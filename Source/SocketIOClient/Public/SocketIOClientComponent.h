@@ -102,47 +102,6 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "SocketIO Functions")
 	void Emit(const FString& EventName, USIOJsonValue* Message = nullptr, const FString& Namespace = FString(TEXT("/")));
 
-
-	//debug function - move it into FJson global bp library
-	//todo split into C++ version with templating so we can just pass ::StaticStruct
-
-	/*UFUNCTION(BlueprintCallable, Category = "SocketIOFunctions", CustomThunk, meta = (CustomStructureParam = "AnyStruct"))
-	USIOJsonObject* StructToJsonObject(UProperty* AnyStruct);
-
-	//fills passed in struct with data from json object
-	UFUNCTION(BlueprintCallable, Category = "SocketIOFunctions", CustomThunk, meta = (CustomStructureParam = "AnyStruct"))
-	void JsonObjectToStruct(USIOJsonObject* JsonObject, UProperty* AnyStruct);
-
-	//Convert property into c++ accessible form
-	DECLARE_FUNCTION(execStructToJsonObject)
-	{
-		// Steps into the stack, walking to the next property in it
-		Stack.Step(Stack.Object, NULL);
-
-		// Grab the last property found when we walked the stack
-		// This does not contains the property value, only its type information
-		UStructProperty* StructProperty = ExactCast<UStructProperty>(Stack.MostRecentProperty);
-
-		// Grab the base address where the struct actually stores its data
-		// This is where the property value is truly stored
-		void* StructPtr = Stack.MostRecentPropertyAddress;
-
-		// We need this to wrap up the stack
-		P_FINISH;
-
-		auto BPJsonObject = NewObject<USIOJsonObject>();
-
-		auto JsonObject = USIOJConvert::ToJsonObject(StructProperty->Struct, StructPtr);
-		BPJsonObject->SetRootObject(JsonObject);
-
-		*(USIOJsonObject**)RESULT_PARAM = BPJsonObject;
-	}
-
-	DECLARE_FUNCTION(execJsonObjectToStruct)
-	{
-		//todo: finish this one
-	}*/
-
 	/**
 	* Emit an event with a Json message value
 	*
@@ -236,6 +195,8 @@ public:
 	virtual void UninitializeComponent() override;
 
 protected:
+
+	bool CallResponseBPFunction(UObject* Target, const FString& FunctionName, TArray<TSharedPtr<FJsonValue>> Response);
 
 	sio::client PrivateClient;
 };

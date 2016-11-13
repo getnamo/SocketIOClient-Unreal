@@ -27,6 +27,7 @@ public:
 
 	//typically from callbacks
 	static FString ToJsonString(const TArray<TSharedPtr<FJsonValue>>& JsonValueArray);
+	static class USIOJsonValue* ToSIOJsonValue(const TArray<TSharedPtr<FJsonValue>>& JsonValueArray);
 	static TSharedPtr<FJsonValue> ToJsonValue(const FString& JsonString);
 
 	static TArray<TSharedPtr<FJsonValue>> ToJsonArray(const FString& JsonString);
