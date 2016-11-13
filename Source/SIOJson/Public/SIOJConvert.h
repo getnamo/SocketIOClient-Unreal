@@ -21,13 +21,14 @@ public:
 	static TSharedPtr<FJsonObject> ToJsonObject(const FString& JsonString);
 
 	//struct encoding to json, todo: clean-up and match internal names
-	static TSharedPtr<FJsonObject> ToJsonObject(UStruct* Struct, void* StructPtr);
+	static TSharedPtr<FJsonObject> ToJsonObject(UStruct* Struct, void* StructPtr, bool IsBlueprintStruct = false);
 	//struct encoding from json, todo: clean-up and match internal names
-	static bool JsonObjectToUStruct(TSharedRef<FJsonObject> JsonObject, UStruct* Struct, void* StructPtr);
+	static bool JsonObjectToUStruct(TSharedPtr<FJsonObject> JsonObject, UStruct* Struct, void* StructPtr, bool IsBlueprintStruct = false);
 
 	//typically from callbacks
 	static FString ToJsonString(const TArray<TSharedPtr<FJsonValue>>& JsonValueArray);
 	static class USIOJsonValue* ToSIOJsonValue(const TArray<TSharedPtr<FJsonValue>>& JsonValueArray);
+
 	static TSharedPtr<FJsonValue> ToJsonValue(const FString& JsonString);
 
 	static TArray<TSharedPtr<FJsonValue>> ToJsonArray(const FString& JsonString);

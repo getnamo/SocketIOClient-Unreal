@@ -141,17 +141,36 @@ TSharedPtr<FJsonObject> USIOJConvert::ToJsonObject(const FString& JsonString)
 	return JsonObject;
 }
 
-TSharedPtr<FJsonObject> USIOJConvert::ToJsonObject(UStruct* Struct, void* StructPtr)
+TSharedPtr<FJsonObject> USIOJConvert::ToJsonObject(UStruct* Struct, void* StructPtr, bool IsBlueprintStruct)
 {
 	USIOJsonValue* Value = NewObject<USIOJsonValue>();
 	TSharedRef<FJsonObject> JsonObject = MakeShareable(new FJsonObject);
-
-	bool success = FJsonObjectConverter::UStructToJsonObject(Struct, StructPtr, JsonObject, 0, 0);
-
+	
+	if (IsBlueprintStruct)
+	{
+		//todo manual system
+		
+		//temp work around, nope we're not special
+		return ToJsonObject(Struct, StructPtr, false);
+	}
+	else
+	{
+		bool success = FJsonObjectConverter::UStructToJsonObject(Struct, StructPtr, JsonObject, 0, 0);
+	}
 	return JsonObject;
 }
 
-bool USIOJConvert::JsonObjectToUStruct(TSharedRef<FJsonObject> JsonObject, UStruct* Struct, void* StructPtr)
+bool USIOJConvert::JsonObjectToUStruct(TSharedPtr<FJsonObject> JsonObject, UStruct* Struct, void* StructPtr, bool IsBlueprintStruct)
 {
-	return FJsonObjectConverter::JsonObjectToUStruct(JsonObject, Struct, StructPtr, 0, 0);
+	if (IsBlueprintStruct)
+	{
+		//todo manual system
+
+		//temp work around, nope we're not special
+		return JsonObjectToUStruct(JsonObject, Struct, StructPtr, false);
+	}
+	else
+	{
+		return FJsonObjectConverter::JsonObjectToUStruct(JsonObject.ToSharedRef(), Struct, StructPtr, 0, 0);
+	}
 }

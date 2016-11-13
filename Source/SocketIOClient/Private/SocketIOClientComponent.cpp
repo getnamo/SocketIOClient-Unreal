@@ -266,7 +266,7 @@ void USocketIOClientComponent::BindEventToFunction(const FString& EventName, con
 		OnNativeEvent(EventName, [&, FunctionName, Target](const FString& Event, const TSharedPtr<FJsonValue>& Message)
 		{
 			CallBPFunctionWithMessage(Target, FunctionName, Message);
-			//FOutputDeviceNull ar;
+			//FOutputDeviceNull ar;	//old string parameter method
 			//const FString command = FString::Printf(TEXT("%s %s"), *FunctionName, *USIOJConvert::ToJsonString(Message));
 			//Target->CallFunctionByNameWithArguments(*command, ar, NULL, true);
 		}, Namespace);

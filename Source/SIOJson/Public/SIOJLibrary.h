@@ -117,7 +117,7 @@ public:
 
 		auto BPJsonObject = NewObject<USIOJsonObject>();
 
-		auto JsonObject = USIOJConvert::ToJsonObject(StructProperty->Struct, StructPtr);
+		auto JsonObject = USIOJConvert::ToJsonObject(StructProperty->Struct, StructPtr, true);
 		BPJsonObject->SetRootObject(JsonObject);
 
 		*(USIOJsonObject**)RESULT_PARAM = BPJsonObject;
@@ -135,9 +135,7 @@ public:
 		P_FINISH;
 
 		//Pass in the reference to the json object
-		TSharedRef<FJsonObject> RawJsonObject = JsonObject->GetRootObject().ToSharedRef();
-
-		bool Success = USIOJConvert::JsonObjectToUStruct(RawJsonObject, StructProperty->Struct, StructPtr);
+		bool Success = USIOJConvert::JsonObjectToUStruct(JsonObject->GetRootObject(), StructProperty->Struct, StructPtr, true);
 
 		*(bool*)RESULT_PARAM = Success;
 	}
