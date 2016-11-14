@@ -28,6 +28,7 @@ TSharedPtr<FJsonValue> USIOMessageConvert::ToJsonValue(const sio::message::ptr& 
 		//convert sio buffer ptr into the array
 		TArray<uint8> Buffer;
 		Buffer.Append((uint8*)(Message->get_binary()->data()), Message->get_binary()->size());
+		//todo: investigate if binary optimization is possible? Do we copy?
 		
 		return MakeShareable(new FJsonValueBinary(Buffer));
 	}
