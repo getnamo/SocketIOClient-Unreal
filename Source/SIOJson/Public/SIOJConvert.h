@@ -45,5 +45,6 @@ public:
 	static void TrimValueKeyNames(const TSharedPtr<FJsonValue>& JsonValue);
 	static bool TrimKey(const FString& InLongKey, FString& OutTrimmedKey);
 	static void SetTrimmedKeyMapForStruct(TSharedPtr<FTrimmedKeyMap>& InMap, UStruct* Struct);
+	static void SetTrimmedKeyMapForProp(TSharedPtr<FTrimmedKeyMap>& InMap, UProperty* ArrayInnerProp);
 	static void ReplaceJsonValueNamesWithMap(TSharedPtr<FJsonValue>& InValue, TSharedPtr<FTrimmedKeyMap> KeyMap);
 }; 
