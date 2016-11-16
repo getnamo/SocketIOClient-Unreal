@@ -255,6 +255,21 @@ public:
 					const FString& Namespace = FString(TEXT("/")));
 
 	/**
+	* (Overloaded) Emit an event with an UStruct message
+	*
+	* @param EventName				Event name
+	* @param Struct					UStruct type usually obtained via e.g. FMyStructType::StaticStruct()
+	* @param StructPtr				Pointer to the actual struct memory e.g. &MyStruct
+	* @param CallbackFunction		Optional callback TFunction
+	* @param Namespace				Optional Namespace within socket.io
+	*/
+	void EmitNative(const FString& EventName,
+					UStruct* Struct,
+					const void* StructPtr,
+					TFunction< void(const TArray<TSharedPtr<FJsonValue>>&)> CallbackFunction = nullptr,
+					const FString& Namespace = FString(TEXT("/")));
+
+	/**
 	* Emit a raw sio::message event
 	*
 	* @param EventName				Event name
