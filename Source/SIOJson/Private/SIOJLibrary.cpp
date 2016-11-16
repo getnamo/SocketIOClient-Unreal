@@ -68,6 +68,82 @@ bool USIOJLibrary::StringToJsonValueArray(const FString& JsonString, TArray<USIO
 
 TMap<USIOJRequestJSON*, FSIOJCallResponse> USIOJLibrary::RequestMap;
 
+
+FString USIOJLibrary::Conv_JsonObjectToString(USIOJsonObject* InObject)
+{
+	return InObject->EncodeJson();
+}
+
+
+USIOJsonValue* USIOJLibrary::Conv_ArrayToJsonValue(const TArray<USIOJsonValue*>& InArray)
+{
+	return USIOJsonValue::ConstructJsonValueArray(nullptr, InArray);
+}
+
+
+USIOJsonValue* USIOJLibrary::Conv_JsonObjectToJsonValue(USIOJsonObject* InObject)
+{
+	return USIOJsonValue::ConstructJsonValueObject(InObject, nullptr);
+}
+
+
+USIOJsonValue* USIOJLibrary::Conv_BytesToJsonValue(const TArray<uint8>& InBytes)
+{
+	return USIOJsonValue::ConstructJsonValueBinary(nullptr, InBytes);
+}
+
+
+USIOJsonValue* USIOJLibrary::Conv_StringToJsonValue(const FString& InString)
+{
+	return USIOJsonValue::ConstructJsonValueString(nullptr, InString);
+}
+
+
+USIOJsonValue* USIOJLibrary::Conv_IntToJsonValue(int32 InInt)
+{
+	TSharedPtr<FJsonValue> NewVal = MakeShareable(new FJsonValueNumber(InInt));
+
+	USIOJsonValue* NewValue = NewObject<USIOJsonValue>();
+	NewValue->SetRootValue(NewVal);
+
+	return NewValue;
+}
+
+USIOJsonValue* USIOJLibrary::Conv_FloatToJsonValue(float InFloat)
+{
+	return USIOJsonValue::ConstructJsonValueNumber(nullptr, InFloat);
+}
+
+
+USIOJsonValue* USIOJLibrary::Conv_BoolToJsonValue(bool InBool)
+{
+	return USIOJsonValue::ConstructJsonValueBool(nullptr, InBool);
+}
+
+
+int32 USIOJLibrary::Conv_JsonValueToInt(USIOJsonValue* InValue)
+{
+	return (int32)InValue->AsNumber();
+}
+
+
+float USIOJLibrary::Conv_JsonValueToFloat(USIOJsonValue* InValue)
+{
+	return InValue->AsNumber();
+}
+
+
+bool USIOJLibrary::Conv_JsonValueToBool(USIOJsonValue* InValue)
+{
+	return InValue->AsBool();
+}
+
+
+TArray<uint8> USIOJLibrary::Conv_JsonValueToBytes(USIOJsonValue* InValue)
+{
+	return InValue->AsBinary();
+}
+
 void USIOJLibrary::CallURL(UObject* WorldContextObject, const FString& URL, ERequestVerb Verb, ERequestContentType ContentType, USIOJsonObject* SIOJJson, const FSIOJCallDelegate& Callback)
 {
 	UWorld* World = GEngine->GetWorldFromContextObject(WorldContextObject);

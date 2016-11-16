@@ -140,6 +140,48 @@ public:
 		*(bool*)RESULT_PARAM = Success;
 	}
 
+	//Conversion Nodes
+
+	//ToJsonValue
+
+	UFUNCTION(BlueprintPure, meta = (DisplayName = "ToJsonValue (Array)", BlueprintAutocast), Category = "Utilities|SocketIO")
+	static USIOJsonValue* Conv_ArrayToJsonValue(const TArray<USIOJsonValue*>& InArray);
+
+	UFUNCTION(BlueprintPure, meta = (DisplayName = "ToJsonValue (JsonObject)", BlueprintAutocast), Category = "Utilities|SocketIO")
+	static USIOJsonValue* Conv_JsonObjectToJsonValue(USIOJsonObject* InObject);
+
+	UFUNCTION(BlueprintPure, meta = (DisplayName = "ToJsonValue (Bytes)", BlueprintAutocast), Category = "Utilities|SocketIO")
+	static USIOJsonValue* Conv_BytesToJsonValue(const TArray<uint8>& InBytes);
+
+	UFUNCTION(BlueprintPure, meta = (DisplayName = "ToJsonValue (String)", BlueprintAutocast), Category = "Utilities|SocketIO")
+	static USIOJsonValue* Conv_StringToJsonValue(const FString& InString);
+
+	UFUNCTION(BlueprintPure, meta = (DisplayName = "ToJsonValue (Integer)", BlueprintAutocast), Category = "Utilities|SocketIO")
+	static USIOJsonValue* Conv_IntToJsonValue(int32 InInt);
+
+	UFUNCTION(BlueprintPure, meta = (DisplayName = "ToJsonValue (Float)", BlueprintAutocast), Category = "Utilities|SocketIO")
+	static USIOJsonValue* Conv_FloatToJsonValue(float InFloat);
+
+	UFUNCTION(BlueprintPure, meta = (DisplayName = "ToJsonValue (Bool)", BlueprintAutocast), Category = "Utilities|SocketIO")
+	static USIOJsonValue* Conv_BoolToJsonValue(bool InBool);
+
+	//To Native Types
+	UFUNCTION(BlueprintPure, meta = (DisplayName = "To Integer (JsonValue)", BlueprintAutocast), Category = "Utilities|SocketIO")
+	static int32 Conv_JsonValueToInt(class USIOJsonValue* InValue);
+
+	UFUNCTION(BlueprintPure, meta = (DisplayName = "To Float (JsonValue)", BlueprintAutocast), Category = "Utilities|SocketIO")
+	static float Conv_JsonValueToFloat(class USIOJsonValue* InValue);
+
+	UFUNCTION(BlueprintPure, meta = (DisplayName = "To Bool (JsonValue)", BlueprintAutocast), Category = "Utilities|SocketIO")
+	static bool Conv_JsonValueToBool(class USIOJsonValue* InValue);
+
+	UFUNCTION(BlueprintPure, meta = (DisplayName = "To Bytes (JsonValue)", BlueprintAutocast), Category = "Utilities|SocketIO")
+	static TArray<uint8> Conv_JsonValueToBytes(class USIOJsonValue* InValue);
+
+	//ToString - these never get called sadly, kismet library get display name takes priority
+	UFUNCTION(BlueprintPure, meta = (DisplayName = "ToString (SIOJsonObject)", CompactNodeTitle = "->", BlueprintAutocast), Category = "Utilities|SocketIO")
+	static FString Conv_JsonObjectToString(class USIOJsonObject* InObject);
+
 public:
 	/** Easy way to process http requests */
 	UFUNCTION(BlueprintCallable, Category = "SIOJ|Utility", meta = (WorldContext = "WorldContextObject"))
