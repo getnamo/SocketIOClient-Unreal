@@ -106,6 +106,8 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "SocketIO Functions")
 	void Disconnect();
 
+	void SyncDisconnect();
+
 	//
 	//Blueprint Functions
 	//

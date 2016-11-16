@@ -26,7 +26,7 @@ void USocketIOClientComponent::InitializeComponent()
 
 void USocketIOClientComponent::UninitializeComponent()
 {
-	Disconnect();
+	SyncDisconnect();
 	Super::UninitializeComponent();
 }
 
@@ -144,13 +144,18 @@ void USocketIOClientComponent::Disconnect()
 {
 	FSIOLambdaRunnable::RunLambdaOnBackGroundThread([&]
 	{
-		if (PrivateClient.opened())
-		{
-			PrivateClient.socket()->off_all();
-			PrivateClient.socket()->off_error();
-			PrivateClient.close();
-		}
+		SyncDisconnect();
 	});
+}
+
+void USocketIOClientComponent::SyncDisconnect()
+{
+	if (PrivateClient.opened())
+	{
+		PrivateClient.socket()->off_all();
+		PrivateClient.socket()->off_error();
+		PrivateClient.close();
+	}
 }
 
 #pragma endregion Connect
