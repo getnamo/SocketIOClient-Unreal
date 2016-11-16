@@ -106,6 +106,10 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "SocketIO Functions")
 	void Disconnect();
 
+	//
+	//Blueprint Functions
+	//
+
 	/**
 	* Emit an event with a JsonValue message
 	*
@@ -131,6 +135,33 @@ public:
 							const FString& CallbackFunctionName = FString(""),
 							UObject* Target = nullptr,
 							const FString& Namespace = FString(TEXT("/")));
+
+	/**
+	* Bind an event, then respond to it with 'On' multi-cast delegate
+	*
+	* @param EventName	Event name
+	* @param Namespace	Optional namespace, defaults to default namespace
+	*/
+	UFUNCTION(BlueprintCallable, Category = "SocketIO Functions")
+	void BindEvent(const FString& EventName, const FString& Namespace = FString(TEXT("/")));
+
+
+	/**
+	* Bind an event to a function with the given name.
+	* Expects a String message signature which can be decoded from JSON into SIOJsonObject
+	*
+	* @param EventName		Event name
+	* @param FunctionName	The function that gets called when the event is received
+	* @param Target			Optional, defaults to owner. Change to delegate to another class.
+	*/
+	UFUNCTION(BlueprintCallable, Category = "SocketIO Functions")
+	void BindEventToFunction(	const FString& EventName,
+								const FString& FunctionName,
+								UObject* Target,
+								const FString& Namespace = FString(TEXT("/")));
+	//
+	//C++ functions
+	//
 
 	/**
 	* Emit an event with a JsonValue message 
@@ -185,6 +216,19 @@ public:
 					const FString& Namespace = FString(TEXT("/")));
 
 	/**
+	* (Overloaded) Emit an event with a bool message
+	*
+	* @param EventName				Event name
+	* @param BooleanMessage			Message in bool format
+	* @param CallbackFunction		Optional callback TFunction
+	* @param Namespace				Optional Namespace within socket.io
+	*/
+	void EmitNative(const FString& EventName,
+					bool BooleanMessage,
+					TFunction< void(const TArray<TSharedPtr<FJsonValue>>&)> CallbackFunction = nullptr,
+					const FString& Namespace = FString(TEXT("/")));
+
+	/**
 	* (Overloaded) Emit an event with a binary message
 	*
 	* @param EventName				Event name
@@ -233,31 +277,6 @@ public:
 	*/
 	void EmitRawBinary(const FString& EventName, uint8* Data, int32 DataLength, const FString& Namespace = FString(TEXT("/")));
 	
-	
-
-	/**
-	* Bind an event, then respond to it with 'On' multicast delegate
-	*
-	* @param EventName	Event name
-	* @param Namespace	Optional namespace, defaults to default namespace
-	*/
-	UFUNCTION(BlueprintCallable, Category = "SocketIO Functions")
-	void BindEvent(const FString& EventName, const FString& Namespace = FString(TEXT("/")));
-
-
-	/**
-	* Bind an event to a function with the given name. 
-	* Expects a String message signature which can be decoded from JSON into SIOJsonObject
-	*
-	* @param EventName		Event name
-	* @param FunctionName	The function that gets called when the event is received
-	* @param Target			Optional, defaults to owner. Change to delegate to another class.
-	*/
-	UFUNCTION(BlueprintCallable, Category = "SocketIO Functions")
-	void BindEventToFunction(	const FString& EventName, 
-								const FString& FunctionName, 
-								UObject* Target, 
-								const FString& Namespace = FString(TEXT("/")));
 
 	/**
 	* Call function callback on receiving socket event. C++ only.
@@ -278,8 +297,8 @@ public:
 	* @param Namespace	Optional namespace, defaults to default namespace
 	*/
 	void OnRawEvent(const FString& EventName,
-		TFunction< void(const FString&, const sio::message::ptr&)> CallbackFunction,
-		const FString& Namespace = FString(TEXT("/")));
+					TFunction< void(const FString&, const sio::message::ptr&)> CallbackFunction,
+					const FString& Namespace = FString(TEXT("/")));
 	/**
 	* Call function callback on receiving binary event. C++ only.
 	*
@@ -287,9 +306,9 @@ public:
 	* @param TFunction	Lambda callback, raw flavor
 	* @param Namespace	Optional namespace, defaults to default namespace
 	*/
-	void OnBinaryEvent(const FString& EventName,
-		TFunction< void(const FString&, const TArray<uint8>&)> CallbackFunction,
-		const FString& Namespace = FString(TEXT("/")));
+	void OnBinaryEvent(	const FString& EventName,
+						TFunction< void(const FString&, const TArray<uint8>&)> CallbackFunction,
+						const FString& Namespace = FString(TEXT("/")));
 
 	virtual void InitializeComponent() override;
 	virtual void UninitializeComponent() override;
