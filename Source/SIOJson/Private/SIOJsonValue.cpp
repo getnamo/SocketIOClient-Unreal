@@ -117,7 +117,7 @@ USIOJsonValue* ConstructJsonValue(UObject* WorldContextObject, const TSharedPtr<
 
 USIOJsonValue* USIOJsonValue::ValueFromJsonString(UObject* WorldContextObject, const FString& StringValue)
 {
-	TSharedPtr<FJsonValue> NewVal = USIOJConvert::ToJsonValue(StringValue);
+	TSharedPtr<FJsonValue> NewVal = USIOJConvert::JsonStringToJsonValue(StringValue);
 
 	USIOJsonValue* NewValue = NewObject<USIOJsonValue>();
 	NewValue->SetRootValue(NewVal);

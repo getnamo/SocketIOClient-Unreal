@@ -72,7 +72,9 @@ USIOJsonValue* USIOJConvert::ToSIOJsonValue(const TArray<TSharedPtr<FJsonValue>>
 	return ResultValue;
 }
 
-TSharedPtr<FJsonValue> USIOJConvert::ToJsonValue(const FString& JsonString)
+#pragma endregion ToJsonValue
+
+TSharedPtr<FJsonValue> USIOJConvert::JsonStringToJsonValue(const FString& JsonString)
 {
 	//Null
 	if (JsonString.IsEmpty())
@@ -124,6 +126,38 @@ TSharedPtr<FJsonValue> USIOJConvert::ToJsonValue(const FString& JsonString)
 	return MakeShareable(new FJsonValueString(JsonString));
 }
 
+TSharedPtr<FJsonValue> USIOJConvert::ToJsonValue(const TSharedPtr<FJsonObject>& JsonObject)
+{
+	return MakeShareable(new FJsonValueObject(JsonObject));
+}
+
+TSharedPtr<FJsonValue> USIOJConvert::ToJsonValue(const FString& StringValue)
+{
+	return MakeShareable(new FJsonValueString(StringValue));
+}
+
+TSharedPtr<FJsonValue> USIOJConvert::ToJsonValue(double NumberValue)
+{
+	return MakeShareable(new FJsonValueNumber(NumberValue));
+}
+
+TSharedPtr<FJsonValue> USIOJConvert::ToJsonValue(bool BoolValue)
+{
+	return MakeShareable(new FJsonValueBoolean(BoolValue));
+}
+
+TSharedPtr<FJsonValue> USIOJConvert::ToJsonValue(const TArray<uint8>& BinaryValue)
+{
+	return MakeShareable(new FJsonValueBinary(BinaryValue));
+}
+
+TSharedPtr<FJsonValue> USIOJConvert::ToJsonValue(const TArray<TSharedPtr<FJsonValue>>& ArrayValue)
+{
+	return MakeShareable(new FJsonValueArray(ArrayValue));
+}
+
+#pragma endregion ToJsonValue
+
 TArray<TSharedPtr<FJsonValue>> USIOJConvert::ToJsonArray(const FString& JsonString)
 {
 	TArray < TSharedPtr<FJsonValue>> RawJsonValueArray;
@@ -163,6 +197,11 @@ TSharedPtr<FJsonObject> USIOJConvert::ToJsonObject(UStruct* Struct, void* Struct
 	}
 }
 
+
+TSharedPtr<FJsonObject> USIOJConvert::MakeJsonObject()
+{
+	return MakeShareable(new FJsonObject);
+}
 
 bool USIOJConvert::JsonObjectToUStruct(TSharedPtr<FJsonObject> JsonObject, UStruct* Struct, void* StructPtr, bool IsBlueprintStruct)
 {
