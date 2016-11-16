@@ -53,47 +53,61 @@ class SOCKETIOCLIENT_API USocketIOClientComponent : public UActorComponent
 public:
 
 	//Async events
+
+	/** Event received on socket.io connection established. */
 	UPROPERTY(BlueprintAssignable, Category = "SocketIO Events")
 	FSIOCOpenEventSignature OnConnected;
 
+	/** Event received on socket.io connection disconnected. */
 	UPROPERTY(BlueprintAssignable, Category = "SocketIO Events")
 	FSIOCCloseEventSignature OnDisconnected;
 
+	/** Event received on having joined namespace. */
 	UPROPERTY(BlueprintAssignable, Category = "SocketIO Events")
 	FSIOCSocketEventSignature OnSocketNamespaceConnected;
 
+	/** Event received on having left namespace. */
 	UPROPERTY(BlueprintAssignable, Category = "SocketIO Events")
 	FSIOCSocketEventSignature OnSocketNamespaceDisconnected;
 
+	/** Event received on connection failure. */
 	UPROPERTY(BlueprintAssignable, Category = "SocketIO Events")
 	FSIOCEventSignature OnFail;
 
+	/** On bound event received. */
 	UPROPERTY(BlueprintAssignable, Category = "SocketIO Events")
 	FSIOCEventJsonSignature On;
 
-	//Default properties
+	/** Default connection address string in form e.g. http://localhost:80. */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "SocketIO Properties")
 	FString AddressAndPort;
 
+	/** If true will auto-connect on begin play to address specified in AddressAndPort. */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "SocketIO Properties")
 	bool ShouldAutoConnect;
 
+	/** When connected this session id will be valid and contain a unique Id. */
 	UPROPERTY(BlueprintReadWrite, Category = "SocketIO Properties")
 	FString SessionId;
 
 	/**
-	* Connect to a socket.io server, optional if auto-connect is set
+	* Connect to a socket.io server, optional method if auto-connect is set to true.
 	*
 	* @param AddressAndPort	the address in URL format with port
 	*/
 	UFUNCTION(BlueprintCallable, Category = "SocketIO Functions")
 	void Connect(const FString& InAddressAndPort);
 
+	/**
+	* Disconnect from current socket.io server, optional method.
+	*
+	* @param AddressAndPort	the address in URL format with port
+	*/
 	UFUNCTION(BlueprintCallable, Category = "SocketIO Functions")
 	void Disconnect();
 
 	/**
-	* Emit an event with a Json message value
+	* Emit an event with a JsonValue message
 	*
 	* @param Name		Event name
 	* @param Message	SIOJJsonValue
@@ -103,7 +117,7 @@ public:
 	void Emit(const FString& EventName, USIOJsonValue* Message = nullptr, const FString& Namespace = FString(TEXT("/")));
 
 	/**
-	* Emit an event with a Json message value
+	* Emit an event with a JsonValue message with a callback function defined by CallBackFunctionName
 	*
 	* @param Name					Event name
 	* @param Message				SIOJsonValue
@@ -118,20 +132,106 @@ public:
 							UObject* Target = nullptr,
 							const FString& Namespace = FString(TEXT("/")));
 
-	//Emit Json value object with callback. C++ only convenience emit event.
+	/**
+	* Emit an event with a JsonValue message 
+	*
+	* @param EventName				Event name
+	* @param Message				FJsonValue
+	* @param CallbackFunction		Optional callback TFunction
+	* @param Namespace				Optional Namespace within socket.io
+	*/
 	void EmitNative(const FString& EventName,
 					const TSharedPtr<FJsonValue>& Message = nullptr,
 					TFunction< void(const TArray<TSharedPtr<FJsonValue>>&)> CallbackFunction = nullptr,
 					const FString& Namespace = FString(TEXT("/")));
 
-	//Raw sio::message emit, only available in C++
-	void EmitRawWithCallback(	const FString& EventName,
-								const sio::message::list& MessageList = nullptr,
-								TFunction<void(const sio::message::list&)> ResponseFunction = nullptr, 
-								const FString& Namespace = FString(TEXT("/")));
+	/**
+	* (Overloaded) Emit an event with a Json Object message
+	*
+	* @param EventName				Event name
+	* @param ObjectMessage			FJsonObject
+	* @param CallbackFunction		Optional callback TFunction
+	* @param Namespace				Optional Namespace within socket.io
+	*/
+	void EmitNative(const FString& EventName,
+					const TSharedPtr<FJsonObject>& ObjectMessage = nullptr,
+					TFunction< void(const TArray<TSharedPtr<FJsonValue>>&)> CallbackFunction = nullptr,
+					const FString& Namespace = FString(TEXT("/")));
 
-	//Binary data version, only available in C++
-	void EmitBinary(const FString& EventName, uint8* Data, int32 DataLength, const FString& Namespace = FString(TEXT("/")));
+	/**
+	* (Overloaded) Emit an event with a string message
+	*
+	* @param EventName				Event name
+	* @param StringMessage			Message in string format
+	* @param CallbackFunction		Optional callback TFunction
+	* @param Namespace				Optional Namespace within socket.io
+	*/
+	void EmitNative(const FString& EventName,
+					const FString& StringMessage = FString(),
+					TFunction< void(const TArray<TSharedPtr<FJsonValue>>&)> CallbackFunction = nullptr,
+					const FString& Namespace = FString(TEXT("/")));
+
+	/**
+	* (Overloaded) Emit an event with a number (double) message
+	*
+	* @param EventName				Event name
+	* @param NumberMessage			Message in double format
+	* @param CallbackFunction		Optional callback TFunction
+	* @param Namespace				Optional Namespace within socket.io
+	*/
+	void EmitNative(const FString& EventName,
+					double NumberMessage,
+					TFunction< void(const TArray<TSharedPtr<FJsonValue>>&)> CallbackFunction = nullptr,
+					const FString& Namespace = FString(TEXT("/")));
+
+	/**
+	* (Overloaded) Emit an event with a binary message
+	*
+	* @param EventName				Event name
+	* @param BinaryMessage			Message in an TArray of uint8
+	* @param CallbackFunction		Optional callback TFunction
+	* @param Namespace				Optional Namespace within socket.io
+	*/
+	void EmitNative(const FString& EventName,
+					const TArray<uint8>& BinaryMessage,
+					TFunction< void(const TArray<TSharedPtr<FJsonValue>>&)> CallbackFunction = nullptr,
+					const FString& Namespace = FString(TEXT("/")));
+
+	/**
+	* (Overloaded) Emit an event with an array message
+	*
+	* @param EventName				Event name
+	* @param ArrayMessage			Message in an TArray of FJsonValues
+	* @param CallbackFunction		Optional callback TFunction
+	* @param Namespace				Optional Namespace within socket.io
+	*/
+	void EmitNative(const FString& EventName,
+					const TArray<TSharedPtr<FJsonValue>>& ArrayMessage,
+					TFunction< void(const TArray<TSharedPtr<FJsonValue>>&)> CallbackFunction = nullptr,
+					const FString& Namespace = FString(TEXT("/")));
+
+	/**
+	* Emit a raw sio::message event
+	*
+	* @param EventName				Event name
+	* @param MessageList			Message in sio::message::list format
+	* @param CallbackFunction		Optional callback TFunction with raw signature
+	* @param Namespace				Optional Namespace within socket.io
+	*/
+	void EmitRaw(	const FString& EventName,
+					const sio::message::list& MessageList = nullptr,
+					TFunction<void(const sio::message::list&)> CallbackFunction = nullptr,
+					const FString& Namespace = FString(TEXT("/")));
+
+	/**
+	* Emit an optimized binary message
+	*
+	* @param EventName				Event name
+	* @param Data					Buffer Pointer
+	* @param DataLength				Buffer size
+	* @param Namespace				Optional Namespace within socket.io
+	*/
+	void EmitRawBinary(const FString& EventName, uint8* Data, int32 DataLength, const FString& Namespace = FString(TEXT("/")));
 	
 	
 
