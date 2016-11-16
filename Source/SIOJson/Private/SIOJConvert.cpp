@@ -147,9 +147,6 @@ TSharedPtr<FJsonObject> USIOJConvert::ToJsonObject(UStruct* Struct, void* Struct
 	
 	if (IsBlueprintStruct)
 	{
-		//todo manual system
-
-		
 		//Get the object keys
 		TSharedPtr<FJsonObject> Object = ToJsonObject(Struct, StructPtr, false);
 
@@ -171,6 +168,23 @@ bool USIOJConvert::JsonObjectToUStruct(TSharedPtr<FJsonObject> JsonObject, UStru
 	if (IsBlueprintStruct)
 	{
 		//todo manual system
+
+		//Json object we pass will have their trimmed BP names, e.g. boolKey vs boolKey_8_EDBB36654CF43866C376DE921373AF23
+		//so we have to match them to the verbose versions, get a map of the names
+
+		TArray<FString> Keys;
+		auto FieldPtr = Struct->Children;
+		//while(FieldPtr->Next != nullptr)
+		while(FieldPtr!=NULL){
+			FString LowerKey = FJsonObjectConverter::StandardizeCase(FieldPtr->GetName());
+			FString TrimmedComparison;
+			TrimKey(LowerKey, TrimmedComparison);
+
+			UE_LOG(LogTemp, Log, TEXT("lc: %s, trim: %s"), *LowerKey, *TrimmedComparison);
+
+			
+			FieldPtr = FieldPtr->Next;
+		}
 
 		//temp work around, nope we're not special
 		return JsonObjectToUStruct(JsonObject, Struct, StructPtr, false);
@@ -200,16 +214,13 @@ void USIOJConvert::TrimValueKeyNames(const TSharedPtr<FJsonValue>& JsonValue)
 		for (auto Pair : JsonObject->Values)
 		{
 			const FString& Key = Pair.Key;
+			FString TrimmedKey;
 
-			//Look for the position of the 2nd '_'
-			int32 LastIndex = Key.Find(TEXT("_"), ESearchCase::IgnoreCase, ESearchDir::FromEnd);
-			LastIndex = Key.Find(TEXT("_"), ESearchCase::IgnoreCase, ESearchDir::FromEnd, LastIndex);
+			bool DidNeedTrimming = TrimKey(Key, TrimmedKey);
 
 			//Positive count? trim it
-			if (LastIndex>0)
+			if (DidNeedTrimming)
 			{
-				FString TrimmedKey = Key.Mid(0,LastIndex);
-
 				//Trim subvalue if applicable
 				auto SubValue = Pair.Value;
 				TrimValueKeyNames(SubValue);
@@ -224,5 +235,22 @@ void USIOJConvert::TrimValueKeyNames(const TSharedPtr<FJsonValue>& JsonValue)
 				UE_LOG(LogTemp, Log, TEXT("untrimmed: %s"), *Pair.Key);
 			}
 		}
+	}
+}
+
+bool USIOJConvert::TrimKey(const FString& InLongKey, FString& OutTrimmedKey)
+{
+	//Look for the position of the 2nd '_'
+	int32 LastIndex = InLongKey.Find(TEXT("_"), ESearchCase::IgnoreCase, ESearchDir::FromEnd);
+	LastIndex = InLongKey.Find(TEXT("_"), ESearchCase::IgnoreCase, ESearchDir::FromEnd, LastIndex);
+
+	if (LastIndex >= 0)
+	{
+		OutTrimmedKey = InLongKey.Mid(0, LastIndex);;
+		return true; 
+	}
+	else
+	{
+		return false;
 	}
 }

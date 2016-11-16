@@ -26,6 +26,7 @@ public:
 	static bool JsonObjectToUStruct(TSharedPtr<FJsonObject> JsonObject, UStruct* Struct, void* StructPtr, bool IsBlueprintStruct = false);
 
 	static void TrimValueKeyNames(const TSharedPtr<FJsonValue>& JsonValue);
+	static bool TrimKey(const FString& InLongKey, FString& OutTrimmedKey);
 
 	//typically from callbacks
 	static FString ToJsonString(const TArray<TSharedPtr<FJsonValue>>& JsonValueArray);
