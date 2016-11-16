@@ -5,6 +5,12 @@
 #include "Object.h"
 #include "SIOJConvert.generated.h"
 
+struct FTrimmedKeyMap
+{
+	FString LongKey;
+	TMap<FString, TSharedPtr<FTrimmedKeyMap>> SubMap;
+};
+
 /**
  * 
  */
@@ -20,14 +26,12 @@ public:
 
 	static TSharedPtr<FJsonObject> ToJsonObject(const FString& JsonString);
 
-	//struct encoding to json, todo: clean-up and match internal names
+	//BP struct get their names cleaned
 	static TSharedPtr<FJsonObject> ToJsonObject(UStruct* Struct, void* StructPtr, bool IsBlueprintStruct = false);
-	//struct encoding from json, todo: clean-up and match internal names
+	
+	//Expects a JsonObject, if blueprint struct it will lengthen the names to fill properly
 	static bool JsonObjectToUStruct(TSharedPtr<FJsonObject> JsonObject, UStruct* Struct, void* StructPtr, bool IsBlueprintStruct = false);
-
-	static void TrimValueKeyNames(const TSharedPtr<FJsonValue>& JsonValue);
-	static bool TrimKey(const FString& InLongKey, FString& OutTrimmedKey);
-
+		
 	//typically from callbacks
 	static FString ToJsonString(const TArray<TSharedPtr<FJsonValue>>& JsonValueArray);
 	static class USIOJsonValue* ToSIOJsonValue(const TArray<TSharedPtr<FJsonValue>>& JsonValueArray);
@@ -35,4 +39,11 @@ public:
 	static TSharedPtr<FJsonValue> ToJsonValue(const FString& JsonString);
 
 	static TArray<TSharedPtr<FJsonValue>> ToJsonArray(const FString& JsonString);
+
+
+	//internalish utility
+	static void TrimValueKeyNames(const TSharedPtr<FJsonValue>& JsonValue);
+	static bool TrimKey(const FString& InLongKey, FString& OutTrimmedKey);
+	static void SetTrimmedKeyMapForStruct(TSharedPtr<FTrimmedKeyMap>& InMap, UStruct* Struct);
+	static void ReplaceJsonValueNamesWithMap(TSharedPtr<FJsonValue>& InValue, TSharedPtr<FTrimmedKeyMap> KeyMap);
 }; 

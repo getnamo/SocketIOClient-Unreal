@@ -163,6 +163,87 @@ TSharedPtr<FJsonObject> USIOJConvert::ToJsonObject(UStruct* Struct, void* Struct
 	return JsonObject;
 }
 
+void USIOJConvert::SetTrimmedKeyMapForStruct(TSharedPtr<FTrimmedKeyMap>& InMap, UStruct* Struct)
+{
+	//Get the child fields
+	auto FieldPtr = Struct->Children;
+	
+	//If it hasn't been set, the long key is the json standardized long name
+	if (InMap->LongKey.IsEmpty())
+	{
+		InMap->LongKey = FJsonObjectConverter::StandardizeCase(FieldPtr->GetName());
+	}
+
+	//For each child field...
+	while (FieldPtr != NULL) {
+		//Map our trimmed name to our full name
+		const FString& LowerKey = FJsonObjectConverter::StandardizeCase(FieldPtr->GetName());
+		FString TrimmedKey;
+		bool DidTrim = TrimKey(LowerKey, TrimmedKey);
+
+		//Set the key map
+		TSharedPtr<FTrimmedKeyMap> SubMap = MakeShareable(new FTrimmedKeyMap);
+		SubMap->LongKey = LowerKey;
+
+		//No-trim case, trim = long
+		if (!DidTrim)
+		{
+			TrimmedKey = SubMap->LongKey;
+		}
+
+		//Did we get a substructure?
+		UStructProperty* SubStruct = Cast<UStructProperty>(FieldPtr);
+		if (SubStruct != NULL)
+		{
+			//We did, embed the sub-map
+			SetTrimmedKeyMapForStruct(SubMap, SubStruct->Struct);
+		}
+
+		InMap->SubMap.Add(TrimmedKey, SubMap);
+		//UE_LOG(LogTemp, Log, TEXT("long: %s, trim: %s, is struct: %d"), *SubMap->LongKey, *TrimmedKey, SubStruct != NULL);
+
+		FieldPtr = FieldPtr->Next;
+	}
+
+	UE_LOG(LogTemp, Log, TEXT("Final map: %d"), InMap->SubMap.Num());
+}
+
+void USIOJConvert::ReplaceJsonValueNamesWithMap(TSharedPtr<FJsonValue>& JsonValue, TSharedPtr<FTrimmedKeyMap> KeyMap)
+{
+	if (JsonValue->Type == EJson::Object)
+	{
+		//Go through each key in the object
+		auto Object = JsonValue->AsObject();
+		auto SubMap = KeyMap->SubMap;
+		auto AllValues = Object->Values;
+		
+		for (auto Pair : AllValues)
+		{
+			if (SubMap.Num() > 0)
+			{
+				//Get the long key for entry
+				const FString& LongKey = SubMap[Pair.Key]->LongKey;
+
+				//loop nested structures
+				ReplaceJsonValueNamesWithMap(Pair.Value, SubMap[Pair.Key]);
+
+				//finally set the field and remove the old field
+				Object->SetField(LongKey, Pair.Value);
+				Object->RemoveField(Pair.Key);
+			}
+		}
+	}
+	else if (JsonValue->Type == EJson::Array)
+	{
+		auto Array = JsonValue->AsArray();
+		for (auto Item : Array)
+		{
+			//UE_LOG(LogTemp, Log, TEXT("%s"), *Item->AsString());
+			ReplaceJsonValueNamesWithMap(Item, KeyMap);
+		}
+	}
+}
+
 bool USIOJConvert::JsonObjectToUStruct(TSharedPtr<FJsonObject> JsonObject, UStruct* Struct, void* StructPtr, bool IsBlueprintStruct)
 {
 	if (IsBlueprintStruct)
@@ -172,21 +253,15 @@ bool USIOJConvert::JsonObjectToUStruct(TSharedPtr<FJsonObject> JsonObject, UStru
 		//Json object we pass will have their trimmed BP names, e.g. boolKey vs boolKey_8_EDBB36654CF43866C376DE921373AF23
 		//so we have to match them to the verbose versions, get a map of the names
 
-		TArray<FString> Keys;
-		auto FieldPtr = Struct->Children;
-		//while(FieldPtr->Next != nullptr)
-		while(FieldPtr!=NULL){
-			FString LowerKey = FJsonObjectConverter::StandardizeCase(FieldPtr->GetName());
-			FString TrimmedComparison;
-			TrimKey(LowerKey, TrimmedComparison);
+		TSharedPtr<FTrimmedKeyMap> KeyMap = MakeShareable(new FTrimmedKeyMap);
+		SetTrimmedKeyMapForStruct(KeyMap, Struct);
 
-			UE_LOG(LogTemp, Log, TEXT("lc: %s, trim: %s"), *LowerKey, *TrimmedComparison);
+		//Adjust our passed in JsonObject to use the long key names
+		TSharedPtr<FJsonValue> JsonValue = MakeShareable(new FJsonValueObject(JsonObject));
+		ReplaceJsonValueNamesWithMap(JsonValue, KeyMap);
 
-			
-			FieldPtr = FieldPtr->Next;
-		}
 
-		//temp work around, nope we're not special
+		//Now it's a regular struct and will fill correctly
 		return JsonObjectToUStruct(JsonObject, Struct, StructPtr, false);
 	}
 	else
@@ -254,3 +329,5 @@ bool USIOJConvert::TrimKey(const FString& InLongKey, FString& OutTrimmedKey)
 		return false;
 	}
 }
+
+
