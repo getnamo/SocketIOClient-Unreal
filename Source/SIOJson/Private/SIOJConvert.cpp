@@ -158,7 +158,7 @@ TSharedPtr<FJsonValue> USIOJConvert::ToJsonValue(const TArray<TSharedPtr<FJsonVa
 
 #pragma endregion ToJsonValue
 
-TArray<TSharedPtr<FJsonValue>> USIOJConvert::ToJsonArray(const FString& JsonString)
+TArray<TSharedPtr<FJsonValue>> USIOJConvert::JsonStringToJsonArray(const FString& JsonString)
 {
 	TArray < TSharedPtr<FJsonValue>> RawJsonValueArray;
 	TSharedRef< TJsonReader<> > Reader = TJsonReaderFactory<>::Create(*JsonString);
