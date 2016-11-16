@@ -143,15 +143,21 @@ TSharedPtr<FJsonObject> USIOJConvert::ToJsonObject(const FString& JsonString)
 
 TSharedPtr<FJsonObject> USIOJConvert::ToJsonObject(UStruct* Struct, void* StructPtr, bool IsBlueprintStruct)
 {
-	USIOJsonValue* Value = NewObject<USIOJsonValue>();
 	TSharedRef<FJsonObject> JsonObject = MakeShareable(new FJsonObject);
 	
 	if (IsBlueprintStruct)
 	{
 		//todo manual system
+
 		
-		//temp work around, nope we're not special
-		return ToJsonObject(Struct, StructPtr, false);
+		//Get the object keys
+		TSharedPtr<FJsonObject> Object = ToJsonObject(Struct, StructPtr, false);
+
+		//Wrap it into a value and pass it into the trimmer
+		TSharedPtr<FJsonValue> JsonValue = MakeShareable(new FJsonValueObject(Object));
+		TrimValueKeyNames(JsonValue);
+
+		return JsonValue->AsObject();
 	}
 	else
 	{
@@ -172,5 +178,51 @@ bool USIOJConvert::JsonObjectToUStruct(TSharedPtr<FJsonObject> JsonObject, UStru
 	else
 	{
 		return FJsonObjectConverter::JsonObjectToUStruct(JsonObject.ToSharedRef(), Struct, StructPtr, 0, 0);
+	}
+}
+
+void USIOJConvert::TrimValueKeyNames(const TSharedPtr<FJsonValue>& JsonValue)
+{
+	//Array?
+	if (JsonValue->Type == EJson::Array) 
+	{
+		auto Array = JsonValue->AsArray();
+
+		for (auto SubValue : Array)
+		{
+			TrimValueKeyNames(SubValue);
+		}
+	}
+	//Object?
+	else if (JsonValue->Type == EJson::Object)
+	{
+		auto JsonObject = JsonValue->AsObject();
+		for (auto Pair : JsonObject->Values)
+		{
+			const FString& Key = Pair.Key;
+
+			//Look for the position of the 2nd '_'
+			int32 LastIndex = Key.Find(TEXT("_"), ESearchCase::IgnoreCase, ESearchDir::FromEnd);
+			LastIndex = Key.Find(TEXT("_"), ESearchCase::IgnoreCase, ESearchDir::FromEnd, LastIndex);
+
+			//Positive count? trim it
+			if (LastIndex>0)
+			{
+				FString TrimmedKey = Key.Mid(0,LastIndex);
+
+				//Trim subvalue if applicable
+				auto SubValue = Pair.Value;
+				TrimValueKeyNames(SubValue);
+
+				JsonObject->SetField(TrimmedKey, SubValue);
+				JsonObject->RemoveField(Key);
+
+				UE_LOG(LogTemp, Log, TEXT("orig: %s, trimmed: %s"), *Pair.Key, *TrimmedKey);
+			}
+			else
+			{
+				UE_LOG(LogTemp, Log, TEXT("untrimmed: %s"), *Pair.Key);
+			}
+		}
 	}
 }

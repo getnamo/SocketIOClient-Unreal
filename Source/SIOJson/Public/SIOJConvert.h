@@ -25,6 +25,8 @@ public:
 	//struct encoding from json, todo: clean-up and match internal names
 	static bool JsonObjectToUStruct(TSharedPtr<FJsonObject> JsonObject, UStruct* Struct, void* StructPtr, bool IsBlueprintStruct = false);
 
+	static void TrimValueKeyNames(const TSharedPtr<FJsonValue>& JsonValue);
+
 	//typically from callbacks
 	static FString ToJsonString(const TArray<TSharedPtr<FJsonValue>>& JsonValueArray);
 	static class USIOJsonValue* ToSIOJsonValue(const TArray<TSharedPtr<FJsonValue>>& JsonValueArray);
