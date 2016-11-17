@@ -67,7 +67,9 @@ namespace UnrealBuildTool.Rules
                 new string[]
                 {
                 "Core",
-                "JSON",
+                "Json",
+                "JsonUtilities",
+                "SIOJson"
                     // ... add other public dependencies that you statically link with here ...
                 }
                 );
@@ -79,7 +81,7 @@ namespace UnrealBuildTool.Rules
                 "CoreUObject",
                 "Engine",
                 "Slate",
-                "SlateCore",
+                "SlateCore"
                     // ... add private dependencies that you statically link with here ...	
                 }
                 );
