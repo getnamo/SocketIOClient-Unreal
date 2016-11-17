@@ -197,7 +197,6 @@ TSharedPtr<FJsonObject> USIOJConvert::ToJsonObject(UStruct* Struct, void* Struct
 	}
 }
 
-
 TSharedPtr<FJsonObject> USIOJConvert::MakeJsonObject()
 {
 	return MakeShareable(new FJsonObject);

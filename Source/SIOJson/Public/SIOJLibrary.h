@@ -182,6 +182,9 @@ public:
 	UFUNCTION(BlueprintPure, meta = (DisplayName = "ToString (SIOJsonObject)", CompactNodeTitle = "->", BlueprintAutocast), Category = "Utilities|SocketIO")
 	static FString Conv_JsonObjectToString(class USIOJsonObject* InObject);
 
+	UFUNCTION(BlueprintPure, meta = (DisplayName = "To Object (JsonValue)", BlueprintAutocast), Category = "Utilities|SocketIO")
+	static USIOJsonObject* Conv_JsonValueToJsonObject(class USIOJsonValue* InValue);
+
 public:
 	/** Easy way to process http requests */
 	UFUNCTION(BlueprintCallable, Category = "SIOJ|Utility", meta = (WorldContext = "WorldContextObject"))

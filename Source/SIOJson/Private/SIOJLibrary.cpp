@@ -75,6 +75,11 @@ FString USIOJLibrary::Conv_JsonObjectToString(USIOJsonObject* InObject)
 }
 
 
+USIOJsonObject* USIOJLibrary::Conv_JsonValueToJsonObject(class USIOJsonValue* InValue)
+{
+	return InValue->AsObject();
+}
+
 USIOJsonValue* USIOJLibrary::Conv_ArrayToJsonValue(const TArray<USIOJsonValue*>& InArray)
 {
 	return USIOJsonValue::ConstructJsonValueArray(nullptr, InArray);
