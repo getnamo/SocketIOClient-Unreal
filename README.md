@@ -290,9 +290,26 @@ SIOClientComponent->EmitNative(FString("callbackTest"), JsonObject, [&](auto Res
 Plugin supports automatic conversion to/from UStructs, below is an example of a struct roundtrip, being in Json format on the server side.
 
 ```c++
+USTRUCT()
+struct FTestCppStruct
+{
+	GENERATED_BODY()
+
+	UPROPERTY()
+	int32 Index;
+
+	UPROPERTY()
+	float SomeNumber;
+
+	UPROPERTY()
+	FString Name;
+};
+```
+
+```c++
 //Set your struct variables
 FTestCppStruct TestStruct;
-TestStruct.Name = FString("woodchucks");
+TestStruct.Name = FString("George");
 TestStruct.Index = 5;
 TestStruct.SomeNumber = 5.123f;
 
@@ -307,7 +324,7 @@ SIOClientComponent->EmitNative(FString("callbackTest"),  FTestCppStruct::StaticS
 	USIOJConvert::JsonObjectToUStruct(Message, FTestCppStruct::StaticStruct(), &MemberStruct);
 
 	//Show that struct
-	UE_LOG(LogTemp, Log, TEXT("Our received member struct is now: %s"), *MemberStruct.toString());
+	UE_LOG(LogTemp, Log, TEXT("Our received member name is now: %s"), *MemberStruct.Name);
 });
 ```
 
