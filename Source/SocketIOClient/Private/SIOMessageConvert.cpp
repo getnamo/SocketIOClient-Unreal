@@ -2,6 +2,8 @@
 
 #include "SocketIOClientPrivatePCH.h"
 
+DEFINE_LOG_CATEGORY(SocketIOLog);
+
 typedef TJsonWriterFactory< TCHAR, TCondensedJsonPrintPolicy<TCHAR> > FCondensedJsonStringWriterFactory;
 typedef TJsonWriter< TCHAR, TCondensedJsonPrintPolicy<TCHAR> > FCondensedJsonStringWriter;
 

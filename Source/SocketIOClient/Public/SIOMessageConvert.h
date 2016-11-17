@@ -6,6 +6,8 @@
 #include "sio_client.h"
 #include "SIOMessageConvert.generated.h"
 
+DECLARE_LOG_CATEGORY_EXTERN(SocketIOLog, Log, All);
+
 /**
  * 
  */

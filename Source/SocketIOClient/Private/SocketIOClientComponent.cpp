@@ -35,7 +35,7 @@ bool USocketIOClientComponent::CallBPFunctionWithResponse(UObject* Target, const
 	UFunction* Function = Target->FindFunction(FName(*FunctionName));
 	if (nullptr == Function)
 	{
-		UE_LOG(LogTemp, Log, TEXT("CallFunctionByNameWithArguments: Function not found '%s'"), *FunctionName);
+		UE_LOG(SocketIOLog, Warning, TEXT("CallFunctionByNameWithArguments: Function not found '%s'"), *FunctionName);
 		return false;
 	}
 
@@ -68,7 +68,7 @@ bool USocketIOClientComponent::CallBPFunctionWithMessage(UObject* Target, const 
 	UFunction* Function = Target->FindFunction(FName(*FunctionName));
 	if (nullptr == Function)
 	{
-		UE_LOG(LogTemp, Log, TEXT("CallFunctionByNameWithArguments: Function not found '%s'"), *FunctionName);
+		UE_LOG(SocketIOLog, Warning, TEXT("CallFunctionByNameWithArguments: Function not found '%s'"), *FunctionName);
 		return false;
 	}
 
@@ -104,34 +104,34 @@ void USocketIOClientComponent::Connect(const FString& InAddressAndPort)
 
 		PrivateClient.set_open_listener(sio::client::con_listener([&]() {
 			SessionId = USIOMessageConvert::FStringFromStd(PrivateClient.get_sessionid());
-			UE_LOG(LogTemp, Log, TEXT("SocketIO Connected with session: %s"), *SessionId);
+			UE_LOG(SocketIOLog, Log, TEXT("SocketIO Connected with session: %s"), *SessionId);
 			OnConnected.Broadcast(SessionId);
 		}));
 
 		PrivateClient.set_close_listener(sio::client::close_listener([&](sio::client::close_reason const& reason)
 		{
 			SessionId = FString(TEXT("invalid"));
-			UE_LOG(LogTemp, Log, TEXT("SocketIO Disconnected"));
+			UE_LOG(SocketIOLog, Log, TEXT("SocketIO Disconnected"));
 			OnDisconnected.Broadcast((EConnectionCloseReason)reason);
 		}));
 
 		PrivateClient.set_socket_open_listener(sio::client::socket_listener([&](std::string const& nsp)
 		{
 			FString Namespace = USIOMessageConvert::FStringFromStd(nsp);
-			UE_LOG(LogTemp, Log, TEXT("SocketIO connected to namespace: %s"), *Namespace);
+			UE_LOG(SocketIOLog, Log, TEXT("SocketIO connected to namespace: %s"), *Namespace);
 			OnSocketNamespaceConnected.Broadcast(Namespace);
 		}));
 
 		PrivateClient.set_socket_close_listener(sio::client::socket_listener([&](std::string const& nsp)
 		{
 			FString Namespace = USIOMessageConvert::FStringFromStd(nsp);
-			UE_LOG(LogTemp, Log, TEXT("SocketIO disconnected from namespace: %s"), *Namespace);
+			UE_LOG(SocketIOLog, Log, TEXT("SocketIO disconnected from namespace: %s"), *Namespace);
 			OnSocketNamespaceDisconnected.Broadcast(USIOMessageConvert::FStringFromStd(nsp));
 		}));
 
 		PrivateClient.set_fail_listener(sio::client::con_listener([&]()
 		{
-			UE_LOG(LogTemp, Log, TEXT("SocketIO failed to connect."));
+			UE_LOG(SocketIOLog, Log, TEXT("SocketIO failed to connect."));
 			OnFail.Broadcast();
 		}));
 		
@@ -306,9 +306,6 @@ void USocketIOClientComponent::BindEventToFunction(const FString& EventName, con
 		OnNativeEvent(EventName, [&, FunctionName, Target](const FString& Event, const TSharedPtr<FJsonValue>& Message)
 		{
 			CallBPFunctionWithMessage(Target, FunctionName, Message);
-			//FOutputDeviceNull ar;	//old string parameter method
-			//const FString command = FString::Printf(TEXT("%s %s"), *FunctionName, *USIOJConvert::ToJsonString(Message));
-			//Target->CallFunctionByNameWithArguments(*command, ar, NULL, true);
 		}, Namespace);
 	}
 	else
@@ -370,7 +367,7 @@ void USocketIOClientComponent::OnBinaryEvent(const FString& EventName, TFunction
 		}
 		else
 		{
-			UE_LOG(LogTemp, Warning, TEXT("Non-binary message received to binary message lambda, check server message data!"));
+			UE_LOG(SocketIOLog, Warning, TEXT("Non-binary message received to binary message lambda, check server message data!"));
 		}
 	}));
 }
