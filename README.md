@@ -26,23 +26,100 @@ Add the SocketIO Client Component to your blueprint actor of choice
 
 ![IMG](http://i.imgur.com/lSkfHQ2.png)
 
-Specify your address and port, defaults to localhost (127.0.0.1) at port 3000
+By default the component will auto connect *on begin play* to your default address and port [http://localhost:3000](http://localhost:3000). You can change this default address to connect to your service instead.
 
-![IMG](http://i.imgur.com/rjm2pKw.png)
+![IMG](http://i.imgur.com/dWxCmvQ.png)
+
+If you want to connect at your own time, you change the default variable *Should Auto Connect* to false and then call *Connect* with your address
 
 Call *Bind Event* for each event you wish the client to subscribe, e.g. 'chat message'
 
 If you expect to receive events, select your component and in the Details pane press the + to add an 'On' event to your event graph
 
-![IMG](http://i.imgur.com/mZVTJWE.png)
-
 Handle this event for your event types, e.g. printing 'chat message' event strings.
 
-![IMG](http://i.imgur.com/0BCFOoS.png)
+![IMG](http://i.imgur.com/vVlNBlx.png)
+
 
 If you want to send information to the server, emit events on the SocketIO Client Component, e.g. pressing M to emit a 'chat message' string
 
-![IMG](http://i.imgur.com/EOadatA.png)
+![IMG](http://i.imgur.com/nihMSPz.png)
+
+## Blueprint - Advanced
+
+### Simple Json
+
+You can formulate any *SIOJsonValue* directly in blueprint. Apart from native basic types which are supported directly via conversion and e.g. *Construct Json String Value*, you can construct *SIOJsonObject*s and fill their fields.
+
+![IMG](http://i.imgur.com/PnxD6Ui.png)
+
+Start with *Construct Json Object* then set any desired fields. In this instance we wanted to make the JSON *{"myString":"Hello"}* so we used *Set String Field* and then auto-converted the object into a message.
+
+### Complex Json
+
+By combining arrays and objects you can form almost any data type, nest away!
+
+![IMG](http://i.imgur.com/lj07Jsw.png)
+
+### Structs
+
+The plugin supports making *SIOJsonValue*s from any unreal structs you make, including ones defined purely in blueprints!
+
+An easy example of a familiar struct is the *Vector* type
+
+![IMG](http://i.imgur.com/mPHOw0C.png)
+
+But you can make a custom type and emit it or nest it inside other *SIOJsonValue*s which should make it easy to organize your data however you want it.
+
+![IMG](http://i.imgur.com/czi0AIF.png)
+
+### Binary
+
+Socket.IO spec supports raw binary data types and these should be capable of being mixed in with other JSON types as usual. This plugin supports binaries as a first class citizen in blueprints and any arrays of bytes can be embedded and decoded in the chain as expected.
+
+![IMG](http://i.imgur.com/PqxEJqI.png)
+
+### Decoding Responses
+
+There are many ways to decode your *SIOJsonValue* message, it all depends on your data setup. You can even decode your *JsonObject*s directly into structs, if the JSON structure is named the same.
+
+![IMG](http://i.imgur.com/urAh2TH.png)
+
+### Conversion
+
+Most primitive types have auto-conversion nodes to simplify your workflow. E.g. if you wanted to emit a float literal you can get a reference to your float and simply drag to the *message* parameter to auto-convert into a *SIOJsonValue*.
+
+![IMG](http://i.imgur.com/4T79TUV.gif)
+
+Supported auto-conversion
+
+<li>Float</li>
+<li>Int</li>
+<li>Bool</li>
+<li>String</li>
+<li>SIOJsonObject</li>
+
+### Emit with Callback
+
+You can have a callback when, for example, you need an acknowledgement or if you're fetching data from the server. You can respond to this callback straight in your blueprint.
+
+![IMG](http://i.imgur.com/Ed01Jq0.png)
+
+Instead of using *Emit* you use *Emit With Callback* and by default the target is the owning actor blueprint so you can leave that parameter blank and simply type your function name e.g. *OnEcho* function.
+
+![IMG](http://i.imgur.com/hXMXDd2.png)
+
+If the function is missing or named incorrectly, your output log will warn you.
+
+![IMG](http://i.imgur.com/PQinDYy.gif)
+
+Your function expects a *SIOJsonValue* reference signature. By default this contains your first response value from you callback parameter. If your callback uses more than one parameter, make a second *SIOJsonValue* Input parameter which contains an array of all the responses.
+
+### Binding Events to Functions
+
+Instead of using the event graph and comparing strings, you can bind an event directly to a function. The format to make the function is the same as callbacks.
+
+![IMG](http://i.imgur.com/7fA1qca.png)
 
 ## How to use - C++
 
@@ -99,36 +176,150 @@ SIOComponent->Connect(FString("http://127.0.0.1:3000"));
 
 ### Emitting Events
 
+In C++ you can use *EmitNative*, *EmitRaw*, or *EmitRawBinary*. *EmitNative* is fully overloaded and expects all kinds of native UE4 data types and is the recommended method.
+
 ####String
 
-Emit a string via
+Emit an FString. Note that *FString(TEXT("yourString"))* is recommended if you have performance concerns due to internal conversion from ```char*```
 
-```SIOComponent->Emit(FString("myevent"), FString(TEXT("some data or stringified json"));```
+```c++
+SIOClientComponent->EmitNative(FString("nativeTest"), FString("hi"));
+```
+
+####Number
+
+Emit a double
+
+```c++
+SIOClientComponent->EmitNative(FString("nativeTest"), -3.5f);
+```
+
+####Boolean
+
+Emit a raw boolean
+
+```c++
+SIOClientComponent->EmitNative(FString("nativeTest"), true);
+```
 
 ####Binary or raw data
 
-Emit raw data via
+Emit raw data via a TArray<uint8>
+
+```c++
+TArray<uint8> Buffer;	//null terminated 'Hi!'
+Buffer.Add(0x48);
+Buffer.Add(0x69);
+Buffer.Add(0x21);
+Buffer.Add(0x00);
+
+SIOClientComponent->EmitNative(FString("nativeTest"), Buffer);
+```
+
+or
+
+```c++
+SIOComponent->EmitRawBinary(FString("myBinarySendEvent"), Buffer.GetData(), Buffer.Num());
+```
+
+####FJsonObject - Simple
+
+Option 1 - Shorthand
+
+```c++
+//Basic one field object e.g. {"myKey":"myValue"}
+auto JsonObject = USIOJConvert::MakeJsonObject();								
+JsonObject->SetStringField(FString("myKey"), FString("myValue"));
+
+SIOClientComponent->EmitNative(FString("nativeTest"), JsonObject);
+```
+
+Option 2 - Standard
+
+```c++
+TSharedPtr<FJsonObject> JsonObject = MakeShareable(new FJsonObject);	
+```
+
+####FJsonObject - Complex Example
+
+A nested example using various methods
+
+```c++
+//All types, nested
+TSharedPtr<FJsonObject> JsonObject = MakeShareable(new FJsonObject);						//make object option2
+JsonObject->SetBoolField(FString("myBool"), false);
+JsonObject->SetStringField(FString("myString"), FString("Socket.io is easy"));
+JsonObject->SetNumberField(FString("myNumber"), 9001);
+
+JsonObject->SetField(FString("myBinary1"), USIOJConvert::ToJsonValue(Buffer));				//binary option1 - shorthand
+JsonObject->SetField(FString("myBinary2"), MakeShareable(new FJsonValueBinary(Buffer)));	//binary option2
+
+JsonObject->SetArrayField(FString("myArray"), ArrayValue);
+JsonObject->SetObjectField(FString("myNestedObject"), SmallObject);
+
+SIOClientComponent->EmitNative(FString("nativeTest"), JsonObject);
+```
+
+####Callback Example
+
+Below is an example of emitting a simple object with the server using the passed in callback to return a response or acknowledgement.
+
+```c++	
+//Make an object {"myKey":"myValue"}
+TSharedPtr<FJsonObject> JsonObject = MakeShareable(new FJsonObject);
+JsonObject->SetStringField(FString("myKey"), FString("myValue"));
+
+//Show what we emitted
+UE_LOG(LogTemp, Log, TEXT("1) Made a simple object and emitted: %s"), *USIOJConvert::ToJsonString(JsonObject));
+
+//Emit event "callbackTest" expecting an echo callback with the object we sent
+SIOClientComponent->EmitNative(FString("callbackTest"), JsonObject, [&](auto Response)
+{
+	//Response is an array of JsonValues, in our case we expect an object response, grab first element as an object.
+	auto Message = Response[0]->AsObject();
+
+	//Show what we received
+	UE_LOG(LogTemp, Log, TEXT("2) Received a response: %s"), *USIOJConvert::ToJsonString(Message));
+});
+```
+
+####UStruct
+
+Plugin supports automatic conversion to/from UStructs, below is an example of a struct roundtrip, being in Json format on the server side.
 
 ```
-TArray<uint8> Buffer;
+//Set your struct variables
+FTestCppStruct TestStruct;
+TestStruct.Name = FString("woodchucks");
+TestStruct.Index = 5;
+TestStruct.SomeNumber = 5.123f;
 
-//fill buffer with your data
+SIOClientComponent->EmitNative(FString("callbackTest"),  FTestCppStruct::StaticStruct(), &TestStruct, [&](auto Response)
+{
+	auto Message = Response[0]->AsObject();
 
-SIOComponent->EmitBuffer(FString("myBinarySendEvent"), Buffer.GetData(), Buffer.Num());
+	//Show what we received
+	UE_LOG(LogTemp, Log, TEXT("Received a response: %s"), *USIOJConvert::ToJsonString(Message));
+
+	//Set our second struct to the new values
+	USIOJConvert::JsonObjectToUStruct(Message, FTestCppStruct::StaticStruct(), &MemberStruct);
+
+	//Show that struct
+	UE_LOG(LogTemp, Log, TEXT("Our received member struct is now: %s"), *MemberStruct.toString());
+});
 ```
 
-####Complex message using sio::message
+###Alternative Raw C++ Complex message using sio::message
 
 see [sio::message](https://github.com/socketio/socket.io-client-cpp/blob/master/src/sio_message.h) for how to form a raw message. Generally it supports a lot of std:: variants e.g. std::string or more complex messages e.g. [socket.io c++ emit readme](https://github.com/socketio/socket.io-client-cpp#emit-an-event). Note that there are static helper functions attached to the component class to convert from std::string to FString and the reverse.
 
 ```
-static std::string StdString(FString UEString);
+static std::string USIOMessageConvert::StdString(FString UEString);
 
-static FString FStringFromStd(std::string StdString);
+static FString USIOMessageConvert::FStringFromStd(std::string StdString);
 ```
 	
-
-e.g. emitting {type:"image"} object
+e.g. emitting *{type:"image"}* object
 
 ```
 //create object message
@@ -154,19 +345,10 @@ SIOComponent->EmitRawWithCallback(FString("myRawMessageEventWithAck"), string_me
 
 To receive events you can bind lambdas which makes things awesomely easy e.g.
 
-#### String
-
-```
-SIOComponent->BindStringMessageLambdaToEvent([&](const FString& Name, const FString& Data)
-		{
-			//do something with your string data
-		}, FString(TEXT("myStringReceiveEvent")));
-```
-
 #### Binary
 
 ```
-SIOComponent->BindBinaryMessageLambdaToEvent([&](const FString& Name, const TArray<uint8>& Buffer)
+SIOComponent->OnBinaryEvent([&](const FString& Name, const TArray<uint8>& Buffer)
 		{
 			//Do something with your buffer
 		}, FString(TEXT("myBinaryReceiveEvent")));
@@ -179,7 +361,7 @@ Currently the only way to handle json messages as the plugin doesn't auto-conver
 e.g. expecting a result {type:"some type"}
 
 ```
-SIOComponent->BindRawMessageLambdaToEvent([&](const FString& Name, const sio::message::ptr& Message)
+SIOComponent->OnRawEvent([&](const FString& Name, const sio::message::ptr& Message)
 		{
 		        //if you expected an object e.g. {}
 			if (Message->get_flag() != sio::message::flag_object)
