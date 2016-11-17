@@ -129,15 +129,17 @@ To use the C++ code from the plugin add it as a dependency module in your projec
 
 ```PublicDependencyModuleNames.AddRange(new string[] { "Core", "CoreUObject", "Engine", "InputCore", "SocketIOClient"});```
 
-```#include "SocketIOClientComponent.h"``` and add *USocketIoClientComponent* to your actor of choice via e.g. a UProperty
+```c++#include "SocketIOClientComponent.h"``` and add *USocketIoClientComponent* to your actor of choice via e.g. a UProperty
 
 and *CreateDefaultSubobject* in your constructor
 
-```SocketIOClientComponent = CreateDefaultSubobject<USocketIOClientComponent>(TEXT("SocketIOClientComponent"));```
+```c++
+SocketIOClientComponent = CreateDefaultSubobject<USocketIOClientComponent>(TEXT("SocketIOClientComponent"));
+```
 
 or reference it from another component by getting it on begin play e.g.
 
-```
+```c++
 SIOComponent = Cast<USocketIOClientComponent>(this->GetOwner()->GetComponentByClass(USocketIOClientComponent::StaticClass()));
 if (!SIOComponent)
 {
@@ -287,7 +289,7 @@ SIOClientComponent->EmitNative(FString("callbackTest"), JsonObject, [&](auto Res
 
 Plugin supports automatic conversion to/from UStructs, below is an example of a struct roundtrip, being in Json format on the server side.
 
-```
+```c++
 //Set your struct variables
 FTestCppStruct TestStruct;
 TestStruct.Name = FString("woodchucks");
@@ -313,7 +315,7 @@ SIOClientComponent->EmitNative(FString("callbackTest"),  FTestCppStruct::StaticS
 
 see [sio::message](https://github.com/socketio/socket.io-client-cpp/blob/master/src/sio_message.h) for how to form a raw message. Generally it supports a lot of std:: variants e.g. std::string or more complex messages e.g. [socket.io c++ emit readme](https://github.com/socketio/socket.io-client-cpp#emit-an-event). Note that there are static helper functions attached to the component class to convert from std::string to FString and the reverse.
 
-```
+```c++
 static std::string USIOMessageConvert::StdString(FString UEString);
 
 static FString USIOMessageConvert::FStringFromStd(std::string StdString);
@@ -321,7 +323,7 @@ static FString USIOMessageConvert::FStringFromStd(std::string StdString);
 	
 e.g. emitting *{type:"image"}* object
 
-```
+```c++
 //create object message
 auto message = sio::object_message::create();
 
@@ -334,7 +336,7 @@ SIOComponent->EmitRaw(ShareResourceEventName, message);
 
 with a callback
 
-```
+```c++
 SIOComponent->EmitRawWithCallback(FString("myRawMessageEventWithAck"), string_message::create(username), [&](message::list const& msg) {
 	//got data, handle it here
 });
@@ -347,7 +349,7 @@ To receive events you can bind lambdas which makes things awesomely easy e.g.
 
 #### Binary
 
-```
+```c++
 SIOComponent->OnBinaryEvent([&](const FString& Name, const TArray<uint8>& Buffer)
 		{
 			//Do something with your buffer
@@ -360,7 +362,7 @@ Currently the only way to handle json messages as the plugin doesn't auto-conver
 
 e.g. expecting a result {type:"some type"}
 
-```
+```c++
 SIOComponent->OnRawEvent([&](const FString& Name, const sio::message::ptr& Message)
 		{
 		        //if you expected an object e.g. {}
