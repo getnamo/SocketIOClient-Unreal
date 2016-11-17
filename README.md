@@ -81,7 +81,7 @@ Socket.IO spec supports raw binary data types and these should be capable of bei
 
 ### Decoding Responses
 
-There are many ways to decode your *SIOJsonValue* message, it all depends on your data setup. You can even decode your *JsonObject*s directly into structs, if the JSON structure is named the same.
+There are many ways to decode your *SIOJsonValue* message, it all depends on your data setup. You can even decode your *JsonObject*s directly into structs, if the JSON structure has matching variable names.
 
 ![IMG](http://i.imgur.com/urAh2TH.png)
 
@@ -134,21 +134,21 @@ To use the C++ code from the plugin add it as a dependency module in your projec
 and *CreateDefaultSubobject* in your constructor
 
 ```c++
-SocketIOClientComponent = CreateDefaultSubobject<USocketIOClientComponent>(TEXT("SocketIOClientComponent"));
+SIOClientComponent = CreateDefaultSubobject<USocketIOClientComponent>(TEXT("SocketIOClientComponent"));
 ```
 
 or reference it from another component by getting it on begin play e.g.
 
 ```c++
-SIOComponent = Cast<USocketIOClientComponent>(this->GetOwner()->GetComponentByClass(USocketIOClientComponent::StaticClass()));
-if (!SIOComponent)
+SIOClientComponent = Cast<USocketIOClientComponent>(this->GetOwner()->GetComponentByClass(USocketIOClientComponent::StaticClass()));
+if (!SIOClientComponent)
 {
 	UE_LOG(LogTemp, Warning, TEXT("No sister socket IO component found"));
 	return;
 }
 else
 {
-	UE_LOG(LogTemp, Log, TEXT("Found SIOComponent: %s"), *SIOComponent->GetDesc());
+	UE_LOG(LogTemp, Log, TEXT("Found SIOClientComponent: %s"), *SIOComponent->GetDesc());
 }
 ```
 
@@ -158,22 +158,22 @@ To connect simply change your address, the component will auto-connect on compon
 
 
 ```
-USocketIOClientComponent* SIOComponent; //get a reference or add as subobject in your actor
+USocketIOClientComponent* SIOClientComponent; //get a reference or add as subobject in your actor
 
 //the component will autoconnect, but you may wish to change the url before it does that via
-SIOComponent->AddressAndPort = FString("http://127.0.0.1:3000"); //change your address
+SIOClientComponent->AddressAndPort = FString("http://127.0.0.1:3000"); //change your address
 ```
 
 You can also connect at your own time by disabling auto-connect and connecting either to the default address or a custom one
 
 ```
 //you can also disable auto connect and connect it at your own time via
-SIOComponent->ShouldAutoConnect = false;
-SIOComponent->Connect(); 
+SIOClientComponent->ShouldAutoConnect = false;
+SIOClientComponent->Connect(); 
 
 //You can also easily disconnect at some point, reconnect to another address
-SIOComponent->Disconnect();
-SIOComponent->Connect(FString("http://127.0.0.1:3000"));
+SIOClientComponent->Disconnect();
+SIOClientComponent->Connect(FString("http://127.0.0.1:3000"));
 ```
 
 ### Emitting Events
