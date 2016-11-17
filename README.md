@@ -53,7 +53,7 @@ You can formulate any *SIOJsonValue* directly in blueprint. Apart from native ba
 
 ![IMG](http://i.imgur.com/PnxD6Ui.png)
 
-Start with *Construct Json Object* then set any desired fields. In this instance we wanted to make the JSON *{"myString":"Hello"}* so we used *Set String Field* and then auto-converted the object into a message.
+Start with *Construct Json Object* then set any desired fields. In this instance we wanted to make the JSON *{"myString":"Hello"}* so we used *Set String Field* and then auto-convert the object into a message.
 
 ### Complex Json
 
@@ -375,7 +375,7 @@ SIOComponent->OnBinaryEvent([&](const FString& Name, const TArray<uint8>& Buffer
 
 ####Complex message using sio::message
 
-Currently the only way to handle json messages as the plugin doesn't auto-convert json types to UE4 types (contribute!). See [sio::message](https://github.com/socketio/socket.io-client-cpp/blob/master/src/sio_message.h) or [socket.io c++ readme](https://github.com/socketio/socket.io-client-cpp#emit-an-event) for examples.
+See [sio::message](https://github.com/socketio/socket.io-client-cpp/blob/master/src/sio_message.h) or [socket.io c++ readme](https://github.com/socketio/socket.io-client-cpp#emit-an-event) for examples.
 
 e.g. expecting a result {type:"some type"}
 
