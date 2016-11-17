@@ -3,7 +3,7 @@ socket.io client plugin for UE4
 
 [Socket.io](http://socket.io/) is a performant real-time bi-directional communication library. There are two parts, the server written in node.js and the client typically javascript for the web. There are alternative client implementations and this repo uses the [C++11 client library](https://github.com/socketio/socket.io-client-cpp) ported to UE4.
 
-Uses [Socket.io prebuild libraries for VS2015](https://github.com/getnamo/socketio-client-prebuild)
+Uses [Socket.io prebuild libraries for VS2015](https://github.com/getnamo/socketio-client-prebuild) and SIOJson forked from ufna's [VaRest](https://github.com/ufna/VaRest)
 
 [Unreal Forum Thread](https://forums.unrealengine.com/showthread.php?110680-Plugin-Socket-io-Client)
 
@@ -129,7 +129,7 @@ To use the C++ code from the plugin add it as a dependency module in your projec
 
 ```PublicDependencyModuleNames.AddRange(new string[] { "Core", "CoreUObject", "Engine", "InputCore", "SocketIOClient"});```
 
-```c++#include "SocketIOClientComponent.h"``` and add *USocketIoClientComponent* to your actor of choice via e.g. a UProperty
+```#include "SocketIOClientComponent.h"``` and add *USocketIoClientComponent* to your actor of choice via e.g. a UProperty
 
 and *CreateDefaultSubobject* in your constructor
 
