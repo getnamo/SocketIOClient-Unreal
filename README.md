@@ -3,12 +3,12 @@ socket.io client plugin for UE4
 
 [Socket.io](http://socket.io/) is a performant real-time bi-directional communication library. There are two parts, the server written in node.js and the client typically javascript for the web. There are alternative client implementations and this repo uses the [C++11 client library](https://github.com/socketio/socket.io-client-cpp) ported to UE4.
 
-Uses [Socket.io prebuild libraries for VS2015](https://github.com/getnamo/socketio-client-prebuild) and SIOJson forked from ufna's [VaRest](https://github.com/ufna/VaRest)
+Based on [Socket.io prebuild libraries for VS2015](https://github.com/getnamo/socketio-client-prebuild) and SIOJson forked from ufna's [VaRest](https://github.com/ufna/VaRest)
 
 [Unreal Forum Thread](https://forums.unrealengine.com/showthread.php?110680-Plugin-Socket-io-Client)
 
 
-Recommended socket.io server: 1.2+ for regular (e.g. JSON or string transport), 1.4+ if you're using Binary data transport.
+Recommended socket.io server version: 1.4+.
 
 
 ## Quick Install & Setup ##
@@ -17,7 +17,8 @@ Recommended socket.io server: 1.2+ for regular (e.g. JSON or string transport), 
  2.	Create new or choose project.
  3.	Browse to your project folder (typically found at Documents/Unreal Project/{Your Project Root})
  4.	Copy *Plugins* folder into your Project root.
- 5.	Restart the Editor and open your project again. Plugin is now ready to use.
+ 5.	Enable the plugin via Edit->Plugins. Scroll down to Project->Networking. Click Enabled.
+ 6.	Restart the Editor and open your project again. Plugin is now ready to use.
 
 
 ## How to use - BP Basics
