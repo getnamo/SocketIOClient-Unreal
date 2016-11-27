@@ -36,8 +36,22 @@ namespace UnrealBuildTool.Rules
                 PublicAdditionalLibraries.Add(Path.Combine(BoostLibPath, PlatformString, "libboost_random-vc140-mt-1_60.lib"));
                 PublicAdditionalLibraries.Add(Path.Combine(BoostLibPath, PlatformString, "libboost_system-vc140-mt-1_60.lib"));
                 PublicAdditionalLibraries.Add(Path.Combine(SocketLibPath, PlatformString, "sioclient.lib"));
-                
+
             }
+            else if (Target.Platform == UnrealTargetPlatform.Linux)
+            {
+                isLibrarySupported = true;
+
+                string PlatformString = "Linux";
+                string BoostLibPath = Path.Combine(BoostThirdParty, "Lib");
+                string SocketLibPath = Path.Combine(SocketIOThirdParty, "Lib");
+
+                PublicAdditionalLibraries.Add(Path.Combine(BoostLibPath, PlatformString, "libboost_date_time-clang39-mt-1_60.a"));
+                PublicAdditionalLibraries.Add(Path.Combine(BoostLibPath, PlatformString, "libboost_random-clang39-mt-1_60.a"));
+                PublicAdditionalLibraries.Add(Path.Combine(BoostLibPath, PlatformString, "libboost_system-clang39-mt-1_60.a"));
+                PublicAdditionalLibraries.Add(Path.Combine(SocketLibPath, PlatformString, "libsioclient.a"));
+            }
+
             return isLibrarySupported;
         }
 
