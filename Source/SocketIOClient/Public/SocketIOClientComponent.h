@@ -8,7 +8,7 @@
 #include "SocketIOClientComponent.generated.h"
 
 UENUM(BlueprintType)
-enum EMessageTypeFlag
+enum ESIOMessageTypeFlag
 {
 	FLAG_INTEGER,
 	FLAG_DOUBLE,
@@ -27,14 +27,14 @@ struct FSIOMessage
 	GENERATED_USTRUCT_BODY()
 
 	UPROPERTY(BlueprintReadWrite, Category = "SocketIO Message Properties")
-	TEnumAsByte<EMessageTypeFlag> MessageFlag;
+	TEnumAsByte<ESIOMessageTypeFlag> MessageFlag;
 
 	//Internal UE storage
 	FJsonObject Object;
 };
 
 UENUM(BlueprintType)
-enum EConnectionCloseReason
+enum ESIOConnectionCloseReason
 {
 	CLOSE_REASON_NORMAL,
 	CLOSE_REASON_DROP
@@ -43,7 +43,7 @@ enum EConnectionCloseReason
 DECLARE_DYNAMIC_MULTICAST_DELEGATE(FSIOCEventSignature);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FSIOCSocketEventSignature, FString, Namespace);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FSIOCOpenEventSignature, FString, SessionId);
-DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FSIOCCloseEventSignature, TEnumAsByte<EConnectionCloseReason>, Reason);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FSIOCCloseEventSignature, TEnumAsByte<ESIOConnectionCloseReason>, Reason);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FSIOCEventJsonSignature, FString, Event, class USIOJsonValue*, MessageJson);
 
 UCLASS(ClassGroup = "Networking", meta = (BlueprintSpawnableComponent))

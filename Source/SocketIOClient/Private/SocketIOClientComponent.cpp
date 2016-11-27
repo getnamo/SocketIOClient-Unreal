@@ -112,7 +112,7 @@ void USocketIOClientComponent::Connect(const FString& InAddressAndPort)
 		{
 			SessionId = FString(TEXT("invalid"));
 			UE_LOG(SocketIOLog, Log, TEXT("SocketIO Disconnected"));
-			OnDisconnected.Broadcast((EConnectionCloseReason)reason);
+			OnDisconnected.Broadcast((ESIOConnectionCloseReason)reason);
 		}));
 
 		PrivateClient.set_socket_open_listener(sio::client::socket_listener([&](std::string const& nsp)

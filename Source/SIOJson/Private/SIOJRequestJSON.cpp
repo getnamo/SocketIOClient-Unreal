@@ -16,8 +16,8 @@ USIOJRequestJSON::USIOJRequestJSON(const class FObjectInitializer& PCIP)
   : Super(PCIP),
     BinaryContentType(TEXT("application/octet-stream"))
 {
-	RequestVerb = ERequestVerb::GET;
-	RequestContentType = ERequestContentType::x_www_form_urlencoded_url;
+	RequestVerb = ESIORequestVerb::GET;
+	RequestContentType = ESIORequestContentType::x_www_form_urlencoded_url;
 
 	ResetData();
 }
@@ -29,8 +29,8 @@ USIOJRequestJSON* USIOJRequestJSON::ConstructRequest(UObject* WorldContextObject
 
 USIOJRequestJSON* USIOJRequestJSON::ConstructRequestExt(
 	UObject* WorldContextObject, 
-	ERequestVerb Verb, 
-	ERequestContentType ContentType)
+	ESIORequestVerb Verb, 
+	ESIORequestContentType ContentType)
 {
 	USIOJRequestJSON* Request = ConstructRequest(WorldContextObject);
 
@@ -40,7 +40,7 @@ USIOJRequestJSON* USIOJRequestJSON::ConstructRequestExt(
 	return Request;
 }
 
-void USIOJRequestJSON::SetVerb(ERequestVerb Verb)
+void USIOJRequestJSON::SetVerb(ESIORequestVerb Verb)
 {
 	RequestVerb = Verb;
 }
@@ -50,7 +50,7 @@ void USIOJRequestJSON::SetCustomVerb(FString Verb)
 	CustomVerb = Verb;
 }
 
-void USIOJRequestJSON::SetContentType(ERequestContentType ContentType)
+void USIOJRequestJSON::SetContentType(ESIORequestContentType ContentType)
 {
 	RequestContentType = ContentType;
 }
@@ -151,9 +151,9 @@ FString USIOJRequestJSON::GetURL()
 	return HttpRequest->GetURL();
 }
 
-ERequestStatus USIOJRequestJSON::GetStatus()
+ESIORequestStatus USIOJRequestJSON::GetStatus()
 {
-	return ERequestStatus((uint8)HttpRequest->GetStatus());
+	return ESIORequestStatus((uint8)HttpRequest->GetStatus());
 }
 
 int32 USIOJRequestJSON::GetResponseCode()
@@ -222,23 +222,23 @@ void USIOJRequestJSON::ProcessRequest()
 	// Set verb
 	switch (RequestVerb)
 	{
-	case ERequestVerb::GET:
+	case ESIORequestVerb::GET:
 		HttpRequest->SetVerb(TEXT("GET"));
 		break;
 
-	case ERequestVerb::POST:
+	case ESIORequestVerb::POST:
 		HttpRequest->SetVerb(TEXT("POST"));
 		break;
 
-	case ERequestVerb::PUT:
+	case ESIORequestVerb::PUT:
 		HttpRequest->SetVerb(TEXT("PUT"));
 		break;
 			
-	case ERequestVerb::DEL:
+	case ESIORequestVerb::DEL:
 		HttpRequest->SetVerb(TEXT("DELETE"));
 		break;
 
-	case ERequestVerb::CUSTOM:
+	case ESIORequestVerb::CUSTOM:
 		HttpRequest->SetVerb(CustomVerb);
 		break;
 
@@ -249,7 +249,7 @@ void USIOJRequestJSON::ProcessRequest()
 	// Set content-type
 	switch (RequestContentType)
 	{
-	case ERequestContentType::x_www_form_urlencoded_url:
+	case ESIORequestContentType::x_www_form_urlencoded_url:
 	{
 		HttpRequest->SetHeader(TEXT("Content-Type"), TEXT("application/x-www-form-urlencoded"));
 
@@ -278,7 +278,7 @@ void USIOJRequestJSON::ProcessRequest()
 
 		break;
 	}
-	case ERequestContentType::x_www_form_urlencoded_body:
+	case ESIORequestContentType::x_www_form_urlencoded_body:
 	{
 		HttpRequest->SetHeader(TEXT("Content-Type"), TEXT("application/x-www-form-urlencoded"));
 
@@ -307,7 +307,7 @@ void USIOJRequestJSON::ProcessRequest()
 
 		break;
 	}
-	case ERequestContentType::binary:
+	case ESIORequestContentType::binary:
 	{
 		HttpRequest->SetHeader(TEXT("Content-Type"), BinaryContentType);
 		HttpRequest->SetContent(RequestBytes);
@@ -316,7 +316,7 @@ void USIOJRequestJSON::ProcessRequest()
 
 		break;
 	}
-	case ERequestContentType::json:
+	case ESIORequestContentType::json:
 	{
 		HttpRequest->SetHeader(TEXT("Content-Type"), TEXT("application/json"));
 

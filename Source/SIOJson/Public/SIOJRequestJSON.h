@@ -92,11 +92,11 @@ public:
 
 	/** Creates new request with defined verb and content type */
 	UFUNCTION(BlueprintPure, meta = (DisplayName = "Construct Json Request", HidePin = "WorldContextObject", DefaultToSelf = "WorldContextObject"), Category = "SIOJ|Request")
-	static USIOJRequestJSON* ConstructRequestExt(UObject* WorldContextObject, ERequestVerb Verb, ERequestContentType ContentType);
+	static USIOJRequestJSON* ConstructRequestExt(UObject* WorldContextObject, ESIORequestVerb Verb, ESIORequestContentType ContentType);
 
 	/** Set verb to the request */
 	UFUNCTION(BlueprintCallable, Category = "SIOJ|Request")
-	void SetVerb(ERequestVerb Verb);
+	void SetVerb(ESIORequestVerb Verb);
 
 	/** Set custom verb to the request */
 	UFUNCTION(BlueprintCallable, Category = "SIOJ|Request")
@@ -105,7 +105,7 @@ public:
 	/** Set content type to the request. If you're using the x-www-form-urlencoded, 
 	 * params/constaints should be defined as key=ValueString pairs from Json data */
 	UFUNCTION(BlueprintCallable, Category = "SIOJ|Request")
-	void SetContentType(ERequestContentType ContentType);
+	void SetContentType(ESIORequestContentType ContentType);
 
 	/** Set content type of the request for binary post data */
 	UFUNCTION(BlueprintCallable, Category = "SIOJ|Request")
@@ -169,7 +169,7 @@ public:
 
 	/** Get status of http request */
 	UFUNCTION(BlueprintCallable, Category = "SIOJ|Request")
-	ERequestStatus GetStatus();
+	ESIORequestStatus GetStatus();
 
 	/** Get the response code of the last query */
 	UFUNCTION(BlueprintCallable, Category = "SIOJ|Response")
@@ -278,10 +278,10 @@ protected:
 	USIOJsonObject* ResponseJsonObj;
 
 	/** Verb for making request (GET,POST,etc) */
-	ERequestVerb RequestVerb;
+	ESIORequestVerb RequestVerb;
 
 	/** Content type to be applied for request */
-	ERequestContentType RequestContentType;
+	ESIORequestContentType RequestContentType;
 
 	/** Mapping of header section to values. Used to generate final header string for request */
 	TMap<FString, FString> RequestHeaders;

@@ -188,7 +188,7 @@ public:
 public:
 	/** Easy way to process http requests */
 	UFUNCTION(BlueprintCallable, Category = "SIOJ|Utility", meta = (WorldContext = "WorldContextObject"))
-	static void CallURL(UObject* WorldContextObject, const FString& URL, ERequestVerb Verb, ERequestContentType ContentType, USIOJsonObject* SIOJJson, const FSIOJCallDelegate& Callback);
+	static void CallURL(UObject* WorldContextObject, const FString& URL, ESIORequestVerb Verb, ESIORequestContentType ContentType, USIOJsonObject* SIOJJson, const FSIOJCallDelegate& Callback);
 
 	/** Called when URL is processed (one for both success/unsuccess events)*/
 	static void OnCallComplete(USIOJRequestJSON* Request);
