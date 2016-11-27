@@ -4,7 +4,7 @@
 
 /** Verb (GET, PUT, POST) used by the request */
 UENUM(BlueprintType)
-enum class ERequestVerb : uint8
+enum class ESIORequestVerb : uint8
 {
 	GET,
 	POST,
@@ -16,7 +16,7 @@ enum class ERequestVerb : uint8
 
 /** Content type (json, urlencoded, etc.) used by the request */
 UENUM(BlueprintType)
-enum class ERequestContentType : uint8
+enum class ESIORequestContentType : uint8
 {
 	x_www_form_urlencoded_url	UMETA(DisplayName = "x-www-form-urlencoded (URL)"),
 	x_www_form_urlencoded_body	UMETA(DisplayName = "x-www-form-urlencoded (Request Body)"),
@@ -26,7 +26,7 @@ enum class ERequestContentType : uint8
 
 /** Enumerates the current state of an Http request */
 UENUM(BlueprintType)
-enum class ERequestStatus : uint8
+enum class ESIORequestStatus : uint8
 {
 	/** Has not been started via ProcessRequest() */
 	NotStarted,
