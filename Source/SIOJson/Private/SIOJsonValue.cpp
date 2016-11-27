@@ -3,7 +3,10 @@
 #include "SIOJsonPrivatePCH.h"
 #include "SIOJConvert.h"
 
+#if PLATFORM_WINDOWS
 #pragma region FJsonValueBinary
+#endif
+
 
 TArray<uint8> FJsonValueBinary::AsBinary(const TSharedPtr<FJsonValue>& InJsonValue)
 {
@@ -27,8 +30,10 @@ bool FJsonValueBinary::IsBinary(const TSharedPtr<FJsonValue>& InJsonValue)
 	return !InJsonValue->TryGetBool(IgnoreBool);
 }
 
+#if PLATFORM_WINDOWS
 #pragma endregion FJsonValueBinary
 #pragma region USIOJsonValue
+#endif
 
 USIOJsonValue::USIOJsonValue(const class FObjectInitializer& PCIP)
 	: Super(PCIP)
@@ -334,4 +339,6 @@ void USIOJsonValue::ErrorMessage(const FString& InType) const
 	UE_LOG(LogSIOJ, Error, TEXT("Json Value of type '%s' used as a '%s'."), *GetTypeString(), *InType);
 }
 
+#if PLATFORM_WINDOWS
 #pragma endregion USIOJsonValue
+#endif

@@ -87,7 +87,9 @@ bool USocketIOClientComponent::CallBPFunctionWithMessage(UObject* Target, const 
 	return true;
 }
 
+#if PLATFORM_WINDOWS
 #pragma region Connect
+#endif
 
 void USocketIOClientComponent::Connect(const FString& InAddressAndPort)
 {
@@ -158,9 +160,10 @@ void USocketIOClientComponent::SyncDisconnect()
 	}
 }
 
+#if PLATFORM_WINDOWS
 #pragma endregion Connect
-
 #pragma region Emit
+#endif
 
 void USocketIOClientComponent::Emit(const FString& EventName, USIOJsonValue* Message, const FString& Namespace /*= FString(TEXT("/"))*/)
 {
@@ -280,9 +283,10 @@ void USocketIOClientComponent::EmitRawBinary(const FString& EventName, uint8* Da
 	PrivateClient.socket(USIOMessageConvert::StdString(Namespace))->emit(USIOMessageConvert::StdString(EventName), std::make_shared<std::string>((char*)Data, DataLength));
 }
 
+#if PLATFORM_WINDOWS
 #pragma endregion Emit
-
 #pragma region OnEvents
+#endif
 
 void USocketIOClientComponent::BindEvent(const FString& EventName, const FString& Namespace)
 {
@@ -372,4 +376,6 @@ void USocketIOClientComponent::OnBinaryEvent(const FString& EventName, TFunction
 	}));
 }
 
+#if PLATFORM_WINDOWS
 #pragma endregion OnEvents
+#endif
