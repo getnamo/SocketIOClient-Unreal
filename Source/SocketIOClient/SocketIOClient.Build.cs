@@ -51,6 +51,45 @@ namespace UnrealBuildTool.Rules
                 PublicAdditionalLibraries.Add(Path.Combine(BoostLibPath, PlatformString, "libboost_system-clang39-mt-1_60.a"));
                 PublicAdditionalLibraries.Add(Path.Combine(SocketLibPath, PlatformString, "libsioclient.a"));
             }
+            else if (Target.Platform == UnrealTargetPlatform.IOS)
+            {
+                isLibrarySupported = true;
+
+                string PlatformString = "IOS";
+                string BoostLibPath = Path.Combine(BoostThirdParty, "Lib");
+                string SocketLibPath = Path.Combine(SocketIOThirdParty, "Lib");
+
+                PublicAdditionalLibraries.Add(Path.Combine(BoostLibPath, PlatformString, "libboost_date_time.a"));
+                PublicAdditionalLibraries.Add(Path.Combine(BoostLibPath, PlatformString, "libboost_random.a"));
+                PublicAdditionalLibraries.Add(Path.Combine(BoostLibPath, PlatformString, "libboost_system.a"));
+                PublicAdditionalLibraries.Add(Path.Combine(SocketLibPath, PlatformString, "libsioclient.a"));
+            }
+            else if (Target.Platform == UnrealTargetPlatform.Mac)
+            {
+                isLibrarySupported = true;
+
+                string PlatformString = "Mac";
+                string BoostLibPath = Path.Combine(BoostThirdParty, "Lib");
+                string SocketLibPath = Path.Combine(SocketIOThirdParty, "Lib");
+
+                PublicAdditionalLibraries.Add(Path.Combine(BoostLibPath, PlatformString, "libboost_date_time.a"));
+                PublicAdditionalLibraries.Add(Path.Combine(BoostLibPath, PlatformString, "libboost_random.a"));
+                PublicAdditionalLibraries.Add(Path.Combine(BoostLibPath, PlatformString, "libboost_system.a"));
+                PublicAdditionalLibraries.Add(Path.Combine(SocketLibPath, PlatformString, "libsioclient.a"));
+            }
+            else if (Target.Platform == UnrealTargetPlatform.Android)
+            {
+                isLibrarySupported = true;
+
+                string PlatformString = "Android";
+                string BoostLibPath = Path.Combine(BoostThirdParty, "Lib");
+                string SocketLibPath = Path.Combine(SocketIOThirdParty, "Lib");
+
+                PublicAdditionalLibraries.Add(Path.Combine(BoostLibPath, PlatformString, "libboost_date_time.so"));
+                PublicAdditionalLibraries.Add(Path.Combine(BoostLibPath, PlatformString, "libboost_random.so"));
+                PublicAdditionalLibraries.Add(Path.Combine(BoostLibPath, PlatformString, "libboost_system.so"));
+                PublicAdditionalLibraries.Add(Path.Combine(SocketLibPath, PlatformString, "libsioclient.so"));
+            }
 
             return isLibrarySupported;
         }
