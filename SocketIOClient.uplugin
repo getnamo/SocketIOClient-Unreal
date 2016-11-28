@@ -22,7 +22,9 @@
 			"WhitelistPlatforms": [
 				"Win64",
 				"Win32",
-				"Linux"
+				"Linux",
+				"Android",
+				"IOS"
 			]
 		},
 		{
