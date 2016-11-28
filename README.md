@@ -10,6 +10,14 @@ Based on [Socket.io prebuild libraries for VS2015](https://github.com/getnamo/so
 
 Recommended socket.io server version: 1.4+.
 
+### Contribute! Current Issues:
+
+Missing static libraries and support for platforms:
+
+* Android - see [issue 21](https://github.com/getnamo/socketio-client-ue4/issues/21)
+* iOS - see [issue 19](https://github.com/getnamo/socketio-client-ue4/issues/19)
+* MacOS - see [issue 15](https://github.com/getnamo/socketio-client-ue4/issues/15) 
+
 
 ## Quick Install & Setup ##
 
