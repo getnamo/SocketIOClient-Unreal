@@ -136,7 +136,9 @@ Instead of using the event graph and comparing strings, you can bind an event di
 
 To use the C++ code from the plugin add it as a dependency module in your project build.cs
 
-```PublicDependencyModuleNames.AddRange(new string[] { "Core", "CoreUObject", "Engine", "InputCore", "SocketIOClient"});```
+```c#
+PublicDependencyModuleNames.AddRange(new string[] { "Core", "CoreUObject", "Engine", "InputCore", "SocketIOClient"});
+```
 
 ```#include "SocketIOClientComponent.h"``` and add *USocketIoClientComponent* to your actor of choice via e.g. a UProperty
 
@@ -166,7 +168,7 @@ else
 To connect simply change your address, the component will auto-connect on component initialization.
 
 
-```
+```c++
 USocketIOClientComponent* SIOClientComponent; //get a reference or add as subobject in your actor
 
 //the component will autoconnect, but you may wish to change the url before it does that via
@@ -175,7 +177,7 @@ SIOClientComponent->AddressAndPort = FString("http://127.0.0.1:3000"); //change 
 
 You can also connect at your own time by disabling auto-connect and connecting either to the default address or a custom one
 
-```
+```c++
 //you can also disable auto connect and connect it at your own time via
 SIOClientComponent->ShouldAutoConnect = false;
 SIOClientComponent->Connect(); 
