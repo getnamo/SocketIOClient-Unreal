@@ -1,0 +1,101 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--SocketIO Client plugin additions using Android Plugin Language (APL)-->
+<root xmlns:android="http://schemas.android.com/apk/res/android">
+
+	<!-- init section is always evaluated once per architecture -->
+	<init>
+		<log text="SocketIO Client init"/>
+	</init>
+
+	<!-- optional files or directories to copy to Intermediate/Android/APK -->
+	<resourceCopies>
+    <log text="Copying SocketIO Client runtime files to staging"/>
+    <isArch arch="armeabi-v7a">
+    	<copyFile 	src="$S(PluginDir)/../../ThirdParty/SocketIO/Lib/Android/armeabi-v7a/libsioclient.a"
+			    	dst="$S(BuildDir)/libs/armeabi-v7a/libsioclient.a" />
+		<copyFile 	src="$S(PluginDir)/../../ThirdParty/Boost/Lib/Android/armeabi-v7a/libboost_date_time-mt-1_60.a"
+			    	dst="$S(BuildDir)/libs/armeabi-v7a/libboost_date_time-mt-1_60.a" />
+		<copyFile 	src="$S(PluginDir)/../../ThirdParty/Boost/Lib/Android/armeabi-v7a/libboost_random-mt-1_60.a"
+			    	dst="$S(BuildDir)/libs/armeabi-v7a/libboost_random-mt-1_60.a" />
+		<copyFile 	src="$S(PluginDir)/../../ThirdParty/Boost/Lib/Android/armeabi-v7a/libboost_system-mt-1_60.a"
+			    	dst="$S(BuildDir)/libs/armeabi-v7a/libboost_system-mt-1_60.a" />
+      	<log text="armeabi-v7a SocketIO Client runtime files copied"/>
+    </isArch>
+    <isArch arch="arm64-v8a">
+    	<copyFile 	src="$S(PluginDir)/../../ThirdParty/SocketIO/Lib/Android/arm64-v8a/libsioclient.a"
+			    	dst="$S(BuildDir)/libs/armeabi-v7a/libsioclient.a" />
+		<copyFile 	src="$S(PluginDir)/../../ThirdParty/Boost/Lib/Android/arm64-v8a/libboost_date_time-mt-1_60.a"
+			    	dst="$S(BuildDir)/libs/armeabi-v7a/libboost_date_time-mt-1_60.a" />
+		<copyFile 	src="$S(PluginDir)/../../ThirdParty/Boost/Lib/Android/arm64-v8a/libboost_random-mt-1_60.a"
+			    	dst="$S(BuildDir)/libs/armeabi-v7a/libboost_random-mt-1_60.a" />
+		<copyFile 	src="$S(PluginDir)/../../ThirdParty/Boost/Lib/Android/arm64-v8a/libboost_system-mt-1_60.a"
+			    	dst="$S(BuildDir)/libs/armeabi-v7a/libboost_system-mt-1_60.a" />
+		<log text="arm64-v8a SocketIO Client runtime files copied"/>
+    </isArch>
+    <isArch arch="x86">
+    	<copyFile 	src="$S(PluginDir)/../../ThirdParty/SocketIO/Lib/Android/x86/libsioclient.a"
+			    	dst="$S(BuildDir)/libs/armeabi-v7a/libsioclient.a" />
+		<copyFile 	src="$S(PluginDir)/../../ThirdParty/Boost/Lib/Android/x86/libboost_date_time-mt-1_60.a"
+			    	dst="$S(BuildDir)/libs/armeabi-v7a/libboost_date_time-mt-1_60.a" />
+		<copyFile 	src="$S(PluginDir)/../../ThirdParty/Boost/Lib/Android/x86/libboost_random-mt-1_60.a"
+			    	dst="$S(BuildDir)/libs/armeabi-v7a/libboost_random-mt-1_60.a" />
+		<copyFile 	src="$S(PluginDir)/../../ThirdParty/Boost/Lib/Android/x86/libboost_system-mt-1_60.a"
+			    	dst="$S(BuildDir)/libs/armeabi-v7a/libboost_system-mt-1_60.a" />
+		<log text="x86 SocketIO Client runtime files copied"/>
+    </isArch>
+    <isArch arch="x86_64">  
+    	<copyFile 	src="$S(PluginDir)/../../ThirdParty/SocketIO/Lib/Android/x86_64/libsioclient.a"
+			    	dst="$S(BuildDir)/libs/armeabi-v7a/libsioclient.a" />
+		<copyFile 	src="$S(PluginDir)/../../ThirdParty/Boost/Lib/Android/x86_64/libboost_date_time-mt-1_60.a"
+			    	dst="$S(BuildDir)/libs/armeabi-v7a/libboost_date_time-mt-1_60.a" />
+		<copyFile 	src="$S(PluginDir)/../../ThirdParty/Boost/Lib/Android/x86_64/libboost_random-mt-1_60.a"
+			    	dst="$S(BuildDir)/libs/armeabi-v7a/libboost_random-mt-1_60.a" />
+		<copyFile 	src="$S(PluginDir)/../../ThirdParty/Boost/Lib/Android/x86_64/libboost_system-mt-1_60.a"
+			    	dst="$S(BuildDir)/libs/armeabi-v7a/libboost_system-mt-1_60.a" />
+		<log text="x86_64 SocketIO Client runtime files copied"/>
+    </isArch>
+    
+
+	</resourceCopies>
+
+	<!-- Manifest Updates -->
+	<androidManifestUpdates>
+	</androidManifestUpdates>
+
+		<!-- Files to copy before the build so they can be used in the build -->
+		<prebuildCopies>
+		</prebuildCopies>
+
+		<!-- optional additions to proguard -->
+		<proguardAdditions>
+		</proguardAdditions>
+
+		<gameActivityImportAdditions>
+		<!-- import com.leapmotion.*; -->
+		<insert>
+		</insert>
+		</gameActivityImportAdditions>
+
+		<gameActivityClassAdditions>
+		</gameActivityClassAdditions>
+  
+	<gameActivityOnPauseAdditions>
+	</gameActivityOnPauseAdditions>
+
+	<gameActivityOnResumeAdditions>
+	</gameActivityOnResumeAdditions>
+
+	<gameActivityOnCreateAdditions>
+	</gameActivityOnCreateAdditions>
+
+	<gameActivityOnStartAdditions>
+		</gameActivityOnStartAdditions>
+
+
+	<!-- optional libraries to load in GameActivity.java before libUE4.a -->
+	<!-- we're not loading a .so, it should all statically link...
+	<soLoadLibrary>
+    	<loadLibrary name="libsioclient" failmsg="LeapMotion library not loaded and required!" />
+	</soLoadLibrary>-->
+
+</root>
