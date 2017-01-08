@@ -141,12 +141,13 @@ sio::message::ptr USIOMessageConvert::ToSIOMessage(const TSharedPtr<FJsonValue>&
 	}
 }
 
+//We assume utf8 in transport
 std::string USIOMessageConvert::StdString(FString UEString)
 {
-	return std::string(TCHAR_TO_UTF8(*UEString));	//TCHAR_TO_ANSI try this string instead?
+	return std::string(TCHAR_TO_UTF8(*UEString));
 }
 
 FString USIOMessageConvert::FStringFromStd(std::string StdString)
 {
-	return FString(StdString.c_str());
+	return FString(UTF8_TO_TCHAR(StdString.c_str()));
 }
