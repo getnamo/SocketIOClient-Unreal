@@ -84,7 +84,10 @@ public:
 
 	/** If true will auto-connect on begin play to address specified in AddressAndPort. */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "SocketIO Properties")
-	bool ShouldAutoConnect;
+	bool bShouldAutoConnect;
+
+	UPROPERTY(BlueprintReadOnly, Category = "SocketIO Properties")
+	bool bIsConnected;
 
 	/** When connected this session id will be valid and contain a unique Id. */
 	UPROPERTY(BlueprintReadWrite, Category = "SocketIO Properties")

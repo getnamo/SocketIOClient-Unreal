@@ -8,7 +8,7 @@
 
 USocketIOClientComponent::USocketIOClientComponent(const FObjectInitializer &init) : UActorComponent(init)
 {
-	ShouldAutoConnect = true;
+	bShouldAutoConnect = true;
 	bWantsInitializeComponent = true;
 	bAutoActivate = true;
 	AddressAndPort = FString(TEXT("http://localhost:3000"));	//default to 127.0.0.1
@@ -18,7 +18,7 @@ USocketIOClientComponent::USocketIOClientComponent(const FObjectInitializer &ini
 void USocketIOClientComponent::InitializeComponent()
 {
 	Super::InitializeComponent();
-	if (ShouldAutoConnect)
+	if (bShouldAutoConnect)
 	{
 		Connect(AddressAndPort);	//connect to default address
 	}
@@ -105,13 +105,12 @@ void USocketIOClientComponent::Connect(const FString& InAddressAndPort)
 		//Attach the specific connection status events events
 
 		PrivateClient.set_open_listener(sio::client::con_listener([&]() {
-			SessionId = USIOMessageConvert::FStringFromStd(PrivateClient.get_sessionid());
-			UE_LOG(SocketIOLog, Log, TEXT("SocketIO Connected with session: %s"), *SessionId);
-			OnConnected.Broadcast(SessionId);
+			//too early to get session id here so we defer the connection event until we connect to a namespace
 		}));
 
 		PrivateClient.set_close_listener(sio::client::close_listener([&](sio::client::close_reason const& reason)
 		{
+			bIsConnected = false;
 			SessionId = FString(TEXT("invalid"));
 			UE_LOG(SocketIOLog, Log, TEXT("SocketIO Disconnected"));
 			OnDisconnected.Broadcast((ESIOConnectionCloseReason)reason);
@@ -119,8 +118,18 @@ void USocketIOClientComponent::Connect(const FString& InAddressAndPort)
 
 		PrivateClient.set_socket_open_listener(sio::client::socket_listener([&](std::string const& nsp)
 		{
+			if (!bIsConnected)
+			{
+				bIsConnected = true;
+				SessionId = USIOMessageConvert::FStringFromStd(PrivateClient.get_sessionid());
+
+				UE_LOG(SocketIOLog, Log, TEXT("SocketIO Connected with session: %s"), *SessionId);
+				OnConnected.Broadcast(SessionId);
+			}
+
 			FString Namespace = USIOMessageConvert::FStringFromStd(nsp);
 			UE_LOG(SocketIOLog, Log, TEXT("SocketIO connected to namespace: %s"), *Namespace);
+			
 			OnSocketNamespaceConnected.Broadcast(Namespace);
 		}));
 
@@ -192,7 +201,7 @@ void USocketIOClientComponent::EmitWithCallBack(const FString& EventName, USIOJs
 			JsonMessage = MakeShareable(new FJsonValueNull);
 		}
 
-		EmitNative(EventName, JsonMessage, [&, Target, CallbackFunctionName, this](auto Response)
+		EmitNative(EventName, JsonMessage, [&, Target, CallbackFunctionName, this](const TArray<TSharedPtr<FJsonValue>>& Response)
 		{
 			CallBPFunctionWithResponse(Target, CallbackFunctionName, Response);
 		}, Namespace);

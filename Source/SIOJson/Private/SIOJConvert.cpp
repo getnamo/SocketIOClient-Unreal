@@ -72,7 +72,9 @@ USIOJsonValue* USIOJConvert::ToSIOJsonValue(const TArray<TSharedPtr<FJsonValue>>
 	return ResultValue;
 }
 
+#if PLATFORM_WINDOWS
 #pragma endregion ToJsonValue
+#endif
 
 TSharedPtr<FJsonValue> USIOJConvert::JsonStringToJsonValue(const FString& JsonString)
 {
@@ -156,7 +158,9 @@ TSharedPtr<FJsonValue> USIOJConvert::ToJsonValue(const TArray<TSharedPtr<FJsonVa
 	return MakeShareable(new FJsonValueArray(ArrayValue));
 }
 
+#if PLATFORM_WINDOWS
 #pragma endregion ToJsonValue
+#endif
 
 TArray<TSharedPtr<FJsonValue>> USIOJConvert::JsonStringToJsonArray(const FString& JsonString)
 {
