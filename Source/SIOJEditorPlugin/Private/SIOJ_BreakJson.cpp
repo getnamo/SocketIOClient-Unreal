@@ -5,6 +5,7 @@
 #include "SIOJ_BreakJson.h"
 #include "EdGraphUtilities.h"
 #include "Runtime/Launch/Resources/Version.h"
+#include "Editor/UnrealEd/Public/EdGraphUtilities.h"
 
 #define LOCTEXT_NAMESPACE "SIOJ_BreakJson"
 
