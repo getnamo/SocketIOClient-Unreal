@@ -31,11 +31,13 @@ public:
 	virtual bool Init();
 	virtual uint32 Run();
 	virtual void Stop();
+	void Kill();
 	virtual void Exit() override;
 	// End FRunnable interface
 
 	/** Makes sure this thread has stopped properly */
 	void EnsureCompletion();
+	
 
 	/*
 	Runs the passed lambda on the background thread, new thread per call

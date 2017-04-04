@@ -11,6 +11,7 @@ USocketIOClientComponent::USocketIOClientComponent(const FObjectInitializer &ini
 	bShouldAutoConnect = true;
 	bWantsInitializeComponent = true;
 	bAutoActivate = true;
+	ConnectionThread = nullptr;
 	AddressAndPort = FString(TEXT("http://localhost:3000"));	//default to 127.0.0.1
 	SessionId = FString(TEXT("invalid"));
 }
@@ -18,6 +19,8 @@ USocketIOClientComponent::USocketIOClientComponent(const FObjectInitializer &ini
 void USocketIOClientComponent::InitializeComponent()
 {
 	Super::InitializeComponent();
+	PrivateClient = new sio::client;
+
 	if (bShouldAutoConnect)
 	{
 		Connect(AddressAndPort);	//connect to default address
@@ -28,6 +31,13 @@ void USocketIOClientComponent::UninitializeComponent()
 {
 	SyncDisconnect();
 	Super::UninitializeComponent();
+
+	const sio::client* ClientToDelete = PrivateClient;
+	PrivateClient = nullptr;
+	FSIOLambdaRunnable::RunLambdaOnBackGroundThread([ClientToDelete]
+	{
+		delete ClientToDelete;
+	});
 }
 
 bool USocketIOClientComponent::CallBPFunctionWithResponse(UObject* Target, const FString& FunctionName, TArray<TSharedPtr<FJsonValue>> Response)
@@ -99,16 +109,16 @@ void USocketIOClientComponent::Connect(const FString& InAddressAndPort)
 		StdAddressString = USIOMessageConvert::StdString(AddressAndPort);
 	}
 
-	//Connect to the server on a background thread
-	FSIOLambdaRunnable::RunLambdaOnBackGroundThread([&]
+	//Connect to the server on a background thread so it never blocks
+	ConnectionThread = FSIOLambdaRunnable::RunLambdaOnBackGroundThread([&]
 	{
 		//Attach the specific connection status events events
 
-		PrivateClient.set_open_listener(sio::client::con_listener([&]() {
+		PrivateClient->set_open_listener(sio::client::con_listener([&]() {
 			//too early to get session id here so we defer the connection event until we connect to a namespace
 		}));
 
-		PrivateClient.set_close_listener(sio::client::close_listener([&](sio::client::close_reason const& reason)
+		PrivateClient->set_close_listener(sio::client::close_listener([&](sio::client::close_reason const& reason)
 		{
 			bIsConnected = false;
 			SessionId = FString(TEXT("invalid"));
@@ -116,12 +126,17 @@ void USocketIOClientComponent::Connect(const FString& InAddressAndPort)
 			OnDisconnected.Broadcast((ESIOConnectionCloseReason)reason);
 		}));
 
-		PrivateClient.set_socket_open_listener(sio::client::socket_listener([&](std::string const& nsp)
+		PrivateClient->set_socket_open_listener(sio::client::socket_listener([&](std::string const& nsp)
 		{
+			//Special case, we have a latent connection after already having been disconnected
+			if (PrivateClient == nullptr)
+			{
+				return;
+			}
 			if (!bIsConnected)
 			{
 				bIsConnected = true;
-				SessionId = USIOMessageConvert::FStringFromStd(PrivateClient.get_sessionid());
+				SessionId = USIOMessageConvert::FStringFromStd(PrivateClient->get_sessionid());
 
 				UE_LOG(SocketIOLog, Log, TEXT("SocketIO Connected with session: %s"), *SessionId);
 				OnConnected.Broadcast(SessionId);
@@ -133,20 +148,20 @@ void USocketIOClientComponent::Connect(const FString& InAddressAndPort)
 			OnSocketNamespaceConnected.Broadcast(Namespace);
 		}));
 
-		PrivateClient.set_socket_close_listener(sio::client::socket_listener([&](std::string const& nsp)
+		PrivateClient->set_socket_close_listener(sio::client::socket_listener([&](std::string const& nsp)
 		{
 			FString Namespace = USIOMessageConvert::FStringFromStd(nsp);
 			UE_LOG(SocketIOLog, Log, TEXT("SocketIO disconnected from namespace: %s"), *Namespace);
 			OnSocketNamespaceDisconnected.Broadcast(USIOMessageConvert::FStringFromStd(nsp));
 		}));
 
-		PrivateClient.set_fail_listener(sio::client::con_listener([&]()
+		PrivateClient->set_fail_listener(sio::client::con_listener([&]()
 		{
 			UE_LOG(SocketIOLog, Log, TEXT("SocketIO failed to connect."));
 			OnFail.Broadcast();
 		}));
-		
-		PrivateClient.connect(StdAddressString);
+
+		PrivateClient->connect(StdAddressString);
 	});
 }
 
@@ -161,12 +176,13 @@ void USocketIOClientComponent::Disconnect()
 
 void USocketIOClientComponent::SyncDisconnect()
 {
-	if (PrivateClient.opened())
-	{
-		PrivateClient.socket()->off_all();
-		PrivateClient.socket()->off_error();
-		PrivateClient.close();
-	}
+	UE_LOG(LogTemp, Log, TEXT("Opened: %d ?"), PrivateClient->opened());
+
+	PrivateClient->socket()->off_all();
+	PrivateClient->socket()->off_error();
+	PrivateClient->set_open_listener(nullptr);
+	PrivateClient->set_close_listener(nullptr);
+	PrivateClient->close();
 }
 
 #if PLATFORM_WINDOWS
@@ -176,7 +192,7 @@ void USocketIOClientComponent::SyncDisconnect()
 
 void USocketIOClientComponent::Emit(const FString& EventName, USIOJsonValue* Message, const FString& Namespace /*= FString(TEXT("/"))*/)
 {
-	PrivateClient.socket(USIOMessageConvert::StdString(Namespace))->emit(
+	PrivateClient->socket(USIOMessageConvert::StdString(Namespace))->emit(
 		USIOMessageConvert::StdString(EventName),
 		USIOMessageConvert::ToSIOMessage(Message->GetRootValue()));
 }
@@ -271,7 +287,7 @@ void USocketIOClientComponent::EmitRaw(const FString& EventName, const sio::mess
 {
 	const TFunction<void(const sio::message::list&)> SafeFunction = ResponseFunction;
 
-	PrivateClient.socket(USIOMessageConvert::StdString(Namespace))->emit(
+	PrivateClient->socket(USIOMessageConvert::StdString(Namespace))->emit(
 		USIOMessageConvert::StdString(EventName),
 		MessageList, 
 		[&, SafeFunction](const sio::message::list& response) 
@@ -289,7 +305,7 @@ void USocketIOClientComponent::EmitRaw(const FString& EventName, const sio::mess
 
 void USocketIOClientComponent::EmitRawBinary(const FString& EventName, uint8* Data, int32 DataLength, const FString& Namespace /*= FString(TEXT("/"))*/)
 {
-	PrivateClient.socket(USIOMessageConvert::StdString(Namespace))->emit(USIOMessageConvert::StdString(EventName), std::make_shared<std::string>((char*)Data, DataLength));
+	PrivateClient->socket(USIOMessageConvert::StdString(Namespace))->emit(USIOMessageConvert::StdString(EventName), std::make_shared<std::string>((char*)Data, DataLength));
 }
 
 #if PLATFORM_WINDOWS
@@ -339,7 +355,7 @@ void USocketIOClientComponent::OnRawEvent(const FString& EventName, TFunction< v
 {
 	const TFunction< void(const FString&, const sio::message::ptr&)> SafeFunction = CallbackFunction;	//copy the function so it remains in context
 
-	PrivateClient.socket(USIOMessageConvert::StdString(Namespace))->on(
+	PrivateClient->socket(USIOMessageConvert::StdString(Namespace))->on(
 		USIOMessageConvert::StdString(EventName),
 		sio::socket::event_listener_aux(
 			[&, SafeFunction](std::string const& name, sio::message::ptr const& data, bool isAck, sio::message::list &ack_resp)
@@ -358,7 +374,7 @@ void USocketIOClientComponent::OnBinaryEvent(const FString& EventName, TFunction
 {
 	const TFunction< void(const FString&, const TArray<uint8>&)> SafeFunction = CallbackFunction;	//copy the function so it remains in context
 
-	PrivateClient.socket(USIOMessageConvert::StdString(Namespace))->on(
+	PrivateClient->socket(USIOMessageConvert::StdString(Namespace))->on(
 		USIOMessageConvert::StdString(EventName),
 		sio::socket::event_listener_aux(
 			[&, SafeFunction](std::string const& name, sio::message::ptr const& data, bool isAck, sio::message::list &ack_resp)

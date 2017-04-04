@@ -4,6 +4,7 @@
 #include "SIOJsonObject.h"
 #include "SIOJsonValue.h"
 #include "SIOJConvert.h"
+//#include "SIOLambdaRunnable.h"
 #include "Components/ActorComponent.h"
 #include "SocketIOClientComponent.generated.h"
 
@@ -338,5 +339,6 @@ protected:
 	bool CallBPFunctionWithResponse(UObject* Target, const FString& FunctionName, TArray<TSharedPtr<FJsonValue>> Response);
 	bool CallBPFunctionWithMessage(UObject* Target, const FString& FunctionName, TSharedPtr<FJsonValue> Message);
 
-	sio::client PrivateClient;
+	sio::client* PrivateClient;
+	class FSIOLambdaRunnable* ConnectionThread;
 };
