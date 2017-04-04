@@ -9,6 +9,11 @@ typedef TJsonWriter< TCHAR, TCondensedJsonPrintPolicy<TCHAR> > FCondensedJsonStr
 
 TSharedPtr<FJsonValue> USIOMessageConvert::ToJsonValue(const sio::message::ptr& Message)
 {
+	if (Message == nullptr)
+	{
+		return MakeShareable(new FJsonValueNull());
+	}
+
 	auto flag = Message->get_flag();
 
 	if (flag == sio::message::flag_integer)
