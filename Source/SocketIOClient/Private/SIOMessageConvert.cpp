@@ -67,9 +67,7 @@ TSharedPtr<FJsonValue> USIOMessageConvert::ToJsonValue(const sio::message::ptr& 
 	}
 	else if (flag == sio::message::flag_boolean)
 	{
-		bool InBoolean = false;
-
-		return MakeShareable(new FJsonValueBoolean(InBoolean));
+		return MakeShareable(new FJsonValueBoolean(Message->get_bool()));
 	}
 	else if (flag == sio::message::flag_null)
 	{
