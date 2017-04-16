@@ -36,7 +36,11 @@ void USocketIOClientComponent::UninitializeComponent()
 	PrivateClient = nullptr;
 	FSIOLambdaRunnable::RunLambdaOnBackGroundThread([ClientToDelete]
 	{
-		delete ClientToDelete;
+		//Only delete valid pointers
+		if (ClientToDelete)
+		{
+			delete ClientToDelete;
+		}
 	});
 }
 
