@@ -26,4 +26,6 @@ public:
 	//std::string <-> FString
 	static std::string StdString(FString UEString);
 	static FString FStringFromStd(std::string StdString);
+
+	static std::map<std::string, std::string> JsonObjectToStdStringMap(TSharedPtr<FJsonObject> InObject);
 }; 

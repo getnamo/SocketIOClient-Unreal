@@ -96,11 +96,12 @@ public:
 
 	/**
 	* Connect to a socket.io server, optional method if auto-connect is set to true.
+	* Query and headers are defined by a {'stringKey':'stringValue'} SIOJson Object
 	*
 	* @param AddressAndPort	the address in URL format with port
 	*/
 	UFUNCTION(BlueprintCallable, Category = "SocketIO Functions")
-	void Connect(const FString& InAddressAndPort);
+	void Connect(const FString& InAddressAndPort, USIOJsonObject* Query = nullptr, USIOJsonObject* Headers = nullptr);
 
 	/**
 	* Disconnect from current socket.io server, optional method.
