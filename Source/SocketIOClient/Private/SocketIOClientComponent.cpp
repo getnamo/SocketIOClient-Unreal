@@ -117,7 +117,7 @@ void USocketIOClientComponent::Connect(const FString& InAddressAndPort, USIOJson
 	const USIOJsonObject* SafeHeaders = Headers;
 
 	//Connect to the server on a background thread so it never blocks
-	ConnectionThread = FSIOLambdaRunnable::RunLambdaOnBackGroundThread([&, Query, Headers]
+	ConnectionThread = FSIOLambdaRunnable::RunLambdaOnBackGroundThread([&, SafeHeaders, SafeQuery]
 	{
 		//Attach the specific connection status events events
 
