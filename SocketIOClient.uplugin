@@ -10,7 +10,7 @@
 	"DocsURL": "https://github.com/getnamo/socketio-client-ue4",
 	"MarketplaceURL": "",
 	"SupportURL": "",
-	"EnabledByDefault": false,
+	"EnabledByDefault": true,
 	"CanContainContent": false,
 	"IsBetaVersion": false,
 	"Installed": false,
