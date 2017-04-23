@@ -99,6 +99,9 @@ public:
 	* Query and headers are defined by a {'stringKey':'stringValue'} SIOJson Object
 	*
 	* @param AddressAndPort	the address in URL format with port
+	* @param Query http query as a SIOJsonObject with string keys
+	* @param Headers http header as a SIOJsonObject with string keys
+	*
 	*/
 	UFUNCTION(BlueprintCallable, Category = "SocketIO Functions")
 	void Connect(const FString& InAddressAndPort, USIOJsonObject* Query = nullptr, USIOJsonObject* Headers = nullptr);
@@ -169,6 +172,18 @@ public:
 	//
 	//C++ functions
 	//
+
+	/**
+	* Connect to a socket.io server, optional method if auto-connect is set to true.
+	* Query and headers are defined by a {'stringKey':'stringValue'} FJsonObjects
+	*
+	* @param AddressAndPort	the address in URL format with port
+	* @param Query http query as a FJsonObject with string keys
+	* @param Headers http header as a FJsonObject with string keys
+	*
+	*/
+	void ConnectNative(const FString& InAddressAndPort, const TSharedPtr<FJsonObject>& Query = nullptr, const TSharedPtr<FJsonObject>& Headers = nullptr);
+
 
 	/**
 	* Emit an event with a JsonValue message 

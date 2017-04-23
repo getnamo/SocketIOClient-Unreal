@@ -107,17 +107,35 @@ bool USocketIOClientComponent::CallBPFunctionWithMessage(UObject* Target, const 
 
 void USocketIOClientComponent::Connect(const FString& InAddressAndPort, USIOJsonObject* Query /*= nullptr*/, USIOJsonObject* Headers /*= nullptr*/)
 {
-	std::string StdAddressString = USIOMessageConvert::StdString(InAddressAndPort);
+	if (Query != nullptr &&
+		Headers != nullptr)
+	{
+		ConnectNative(InAddressAndPort, Query->GetRootObject(), Headers->GetRootObject());
+	}
+	else if (Query != nullptr)
+	{
+		ConnectNative(InAddressAndPort, Query->GetRootObject());
+	}
+	else if (Headers != nullptr)
+	{
+		ConnectNative(InAddressAndPort, nullptr, Headers->GetRootObject());
+	}
+	else
+	{
+		ConnectNative(InAddressAndPort);
+	}
+}
+
+void USocketIOClientComponent::ConnectNative(const FString& InAddressAndPort, const TSharedPtr<FJsonObject>& Query /*= nullptr*/, const TSharedPtr<FJsonObject>& Headers /*= nullptr*/)
+{
+		std::string StdAddressString = USIOMessageConvert::StdString(InAddressAndPort);
 	if (InAddressAndPort.IsEmpty())
 	{
 		StdAddressString = USIOMessageConvert::StdString(AddressAndPort);
 	}
 
-	const USIOJsonObject* SafeQuery = Query;
-	const USIOJsonObject* SafeHeaders = Headers;
-
 	//Connect to the server on a background thread so it never blocks
-	ConnectionThread = FSIOLambdaRunnable::RunLambdaOnBackGroundThread([&, SafeHeaders, SafeQuery]
+	ConnectionThread = FSIOLambdaRunnable::RunLambdaOnBackGroundThread([&, Query, Headers]
 	{
 		//Attach the specific connection status events events
 
@@ -172,14 +190,14 @@ void USocketIOClientComponent::Connect(const FString& InAddressAndPort, USIOJson
 		std::map<std::string, std::string> HeadersMap = {};
 
 		//fill the headers and query if they're not null
-		if (SafeHeaders != nullptr)
+		if (Headers.IsValid())
 		{
-			HeadersMap = USIOMessageConvert::JsonObjectToStdStringMap(Headers->GetRootObject());
+			HeadersMap = USIOMessageConvert::JsonObjectToStdStringMap(Headers);
 		}
 
-		if (SafeQuery != nullptr)
+		if (Query.IsValid())
 		{
-			QueryMap = USIOMessageConvert::JsonObjectToStdStringMap(Query->GetRootObject());
+			QueryMap = USIOMessageConvert::JsonObjectToStdStringMap(Query);
 		}
 
 		PrivateClient->connect(StdAddressString, QueryMap, HeadersMap);
