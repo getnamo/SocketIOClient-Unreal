@@ -105,7 +105,7 @@ bool USocketIOClientComponent::CallBPFunctionWithMessage(UObject* Target, const 
 #pragma region Connect
 #endif
 
-void USocketIOClientComponent::Connect(const FString& InAddressAndPort)
+void USocketIOClientComponent::Connect(const FString& InAddressAndPort, USIOJsonObject* Query /*= nullptr*/, USIOJsonObject* Headers /*= nullptr*/)
 {
 	std::string StdAddressString = USIOMessageConvert::StdString(InAddressAndPort);
 	if (InAddressAndPort.IsEmpty())
@@ -113,8 +113,11 @@ void USocketIOClientComponent::Connect(const FString& InAddressAndPort)
 		StdAddressString = USIOMessageConvert::StdString(AddressAndPort);
 	}
 
+	const USIOJsonObject* SafeQuery = Query;
+	const USIOJsonObject* SafeHeaders = Headers;
+
 	//Connect to the server on a background thread so it never blocks
-	ConnectionThread = FSIOLambdaRunnable::RunLambdaOnBackGroundThread([&]
+	ConnectionThread = FSIOLambdaRunnable::RunLambdaOnBackGroundThread([&, Query, Headers]
 	{
 		//Attach the specific connection status events events
 
@@ -165,10 +168,23 @@ void USocketIOClientComponent::Connect(const FString& InAddressAndPort)
 			OnFail.Broadcast();
 		}));
 
-		PrivateClient->connect(StdAddressString);
+		std::map<std::string, std::string> QueryMap = {};
+		std::map<std::string, std::string> HeadersMap = {};
+
+		//fill the headers and query if they're not null
+		if (SafeHeaders != nullptr)
+		{
+			HeadersMap = USIOMessageConvert::JsonObjectToStdStringMap(Headers->GetRootObject());
+		}
+
+		if (SafeQuery != nullptr)
+		{
+			QueryMap = USIOMessageConvert::JsonObjectToStdStringMap(Query->GetRootObject());
+		}
+
+		PrivateClient->connect(StdAddressString, QueryMap, HeadersMap);
 	});
 }
-
 
 void USocketIOClientComponent::Disconnect()
 {

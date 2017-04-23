@@ -154,3 +154,21 @@ FString USIOMessageConvert::FStringFromStd(std::string StdString)
 {
 	return FString(UTF8_TO_TCHAR(StdString.c_str()));
 }
+
+std::map<std::string, std::string> USIOMessageConvert::JsonObjectToStdStringMap(TSharedPtr<FJsonObject> InObject)
+{
+	std::map<std::string, std::string> HeadersMap;
+
+	for (auto Pair : InObject->Values)
+	{
+		TSharedPtr<FJsonValue> Value = Pair.Value;
+
+		//If it's a string value, add it to the std map
+		if (Value->Type == EJson::String)
+		{
+			HeadersMap[USIOMessageConvert::StdString(Pair.Key)] = USIOMessageConvert::StdString(Value->AsString());
+		}
+	}
+
+	return HeadersMap;
+}
