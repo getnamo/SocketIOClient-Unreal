@@ -107,23 +107,20 @@ bool USocketIOClientComponent::CallBPFunctionWithMessage(UObject* Target, const 
 
 void USocketIOClientComponent::Connect(const FString& InAddressAndPort, USIOJsonObject* Query /*= nullptr*/, USIOJsonObject* Headers /*= nullptr*/)
 {
-	if (Query != nullptr &&
-		Headers != nullptr)
+	TSharedPtr<FJsonObject> QueryFJson;
+	TSharedPtr<FJsonObject> HeadersFJson;
+
+	if (Query != nullptr)
 	{
-		ConnectNative(InAddressAndPort, Query->GetRootObject(), Headers->GetRootObject());
+		QueryFJson = Query->GetRootObject();
 	}
-	else if (Query != nullptr)
+
+	if (Headers != nullptr)
 	{
-		ConnectNative(InAddressAndPort, Query->GetRootObject());
+		HeadersFJson = Headers->GetRootObject();
 	}
-	else if (Headers != nullptr)
-	{
-		ConnectNative(InAddressAndPort, nullptr, Headers->GetRootObject());
-	}
-	else
-	{
-		ConnectNative(InAddressAndPort);
-	}
+	
+	ConnectNative(InAddressAndPort, QueryFJson, HeadersFJson);
 }
 
 void USocketIOClientComponent::ConnectNative(const FString& InAddressAndPort, const TSharedPtr<FJsonObject>& Query /*= nullptr*/, const TSharedPtr<FJsonObject>& Headers /*= nullptr*/)
