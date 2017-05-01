@@ -138,13 +138,16 @@ void USocketIOClientComponent::Connect(const FString& InAddressAndPort, USIOJson
 void USocketIOClientComponent::ConnectNative(const FString& InAddressAndPort, const TSharedPtr<FJsonObject>& Query /*= nullptr*/, const TSharedPtr<FJsonObject>& Headers /*= nullptr*/)
 {
 	//Set native callback functions
-	NativeClient->OnConnectedCallback = [this](const FString& SessionId)
+	NativeClient->OnConnectedCallback = [this](const FString& InSessionId)
 	{
+		bIsConnected = true;
+		SessionId = InSessionId;
 		OnConnected.Broadcast(SessionId);
 	};
 
 	NativeClient->OnDisconnectedCallback = [this](const ESIOConnectionCloseReason Reason)
 	{
+		bIsConnected = false;
 		OnDisconnected.Broadcast(Reason);
 	};
 
