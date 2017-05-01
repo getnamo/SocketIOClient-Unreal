@@ -30,6 +30,13 @@ class FSocketIONative
 {
 public:
 
+	//Native Callbacks
+	TFunction<void(const FString& SessionId)> OnConnectedCallback;
+	TFunction<void(const ESIOConnectionCloseReason Reason)> OnDisconnectedCallback;
+	TFunction<void(const FString& Namespace)> OnNamespaceConnectedCallback;
+	TFunction<void(const FString& Namespace)> OnNamespaceDisconnectedCallback;
+	TFunction<void()> OnFailCallback;
+
 	/** Default connection address string in form e.g. http://localhost:80. */
 	FString AddressAndPort;
 
@@ -62,6 +69,8 @@ public:
 	void Disconnect();
 
 	void SyncDisconnect();
+
+	void ClearCallbacks();
 
 	/**
 	* Emit an event with a JsonValue message

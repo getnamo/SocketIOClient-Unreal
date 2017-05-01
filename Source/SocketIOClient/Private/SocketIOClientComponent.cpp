@@ -5,7 +5,6 @@
 #include "SIOLambdaRunnable.h"
 #include "SIOJConvert.h"
 
-
 USocketIOClientComponent::USocketIOClientComponent(const FObjectInitializer &init) : UActorComponent(init)
 {
 	bShouldAutoConnect = true;
@@ -138,6 +137,32 @@ void USocketIOClientComponent::Connect(const FString& InAddressAndPort, USIOJson
 
 void USocketIOClientComponent::ConnectNative(const FString& InAddressAndPort, const TSharedPtr<FJsonObject>& Query /*= nullptr*/, const TSharedPtr<FJsonObject>& Headers /*= nullptr*/)
 {
+	//Set native callback functions
+	NativeClient->OnConnectedCallback = [this](const FString& SessionId)
+	{
+		OnConnected.Broadcast(SessionId);
+	};
+
+	NativeClient->OnDisconnectedCallback = [this](const ESIOConnectionCloseReason Reason)
+	{
+		OnDisconnected.Broadcast(Reason);
+	};
+
+	NativeClient->OnNamespaceConnectedCallback = [this](const FString& Namespace)
+	{
+		OnSocketNamespaceConnected.Broadcast(Namespace);
+	};
+
+	NativeClient->OnNamespaceDisconnectedCallback = [this](const FString& Namespace)
+	{
+		OnSocketNamespaceDisconnected.Broadcast(Namespace);
+	};
+
+	NativeClient->OnFailCallback = [this]()
+	{
+		OnFail.Broadcast();
+	};
+
 	NativeClient->Connect(InAddressAndPort, Query, Headers);
 }
 
