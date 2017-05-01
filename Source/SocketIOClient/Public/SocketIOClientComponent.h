@@ -1,45 +1,8 @@
 #pragma once
 
-#include "sio_client.h"
-#include "SIOJsonObject.h"
-#include "SIOJsonValue.h"
-#include "SIOJConvert.h"
-//#include "SIOLambdaRunnable.h"
 #include "Components/ActorComponent.h"
+#include "FSocketIONative.h"
 #include "SocketIOClientComponent.generated.h"
-
-UENUM(BlueprintType)
-enum ESIOMessageTypeFlag
-{
-	FLAG_INTEGER,
-	FLAG_DOUBLE,
-	FLAG_STRING,
-	FLAG_BINARY,
-	FLAG_ARRAY,
-	FLAG_OBJECT,
-	FLAG_BOOLEAN,
-	FLAG_NULL
-};
-
-//TODO: convert sio::message to UE struct for more flexible use
-USTRUCT()
-struct FSIOMessage
-{
-	GENERATED_USTRUCT_BODY()
-
-	UPROPERTY(BlueprintReadWrite, Category = "SocketIO Message Properties")
-	TEnumAsByte<ESIOMessageTypeFlag> MessageFlag;
-
-	//Internal UE storage
-	FJsonObject Object;
-};
-
-UENUM(BlueprintType)
-enum ESIOConnectionCloseReason
-{
-	CLOSE_REASON_NORMAL,
-	CLOSE_REASON_DROP
-};
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE(FSIOCEventSignature);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FSIOCSocketEventSignature, FString, Namespace);
@@ -359,6 +322,5 @@ protected:
 	bool CallBPFunctionWithResponse(UObject* Target, const FString& FunctionName, TArray<TSharedPtr<FJsonValue>> Response);
 	bool CallBPFunctionWithMessage(UObject* Target, const FString& FunctionName, TSharedPtr<FJsonValue> Message);
 
-	sio::client* PrivateClient;
-	class FSIOLambdaRunnable* ConnectionThread;
+	TSharedPtr<FSocketIONative> NativeClient;
 };
