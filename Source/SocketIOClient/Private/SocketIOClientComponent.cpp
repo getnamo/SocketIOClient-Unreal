@@ -268,16 +268,6 @@ void USocketIOClientComponent::EmitNative(const FString& EventName, UStruct* Str
 	EmitNative(EventName, USIOJConvert::ToJsonObject(Struct, (void*)StructPtr), CallbackFunction, Namespace);
 }
 
-void USocketIOClientComponent::EmitRaw(const FString& EventName, const sio::message::list& MessageList, TFunction<void(const sio::message::list&)> ResponseFunction, const FString& Namespace)
-{
-	NativeClient->EmitRaw(EventName, MessageList, CallbackFunction, Namespace);
-}
-
-void USocketIOClientComponent::EmitRawBinary(const FString& EventName, uint8* Data, int32 DataLength, const FString& Namespace /*= FString(TEXT("/"))*/)
-{
-	NativeClient->EmitRawBinary(EventName, Data, DataLength, Namespace);
-}
-
 #if PLATFORM_WINDOWS
 #pragma endregion Emit
 #pragma region OnEvents
@@ -285,11 +275,11 @@ void USocketIOClientComponent::EmitRawBinary(const FString& EventName, uint8* Da
 
 void USocketIOClientComponent::BindEvent(const FString& EventName, const FString& Namespace)
 {
-	OnRawEvent(EventName, [&](const FString& Event, const sio::message::ptr& RawMessage) {
+	NativeClient->OnRawEvent(EventName, [&](const FString& Event, const sio::message::ptr& RawMessage) {
 		USIOJsonValue* NewValue = NewObject<USIOJsonValue>();
 		auto Value = USIOMessageConvert::ToJsonValue(RawMessage);
 		NewValue->SetRootValue(Value);
-		On.Broadcast(Event, NewValue);
+		OnEvent.Broadcast(Event, NewValue);
 
 	}, Namespace);
 }
@@ -317,17 +307,6 @@ void USocketIOClientComponent::BindEventToFunction(const FString& EventName, con
 void USocketIOClientComponent::OnNativeEvent(const FString& EventName, TFunction< void(const FString&, const TSharedPtr<FJsonValue>&)> CallbackFunction, const FString& Namespace /*= FString(TEXT("/"))*/)
 {
 	NativeClient->OnEvent(EventName, CallbackFunction, Namespace);
-}
-
-void USocketIOClientComponent::OnRawEvent(const FString& EventName, TFunction< void(const FString&, const sio::message::ptr&)> CallbackFunction, const FString& Namespace /*= FString(TEXT("/"))*/)
-{
-	NativeClient->OnRawEvent(EventName, CallbackFunction, Namespace);
-}
-
-
-void USocketIOClientComponent::OnBinaryEvent(const FString& EventName, TFunction< void(const FString&, const TArray<uint8>&)> CallbackFunction, const FString& Namespace /*= FString(TEXT("/"))*/)
-{
-	NativeClient->OnBinaryEvent(EventName, CallbackFunction, Namespace);
 }
 
 #if PLATFORM_WINDOWS

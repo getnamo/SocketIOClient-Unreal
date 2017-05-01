@@ -57,9 +57,9 @@ public:
 	* @param Headers http header as a SIOJsonObject with string keys and values
 	*
 	*/
-	void Connect(const FString& InAddressAndPort,
-		USIOJsonObject* Query = nullptr,
-		USIOJsonObject* Headers = nullptr);
+	void Connect(	const FString& InAddressAndPort,
+					const TSharedPtr<FJsonObject>& Query /*= nullptr*/, 
+					const TSharedPtr<FJsonObject>& Headers /*= nullptr*/);
 
 	/**
 	* Disconnect from current socket.io server, optional method.
