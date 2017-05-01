@@ -6,25 +6,11 @@
 #include "SIOJConvert.h"
 
 UENUM(BlueprintType)
-enum ESIOMessageTypeFlag
-{
-	FLAG_INTEGER,
-	FLAG_DOUBLE,
-	FLAG_STRING,
-	FLAG_BINARY,
-	FLAG_ARRAY,
-	FLAG_OBJECT,
-	FLAG_BOOLEAN,
-	FLAG_NULL
-};
-
-UENUM(BlueprintType)
 enum ESIOConnectionCloseReason
 {
 	CLOSE_REASON_NORMAL,
 	CLOSE_REASON_DROP
 };
-
 
 class FSocketIONative
 {
@@ -57,9 +43,10 @@ public:
 	* @param Headers http header as a SIOJsonObject with string keys and values
 	*
 	*/
-	void Connect(	const FString& InAddressAndPort,
-					const TSharedPtr<FJsonObject>& Query /*= nullptr*/, 
-					const TSharedPtr<FJsonObject>& Headers /*= nullptr*/);
+	void Connect(	
+		const FString& InAddressAndPort,
+		const TSharedPtr<FJsonObject>& Query /*= nullptr*/, 
+		const TSharedPtr<FJsonObject>& Headers /*= nullptr*/);
 
 	/**
 	* Disconnect from current socket.io server, optional method.
@@ -80,7 +67,8 @@ public:
 	* @param CallbackFunction		Optional callback TFunction
 	* @param Namespace				Optional Namespace within socket.io
 	*/
-	void Emit(const FString& EventName,
+	void Emit(
+		const FString& EventName,
 		const TSharedPtr<FJsonValue>& Message = nullptr,
 		TFunction< void(const TArray<TSharedPtr<FJsonValue>>&)> CallbackFunction = nullptr,
 		const FString& Namespace = FString(TEXT("/")));
@@ -93,7 +81,8 @@ public:
 	* @param CallbackFunction		Optional callback TFunction
 	* @param Namespace				Optional Namespace within socket.io
 	*/
-	void Emit(const FString& EventName,
+	void Emit(
+		const FString& EventName,
 		const TSharedPtr<FJsonObject>& ObjectMessage = nullptr,
 		TFunction< void(const TArray<TSharedPtr<FJsonValue>>&)> CallbackFunction = nullptr,
 		const FString& Namespace = FString(TEXT("/")));
@@ -106,7 +95,8 @@ public:
 	* @param CallbackFunction		Optional callback TFunction
 	* @param Namespace				Optional Namespace within socket.io
 	*/
-	void Emit(const FString& EventName,
+	void Emit(
+		const FString& EventName,
 		const FString& StringMessage = FString(),
 		TFunction< void(const TArray<TSharedPtr<FJsonValue>>&)> CallbackFunction = nullptr,
 		const FString& Namespace = FString(TEXT("/")));
@@ -119,7 +109,8 @@ public:
 	* @param CallbackFunction		Optional callback TFunction
 	* @param Namespace				Optional Namespace within socket.io
 	*/
-	void Emit(const FString& EventName,
+	void Emit(
+		const FString& EventName,
 		double NumberMessage,
 		TFunction< void(const TArray<TSharedPtr<FJsonValue>>&)> CallbackFunction = nullptr,
 		const FString& Namespace = FString(TEXT("/")));
@@ -132,7 +123,8 @@ public:
 	* @param CallbackFunction		Optional callback TFunction
 	* @param Namespace				Optional Namespace within socket.io
 	*/
-	void Emit(const FString& EventName,
+	void Emit(
+		const FString& EventName,
 		bool BooleanMessage,
 		TFunction< void(const TArray<TSharedPtr<FJsonValue>>&)> CallbackFunction = nullptr,
 		const FString& Namespace = FString(TEXT("/")));
@@ -145,7 +137,8 @@ public:
 	* @param CallbackFunction		Optional callback TFunction
 	* @param Namespace				Optional Namespace within socket.io
 	*/
-	void Emit(const FString& EventName,
+	void Emit
+	(const FString& EventName,
 		const TArray<uint8>& BinaryMessage,
 		TFunction< void(const TArray<TSharedPtr<FJsonValue>>&)> CallbackFunction = nullptr,
 		const FString& Namespace = FString(TEXT("/")));
@@ -158,7 +151,8 @@ public:
 	* @param CallbackFunction		Optional callback TFunction
 	* @param Namespace				Optional Namespace within socket.io
 	*/
-	void Emit(const FString& EventName,
+	void Emit(
+		const FString& EventName,
 		const TArray<TSharedPtr<FJsonValue>>& ArrayMessage,
 		TFunction< void(const TArray<TSharedPtr<FJsonValue>>&)> CallbackFunction = nullptr,
 		const FString& Namespace = FString(TEXT("/")));
@@ -172,7 +166,8 @@ public:
 	* @param CallbackFunction		Optional callback TFunction
 	* @param Namespace				Optional Namespace within socket.io
 	*/
-	void Emit(const FString& EventName,
+	void Emit(
+		const FString& EventName,
 		UStruct* Struct,
 		const void* StructPtr,
 		TFunction< void(const TArray<TSharedPtr<FJsonValue>>&)> CallbackFunction = nullptr,
@@ -186,7 +181,8 @@ public:
 	* @param CallbackFunction		Optional callback TFunction with raw signature
 	* @param Namespace				Optional Namespace within socket.io
 	*/
-	void EmitRaw(const FString& EventName,
+	void EmitRaw(
+		const FString& EventName,
 		const sio::message::list& MessageList = nullptr,
 		TFunction<void(const sio::message::list&)> CallbackFunction = nullptr,
 		const FString& Namespace = FString(TEXT("/")));
@@ -199,7 +195,11 @@ public:
 	* @param DataLength				Buffer size
 	* @param Namespace				Optional Namespace within socket.io
 	*/
-	void EmitRawBinary(const FString& EventName, uint8* Data, int32 DataLength, const FString& Namespace = FString(TEXT("/")));
+	void EmitRawBinary(
+		const FString& EventName,
+		uint8* Data,
+		int32 DataLength,
+		const FString& Namespace = FString(TEXT("/")));
 
 
 	/**
@@ -209,7 +209,8 @@ public:
 	* @param TFunction	Lambda callback, JSONValue
 	* @param Namespace	Optional namespace, defaults to default namespace
 	*/
-	void OnEvent(const FString& EventName,
+	void OnEvent(
+		const FString& EventName,
 		TFunction< void(const FString&, const TSharedPtr<FJsonValue>&)> CallbackFunction,
 		const FString& Namespace = FString(TEXT("/")));
 
@@ -220,7 +221,8 @@ public:
 	* @param TFunction	Lambda callback, raw flavor
 	* @param Namespace	Optional namespace, defaults to default namespace
 	*/
-	void OnRawEvent(const FString& EventName,
+	void OnRawEvent(
+		const FString& EventName,
 		TFunction< void(const FString&, const sio::message::ptr&)> CallbackFunction,
 		const FString& Namespace = FString(TEXT("/")));
 	/**
@@ -230,7 +232,8 @@ public:
 	* @param TFunction	Lambda callback, raw flavor
 	* @param Namespace	Optional namespace, defaults to default namespace
 	*/
-	void OnBinaryEvent(const FString& EventName,
+	void OnBinaryEvent(
+		const FString& EventName,
 		TFunction< void(const FString&, const TArray<uint8>&)> CallbackFunction,
 		const FString& Namespace = FString(TEXT("/")));
 
