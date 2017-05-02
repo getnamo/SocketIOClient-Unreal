@@ -3,7 +3,6 @@ Socket.io client plugin for UE4.
 
 [![GitHub release](https://img.shields.io/github/release/getnamo/socketio-client-ue4.svg)](https://github.com/getnamo/socketio-client-ue4/releases)
 [![Github All Releases](https://img.shields.io/github/downloads/getnamo/socketio-client-ue4/total.svg)](https://github.com/getnamo/socketio-client-ue4/releases)
-[![GitHub contributors](https://img.shields.io/github/contributors/getnamo/socketio-client-ue4.svg)](https://github.com/getnamo/socketio-client-ue4/graphs/contributors)
 
 [Socket.io](http://socket.io/) is a performant real-time bi-directional communication library. There are two parts, the server written in node.js and the client typically javascript for the web. There are alternative client implementations and this repo uses the [C++11 client library](https://github.com/socketio/socket.io-client-cpp) ported to UE4.
 
