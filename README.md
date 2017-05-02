@@ -201,6 +201,17 @@ SIOClientComponent->Disconnect();
 SIOClientComponent->Connect(FString("http://127.0.0.1:3000"));
 ```
 
+### Receiving Events
+
+To receive events call _OnNativeEvent_ and pass in your expected event name and callback lambda or function with ```const FString& Event, const TSharedPtr<FJsonValue>& Message``` signature. Optionally pass in another FString for specify namespace, omit if not using a namespace.
+
+```c++
+SIOClientComponent->OnNativeEvent(FString("MyEvent"), [](const FString& Event, const TSharedPtr<FJsonValue>& Message)
+	{
+		//Called when the event is received
+	}, FString("Optional Namespace"));
+```
+
 ### Emitting Events
 
 In C++ you can use *EmitNative*, *EmitRaw*, or *EmitRawBinary*. *EmitNative* is fully overloaded and expects all kinds of native UE4 data types and is the recommended method.
