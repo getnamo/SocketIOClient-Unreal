@@ -1,5 +1,8 @@
 # socketio-client-ue4
-socket.io client plugin for UE4
+Socket.io client plugin for UE4.
+
+[![GitHub release](https://img.shields.io/github/release/getnamo/socketio-client-ue4.svg)](https://github.com/getnamo/socketio-client-ue4/releases)
+[![Github All Releases](https://img.shields.io/github/downloads/getnamo/socketio-client-ue4/total.svg)](https://github.com/getnamo/socketio-client-ue4/releases)
 
 [Socket.io](http://socket.io/) is a performant real-time bi-directional communication library. There are two parts, the server written in node.js and the client typically javascript for the web. There are alternative client implementations and this repo uses the [C++11 client library](https://github.com/socketio/socket.io-client-cpp) ported to UE4.
 
@@ -196,6 +199,17 @@ SIOClientComponent->Connect();
 //You can also easily disconnect at some point, reconnect to another address
 SIOClientComponent->Disconnect();
 SIOClientComponent->Connect(FString("http://127.0.0.1:3000"));
+```
+
+### Receiving Events
+
+To receive events call _OnNativeEvent_ and pass in your expected event name and callback lambda or function with ```const FString& Event, const TSharedPtr<FJsonValue>& Message``` signature. Optionally pass in another FString to specify namespace, omit if not using a namespace.
+
+```c++
+SIOClientComponent->OnNativeEvent(FString("MyEvent"), [](const FString& Event, const TSharedPtr<FJsonValue>& Message)
+	{
+		//Called when the event is received
+	}, FString("Optional Namespace"));
 ```
 
 ### Emitting Events
@@ -426,4 +440,4 @@ SIOComponent->OnRawEvent([&](const FString& Name, const sio::message::ptr& Messa
 
 ## License
 
-MIT
+[![license](https://img.shields.io/github/license/getnamo/socketio-client-ue4.svg)](https://github.com/getnamo/socketio-client-ue4/blob/master/LICENSE)
