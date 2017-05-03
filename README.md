@@ -130,6 +130,17 @@ Instead of using the event graph and comparing strings, you can bind an event di
 
 ![IMG](http://i.imgur.com/7fA1qca.png)
 
+
+### Complex Connect
+
+You can fill the optional _Query_ and _Headers_ parameters to pass in e.g. your own headers for authentication. 
+
+The input type for both fields is a _SIOJsonObject_ with purely string fields or leaving it empty for default.
+
+Here's an example of constructing a single header  _X-Forwarded-Host: qnova.io_ and then connecting.
+
+![connectwithheader](https://cloud.githubusercontent.com/assets/542365/25309683/63bfe26e-27cb-11e7-877e-0590e40605f3.PNG)
+
 ## How to use - C++
 
 ### Setup
