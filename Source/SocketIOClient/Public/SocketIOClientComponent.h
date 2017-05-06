@@ -1,7 +1,7 @@
 #pragma once
 
 #include "Components/ActorComponent.h"
-#include "FSocketIONative.h"
+#include "SocketIONative.h"
 #include "SocketIOClientComponent.generated.h"
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE(FSIOCEventSignature);

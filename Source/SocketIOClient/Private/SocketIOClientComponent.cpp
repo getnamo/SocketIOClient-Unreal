@@ -1,4 +1,3 @@
-// Fill out your copyright notice in the Description page of Project Settings.
 
 #include "SocketIOClientPrivatePCH.h"
 #include "SocketIOClientComponent.h"
@@ -27,7 +26,10 @@ void USocketIOClientComponent::InitializeComponent()
 	else
 	{
 		//Ensure it's closed
-		SyncDisconnect();
+		Disconnect();
+
+		//Make a new link
+		NativeClient = MakeShareable(new FSocketIONative);
 	}
 
 	if (bShouldAutoConnect)
@@ -38,7 +40,8 @@ void USocketIOClientComponent::InitializeComponent()
 
 void USocketIOClientComponent::UninitializeComponent()
 {
-	SyncDisconnect();
+	Disconnect();
+	//SyncDisconnect();
 
 	UE_LOG(SocketIOLog, Log, TEXT("UninitializeComponent() call"));
 

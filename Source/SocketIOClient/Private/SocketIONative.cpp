@@ -2,7 +2,7 @@
 #include "SocketIOClientPrivatePCH.h"
 #include "SIOLambdaRunnable.h"
 #include "SIOJConvert.h"
-#include "FSocketIONative.h"
+#include "SocketIONative.h"
 
 FSocketIONative::FSocketIONative()
 {
