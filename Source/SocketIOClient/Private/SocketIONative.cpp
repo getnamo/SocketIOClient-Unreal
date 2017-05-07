@@ -113,17 +113,12 @@ void FSocketIONative::Connect(const FString& InAddressAndPort, const TSharedPtr<
 }
 
 void FSocketIONative::Disconnect()
-{
-	//Stop trying to reconnect
-	//PrivateClient->set_reconnect_attempts(0);
-	
-	//close the connection
+{	
 	PrivateClient->close();
 }
 
 void FSocketIONative::SyncDisconnect()
 {
-	//PrivateClient->set_reconnect_attempts(0);
 	PrivateClient->sync_close();
 }
 

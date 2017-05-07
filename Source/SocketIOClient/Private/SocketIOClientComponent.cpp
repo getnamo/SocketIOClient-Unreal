@@ -183,10 +183,7 @@ void USocketIOClientComponent::ConnectNative(const FString& InAddressAndPort, co
 	};
 
 	{
-		FSIOLambdaRunnable::RunLambdaOnBackGroundThread([&]
-		{
-			NativeClient->Connect(InAddressAndPort, Query, Headers);
-		});
+		NativeClient->Connect(InAddressAndPort, Query, Headers);
 	}
 }
 
