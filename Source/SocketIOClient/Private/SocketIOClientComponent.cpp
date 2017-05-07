@@ -17,18 +17,8 @@ USocketIOClientComponent::USocketIOClientComponent(const FObjectInitializer &ini
 void USocketIOClientComponent::InitializeComponent()
 {
 	Super::InitializeComponent();
-
-	if (!NativeClient.IsValid())
 	{
-		UE_LOG(SocketIOLog, Log, TEXT("new FSocketIONative"));
-		NativeClient = MakeShareable(new FSocketIONative);
-	}
-	else
-	{
-		//Ensure it's closed
-		Disconnect();
-
-		//Make a new link
+		FScopeLock lock(&AllocationSection);
 		NativeClient = MakeShareable(new FSocketIONative);
 	}
 
@@ -40,21 +30,14 @@ void USocketIOClientComponent::InitializeComponent()
 
 void USocketIOClientComponent::UninitializeComponent()
 {
-	Disconnect();
-	//SyncDisconnect();
-
-	UE_LOG(SocketIOLog, Log, TEXT("UninitializeComponent() call"));
-
-	/*TSharedPtr<sio::client>& ClientToDisconnect = PrivateClient;
-	FSIOLambdaRunnable::RunLambdaOnBackGroundThread([ClientToDisconnect]
+	//This may lock up so run it on a background thread
+	FSIOLambdaRunnable::RunLambdaOnBackGroundThread([&]
 	{
-		//Only delete valid pointers
-		if (ClientToDisconnect.IsValid())
-		{
-			UE_LOG(SocketIOLog, Log, TEXT("sync closing..."));
-			ClientToDisconnect->sync_close();
-		}
-	});*/
+		FScopeLock lock(&AllocationSection);
+		NativeClient = nullptr;
+	});
+
+	//UE_LOG(SocketIOLog, Log, TEXT("UninitializeComponent() call"));
 
 	Super::UninitializeComponent();
 }
@@ -143,33 +126,68 @@ void USocketIOClientComponent::ConnectNative(const FString& InAddressAndPort, co
 	//Set native callback functions
 	NativeClient->OnConnectedCallback = [this](const FString& InSessionId)
 	{
-		bIsConnected = true;
-		SessionId = InSessionId;
-		OnConnected.Broadcast(SessionId);
+		FSIOLambdaRunnable::RunShortLambdaOnGameThread([this, InSessionId]
+		{
+			if (this)
+			{
+				bIsConnected = true;
+				SessionId = InSessionId;
+				OnConnected.Broadcast(SessionId);
+			}
+		});
 	};
+	const FSIOCCloseEventSignature OnDisconnectedSafe = OnDisconnected;
 
-	NativeClient->OnDisconnectedCallback = [this](const ESIOConnectionCloseReason Reason)
+	NativeClient->OnDisconnectedCallback = [OnDisconnectedSafe, this](const ESIOConnectionCloseReason Reason)
 	{
-		bIsConnected = false;
-		OnDisconnected.Broadcast(Reason);
+		FSIOLambdaRunnable::RunShortLambdaOnGameThread([OnDisconnectedSafe, this, Reason]
+		{
+			if (this && OnDisconnectedSafe.IsBound())
+			{
+				bIsConnected = false;
+				OnDisconnectedSafe.Broadcast(Reason);
+			}
+		});
 	};
 
 	NativeClient->OnNamespaceConnectedCallback = [this](const FString& Namespace)
 	{
-		OnSocketNamespaceConnected.Broadcast(Namespace);
+		FSIOLambdaRunnable::RunShortLambdaOnGameThread([this, Namespace]
+		{
+			if (this)
+			{
+				OnSocketNamespaceConnected.Broadcast(Namespace);
+			}
+		});
 	};
 
-	NativeClient->OnNamespaceDisconnectedCallback = [this](const FString& Namespace)
+	const FSIOCSocketEventSignature OnSocketNamespaceDisconnectedSafe = OnSocketNamespaceDisconnected;
+
+	NativeClient->OnNamespaceDisconnectedCallback = [this, OnSocketNamespaceDisconnectedSafe](const FString& Namespace)
 	{
-		OnSocketNamespaceDisconnected.Broadcast(Namespace);
+		FSIOLambdaRunnable::RunShortLambdaOnGameThread([OnSocketNamespaceDisconnectedSafe, this, Namespace]
+		{
+			if (this && OnSocketNamespaceDisconnectedSafe.IsBound())
+			{
+				OnSocketNamespaceDisconnectedSafe.Broadcast(Namespace);
+			}
+		});
 	};
 
 	NativeClient->OnFailCallback = [this]()
 	{
-		OnFail.Broadcast();
+		FSIOLambdaRunnable::RunShortLambdaOnGameThread([this]
+		{
+			OnFail.Broadcast();
+		});
 	};
 
-	NativeClient->Connect(InAddressAndPort, Query, Headers);
+	{
+		FSIOLambdaRunnable::RunLambdaOnBackGroundThread([&]
+		{
+			NativeClient->Connect(InAddressAndPort, Query, Headers);
+		});
+	}
 }
 
 void USocketIOClientComponent::Disconnect()
