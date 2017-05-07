@@ -10,6 +10,7 @@ USocketIOClientComponent::USocketIOClientComponent(const FObjectInitializer &ini
 	bWantsInitializeComponent = true;
 	bAutoActivate = true;
 	NativeClient = nullptr;
+	bAsyncQuitDisconnect = true;
 	AddressAndPort = FString(TEXT("http://localhost:3000"));	//default to 127.0.0.1
 	SessionId = FString(TEXT("invalid"));
 }
@@ -31,11 +32,23 @@ void USocketIOClientComponent::InitializeComponent()
 void USocketIOClientComponent::UninitializeComponent()
 {
 	//This may lock up so run it on a background thread
-	FSIOLambdaRunnable::RunLambdaOnBackGroundThread([&]
+	if (bAsyncQuitDisconnect)
+	{
+		if (bIsConnected)
+		{
+			FSIOLambdaRunnable::RunLambdaOnBackGroundThread([&]
+			{
+				FScopeLock lock(&AllocationSection);
+				NativeClient = nullptr;
+			});
+			return;
+		}
+	}
+	else
 	{
 		FScopeLock lock(&AllocationSection);
-		NativeClient = nullptr;
-	});
+		NativeClient = nullptr;;
+	}
 
 	//UE_LOG(SocketIOLog, Log, TEXT("UninitializeComponent() call"));
 

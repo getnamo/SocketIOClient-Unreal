@@ -50,6 +50,9 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "SocketIO Properties")
 	bool bShouldAutoConnect;
 
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "SocketIO Properties")
+	bool bAsyncQuitDisconnect;
+
 	UPROPERTY(BlueprintReadOnly, Category = "SocketIO Properties")
 	bool bIsConnected;
 

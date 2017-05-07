@@ -10,6 +10,7 @@ FSocketIONative::FSocketIONative()
 	PrivateClient = nullptr;
 	AddressAndPort = FString(TEXT("http://localhost:3000"));	//default to 127.0.0.1
 	SessionId = FString(TEXT("invalid"));
+	bIsConnected = false;
 
 	ClearCallbacks();
 
@@ -37,7 +38,7 @@ void FSocketIONative::Connect(const FString& InAddressAndPort, const TSharedPtr<
 		{
 			bIsConnected = false;
 			SessionId = FString(TEXT("invalid"));
-			UE_LOG(SocketIOLog, Log, TEXT("SocketIO Disconnected"));
+			UE_LOG(SocketIOLog, Log, TEXT("SocketIO Disconnected: %d"), (int32)reason);
 
 			if (OnDisconnectedCallback)
 			{
@@ -119,6 +120,8 @@ void FSocketIONative::Disconnect()
 
 void FSocketIONative::SyncDisconnect()
 {
+	OnDisconnectedCallback(ESIOConnectionCloseReason::CLOSE_REASON_NORMAL);
+	ClearCallbacks();
 	PrivateClient->sync_close();
 }
 
