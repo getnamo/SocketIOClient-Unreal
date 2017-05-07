@@ -402,7 +402,7 @@ NativeClient->EmitRaw(ShareResourceEventName, message);
 with a callback
 
 ```c++
-SIOComponent->EmitRawWithCallback(FString("myRawMessageEventWithAck"), string_message::create(username), [&](message::list const& msg) {
+NativeClient->EmitRawWithCallback(FString("myRawMessageEventWithAck"), string_message::create(username), [&](message::list const& msg) {
 	//got data, handle it here
 });
 ```
