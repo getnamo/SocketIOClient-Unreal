@@ -1,17 +1,16 @@
-// Fill out your copyright notice in the Description page of Project Settings.
 
 #include "SocketIOClientPrivatePCH.h"
 #include "SocketIOClientComponent.h"
 #include "SIOLambdaRunnable.h"
 #include "SIOJConvert.h"
 
-
 USocketIOClientComponent::USocketIOClientComponent(const FObjectInitializer &init) : UActorComponent(init)
 {
 	bShouldAutoConnect = true;
 	bWantsInitializeComponent = true;
 	bAutoActivate = true;
-	ConnectionThread = nullptr;
+	NativeClient = nullptr;
+	bAsyncQuitDisconnect = true;
 	AddressAndPort = FString(TEXT("http://localhost:3000"));	//default to 127.0.0.1
 	SessionId = FString(TEXT("invalid"));
 }
@@ -19,7 +18,10 @@ USocketIOClientComponent::USocketIOClientComponent(const FObjectInitializer &ini
 void USocketIOClientComponent::InitializeComponent()
 {
 	Super::InitializeComponent();
-	PrivateClient = new sio::client;
+	{
+		FScopeLock lock(&AllocationSection);
+		NativeClient = MakeShareable(new FSocketIONative);
+	}
 
 	if (bShouldAutoConnect)
 	{
@@ -29,19 +31,28 @@ void USocketIOClientComponent::InitializeComponent()
 
 void USocketIOClientComponent::UninitializeComponent()
 {
-	SyncDisconnect();
-	Super::UninitializeComponent();
-
-	const sio::client* ClientToDelete = PrivateClient;
-	PrivateClient = nullptr;
-	FSIOLambdaRunnable::RunLambdaOnBackGroundThread([ClientToDelete]
+	//This may lock up so run it on a background thread
+	if (bAsyncQuitDisconnect)
 	{
-		//Only delete valid pointers
-		if (ClientToDelete)
+		if (bIsConnected)
 		{
-			delete ClientToDelete;
+			FSIOLambdaRunnable::RunLambdaOnBackGroundThread([&]
+			{
+				FScopeLock lock(&AllocationSection);
+				NativeClient = nullptr;
+			});
+			return;
 		}
-	});
+	}
+	else
+	{
+		FScopeLock lock(&AllocationSection);
+		NativeClient = nullptr;;
+	}
+
+	//UE_LOG(SocketIOLog, Log, TEXT("UninitializeComponent() call"));
+
+	Super::UninitializeComponent();
 }
 
 bool USocketIOClientComponent::CallBPFunctionWithResponse(UObject* Target, const FString& FunctionName, TArray<TSharedPtr<FJsonValue>> Response)
@@ -107,102 +118,96 @@ bool USocketIOClientComponent::CallBPFunctionWithMessage(UObject* Target, const 
 
 void USocketIOClientComponent::Connect(const FString& InAddressAndPort, USIOJsonObject* Query /*= nullptr*/, USIOJsonObject* Headers /*= nullptr*/)
 {
-	std::string StdAddressString = USIOMessageConvert::StdString(InAddressAndPort);
-	if (InAddressAndPort.IsEmpty())
+	TSharedPtr<FJsonObject> QueryFJson;
+	TSharedPtr<FJsonObject> HeadersFJson;
+
+	if (Query != nullptr)
 	{
-		StdAddressString = USIOMessageConvert::StdString(AddressAndPort);
+		QueryFJson = Query->GetRootObject();
 	}
 
-	const USIOJsonObject* SafeQuery = Query;
-	const USIOJsonObject* SafeHeaders = Headers;
-
-	//Connect to the server on a background thread so it never blocks
-	ConnectionThread = FSIOLambdaRunnable::RunLambdaOnBackGroundThread([&, SafeHeaders, SafeQuery]
+	if (Headers != nullptr)
 	{
-		//Attach the specific connection status events events
+		HeadersFJson = Headers->GetRootObject();
+	}
+	
+	ConnectNative(InAddressAndPort, QueryFJson, HeadersFJson);
+}
 
-		PrivateClient->set_open_listener(sio::client::con_listener([&]() {
-			//too early to get session id here so we defer the connection event until we connect to a namespace
-		}));
-
-		PrivateClient->set_close_listener(sio::client::close_listener([&](sio::client::close_reason const& reason)
+void USocketIOClientComponent::ConnectNative(const FString& InAddressAndPort, const TSharedPtr<FJsonObject>& Query /*= nullptr*/, const TSharedPtr<FJsonObject>& Headers /*= nullptr*/)
+{
+	//Set native callback functions
+	NativeClient->OnConnectedCallback = [this](const FString& InSessionId)
+	{
+		FSIOLambdaRunnable::RunShortLambdaOnGameThread([this, InSessionId]
 		{
-			bIsConnected = false;
-			SessionId = FString(TEXT("invalid"));
-			UE_LOG(SocketIOLog, Log, TEXT("SocketIO Disconnected"));
-			OnDisconnected.Broadcast((ESIOConnectionCloseReason)reason);
-		}));
-
-		PrivateClient->set_socket_open_listener(sio::client::socket_listener([&](std::string const& nsp)
-		{
-			//Special case, we have a latent connection after already having been disconnected
-			if (PrivateClient == nullptr)
-			{
-				return;
-			}
-			if (!bIsConnected)
+			if (this)
 			{
 				bIsConnected = true;
-				SessionId = USIOMessageConvert::FStringFromStd(PrivateClient->get_sessionid());
-
-				UE_LOG(SocketIOLog, Log, TEXT("SocketIO Connected with session: %s"), *SessionId);
+				SessionId = InSessionId;
 				OnConnected.Broadcast(SessionId);
 			}
+		});
+	};
+	const FSIOCCloseEventSignature OnDisconnectedSafe = OnDisconnected;
 
-			FString Namespace = USIOMessageConvert::FStringFromStd(nsp);
-			UE_LOG(SocketIOLog, Log, TEXT("SocketIO connected to namespace: %s"), *Namespace);
-			
-			OnSocketNamespaceConnected.Broadcast(Namespace);
-		}));
-
-		PrivateClient->set_socket_close_listener(sio::client::socket_listener([&](std::string const& nsp)
+	NativeClient->OnDisconnectedCallback = [OnDisconnectedSafe, this](const ESIOConnectionCloseReason Reason)
+	{
+		FSIOLambdaRunnable::RunShortLambdaOnGameThread([OnDisconnectedSafe, this, Reason]
 		{
-			FString Namespace = USIOMessageConvert::FStringFromStd(nsp);
-			UE_LOG(SocketIOLog, Log, TEXT("SocketIO disconnected from namespace: %s"), *Namespace);
-			OnSocketNamespaceDisconnected.Broadcast(USIOMessageConvert::FStringFromStd(nsp));
-		}));
+			if (this && OnDisconnectedSafe.IsBound())
+			{
+				bIsConnected = false;
+				OnDisconnectedSafe.Broadcast(Reason);
+			}
+		});
+	};
 
-		PrivateClient->set_fail_listener(sio::client::con_listener([&]()
+	NativeClient->OnNamespaceConnectedCallback = [this](const FString& Namespace)
+	{
+		FSIOLambdaRunnable::RunShortLambdaOnGameThread([this, Namespace]
 		{
-			UE_LOG(SocketIOLog, Log, TEXT("SocketIO failed to connect."));
+			if (this)
+			{
+				OnSocketNamespaceConnected.Broadcast(Namespace);
+			}
+		});
+	};
+
+	const FSIOCSocketEventSignature OnSocketNamespaceDisconnectedSafe = OnSocketNamespaceDisconnected;
+
+	NativeClient->OnNamespaceDisconnectedCallback = [this, OnSocketNamespaceDisconnectedSafe](const FString& Namespace)
+	{
+		FSIOLambdaRunnable::RunShortLambdaOnGameThread([OnSocketNamespaceDisconnectedSafe, this, Namespace]
+		{
+			if (this && OnSocketNamespaceDisconnectedSafe.IsBound())
+			{
+				OnSocketNamespaceDisconnectedSafe.Broadcast(Namespace);
+			}
+		});
+	};
+
+	NativeClient->OnFailCallback = [this]()
+	{
+		FSIOLambdaRunnable::RunShortLambdaOnGameThread([this]
+		{
 			OnFail.Broadcast();
-		}));
+		});
+	};
 
-		std::map<std::string, std::string> QueryMap = {};
-		std::map<std::string, std::string> HeadersMap = {};
-
-		//fill the headers and query if they're not null
-		if (SafeHeaders != nullptr)
-		{
-			HeadersMap = USIOMessageConvert::JsonObjectToStdStringMap(Headers->GetRootObject());
-		}
-
-		if (SafeQuery != nullptr)
-		{
-			QueryMap = USIOMessageConvert::JsonObjectToStdStringMap(Query->GetRootObject());
-		}
-
-		PrivateClient->connect(StdAddressString, QueryMap, HeadersMap);
-	});
+	{
+		NativeClient->Connect(InAddressAndPort, Query, Headers);
+	}
 }
 
 void USocketIOClientComponent::Disconnect()
 {
-	FSIOLambdaRunnable::RunLambdaOnBackGroundThread([&]
-	{
-		SyncDisconnect();
-	});
+	NativeClient->Disconnect();
 }
 
 void USocketIOClientComponent::SyncDisconnect()
 {
-	UE_LOG(LogTemp, Log, TEXT("Opened: %d ?"), PrivateClient->opened());
-
-	PrivateClient->socket()->off_all();
-	PrivateClient->socket()->off_error();
-	PrivateClient->set_open_listener(nullptr);
-	PrivateClient->set_close_listener(nullptr);
-	PrivateClient->close();
+	NativeClient->SyncDisconnect();
 }
 
 #if PLATFORM_WINDOWS
@@ -212,9 +217,18 @@ void USocketIOClientComponent::SyncDisconnect()
 
 void USocketIOClientComponent::Emit(const FString& EventName, USIOJsonValue* Message, const FString& Namespace /*= FString(TEXT("/"))*/)
 {
-	PrivateClient->socket(USIOMessageConvert::StdString(Namespace))->emit(
-		USIOMessageConvert::StdString(EventName),
-		USIOMessageConvert::ToSIOMessage(Message->GetRootValue()));
+	//Set the message is not null
+	TSharedPtr<FJsonValue> JsonMessage = nullptr;
+	if (Message != nullptr)
+	{
+		JsonMessage = Message->GetRootValue();
+	}
+	else
+	{
+		JsonMessage = MakeShareable(new FJsonValueNull);
+	}
+
+	NativeClient->Emit(EventName, JsonMessage, nullptr, Namespace);
 }
 
 void USocketIOClientComponent::EmitWithCallBack(const FString& EventName, USIOJsonValue* Message /*= nullptr*/, const FString& CallbackFunctionName /*= FString(TEXT(""))*/, UObject* Target /*= nullptr*/, const FString& Namespace /*= FString(TEXT("/"))*/)
@@ -250,22 +264,7 @@ void USocketIOClientComponent::EmitWithCallBack(const FString& EventName, USIOJs
 
 void USocketIOClientComponent::EmitNative(const FString& EventName, const TSharedPtr<FJsonValue>& Message /*= nullptr*/, TFunction< void(const TArray<TSharedPtr<FJsonValue>>&)> CallbackFunction /*= nullptr*/, const FString& Namespace /*= FString(TEXT("/"))*/)
 {
-	const auto SafeCallback = CallbackFunction;
-	EmitRaw(
-		EventName,
-		USIOMessageConvert::ToSIOMessage(Message),
-		[&, SafeCallback](const sio::message::list& MessageList)
-	{
-		TArray<TSharedPtr<FJsonValue>> ValueArray;
-
-		for (int i = 0; i < MessageList.size(); i++)
-		{
-			auto ItemMessagePtr = MessageList[i];
-			ValueArray.Add(USIOMessageConvert::ToJsonValue(ItemMessagePtr));
-		}
-
-		SafeCallback(ValueArray);
-	}, Namespace);
+	NativeClient->Emit(EventName, Message, CallbackFunction, Namespace);
 }
 
 void USocketIOClientComponent::EmitNative(const FString& EventName, const TSharedPtr<FJsonObject>& ObjectMessage /*= nullptr*/, TFunction< void(const TArray<TSharedPtr<FJsonValue>>&)> CallbackFunction /*= nullptr*/, const FString& Namespace /*= FString(TEXT("/"))*/)
@@ -303,31 +302,6 @@ void USocketIOClientComponent::EmitNative(const FString& EventName, UStruct* Str
 	EmitNative(EventName, USIOJConvert::ToJsonObject(Struct, (void*)StructPtr), CallbackFunction, Namespace);
 }
 
-void USocketIOClientComponent::EmitRaw(const FString& EventName, const sio::message::list& MessageList, TFunction<void(const sio::message::list&)> ResponseFunction, const FString& Namespace)
-{
-	const TFunction<void(const sio::message::list&)> SafeFunction = ResponseFunction;
-
-	PrivateClient->socket(USIOMessageConvert::StdString(Namespace))->emit(
-		USIOMessageConvert::StdString(EventName),
-		MessageList, 
-		[&, SafeFunction](const sio::message::list& response) 
-	{
-		if (SafeFunction != nullptr)
-		{
-			//Callback on game thread
-			FFunctionGraphTask::CreateAndDispatchWhenReady([&, SafeFunction, response]
-			{
-				SafeFunction(response);
-			}, TStatId(), nullptr, ENamedThreads::GameThread);
-		}
-	});
-}
-
-void USocketIOClientComponent::EmitRawBinary(const FString& EventName, uint8* Data, int32 DataLength, const FString& Namespace /*= FString(TEXT("/"))*/)
-{
-	PrivateClient->socket(USIOMessageConvert::StdString(Namespace))->emit(USIOMessageConvert::StdString(EventName), std::make_shared<std::string>((char*)Data, DataLength));
-}
-
 #if PLATFORM_WINDOWS
 #pragma endregion Emit
 #pragma region OnEvents
@@ -335,11 +309,11 @@ void USocketIOClientComponent::EmitRawBinary(const FString& EventName, uint8* Da
 
 void USocketIOClientComponent::BindEvent(const FString& EventName, const FString& Namespace)
 {
-	OnRawEvent(EventName, [&](const FString& Event, const sio::message::ptr& RawMessage) {
+	NativeClient->OnRawEvent(EventName, [&](const FString& Event, const sio::message::ptr& RawMessage) {
 		USIOJsonValue* NewValue = NewObject<USIOJsonValue>();
 		auto Value = USIOMessageConvert::ToJsonValue(RawMessage);
 		NewValue->SetRootValue(Value);
-		On.Broadcast(Event, NewValue);
+		OnEvent.Broadcast(Event, NewValue);
 
 	}, Namespace);
 }
@@ -366,59 +340,7 @@ void USocketIOClientComponent::BindEventToFunction(const FString& EventName, con
 
 void USocketIOClientComponent::OnNativeEvent(const FString& EventName, TFunction< void(const FString&, const TSharedPtr<FJsonValue>&)> CallbackFunction, const FString& Namespace /*= FString(TEXT("/"))*/)
 {
-	OnRawEvent(EventName, [&, CallbackFunction](const FString& Event, const sio::message::ptr& RawMessage) {
-		CallbackFunction(Event, USIOMessageConvert::ToJsonValue(RawMessage));
-	}, Namespace);
-}
-
-void USocketIOClientComponent::OnRawEvent(const FString& EventName, TFunction< void(const FString&, const sio::message::ptr&)> CallbackFunction, const FString& Namespace /*= FString(TEXT("/"))*/)
-{
-	const TFunction< void(const FString&, const sio::message::ptr&)> SafeFunction = CallbackFunction;	//copy the function so it remains in context
-
-	PrivateClient->socket(USIOMessageConvert::StdString(Namespace))->on(
-		USIOMessageConvert::StdString(EventName),
-		sio::socket::event_listener_aux(
-			[&, SafeFunction](std::string const& name, sio::message::ptr const& data, bool isAck, sio::message::list &ack_resp)
-	{
-		const FString SafeName = USIOMessageConvert::FStringFromStd(name);
-
-		FFunctionGraphTask::CreateAndDispatchWhenReady([&, SafeFunction, SafeName, data]
-		{
-			SafeFunction(SafeName, data);
-		}, TStatId(), nullptr, ENamedThreads::GameThread);
-	}));
-}
-
-
-void USocketIOClientComponent::OnBinaryEvent(const FString& EventName, TFunction< void(const FString&, const TArray<uint8>&)> CallbackFunction, const FString& Namespace /*= FString(TEXT("/"))*/)
-{
-	const TFunction< void(const FString&, const TArray<uint8>&)> SafeFunction = CallbackFunction;	//copy the function so it remains in context
-
-	PrivateClient->socket(USIOMessageConvert::StdString(Namespace))->on(
-		USIOMessageConvert::StdString(EventName),
-		sio::socket::event_listener_aux(
-			[&, SafeFunction](std::string const& name, sio::message::ptr const& data, bool isAck, sio::message::list &ack_resp)
-	{
-		const FString SafeName = USIOMessageConvert::FStringFromStd(name);
-
-		//Construct raw buffer
-		if (data->get_flag() == sio::message::flag_binary)
-		{
-			TArray<uint8> Buffer;
-			int32 BufferSize = data->get_binary()->size();
-			auto MessageBuffer = data->get_binary();
-			Buffer.Append((uint8*)(MessageBuffer->data()), BufferSize);
-
-			FFunctionGraphTask::CreateAndDispatchWhenReady([&, SafeFunction, SafeName, Buffer]
-			{
-				SafeFunction(SafeName, Buffer);
-			}, TStatId(), nullptr, ENamedThreads::GameThread);
-		}
-		else
-		{
-			UE_LOG(SocketIOLog, Warning, TEXT("Non-binary message received to binary message lambda, check server message data!"));
-		}
-	}));
+	NativeClient->OnEvent(EventName, CallbackFunction, Namespace);
 }
 
 #if PLATFORM_WINDOWS
