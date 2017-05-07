@@ -114,15 +114,16 @@ void FSocketIONative::Connect(const FString& InAddressAndPort, const TSharedPtr<
 
 void FSocketIONative::Disconnect()
 {
-	FSIOLambdaRunnable::RunLambdaOnBackGroundThread([&]
-	{
-		SyncDisconnect();
-	});
+	//Stop trying to reconnect
+	//PrivateClient->set_reconnect_attempts(0);
+	
+	//close the connection
+	PrivateClient->close();
 }
 
 void FSocketIONative::SyncDisconnect()
 {
-	//PrivateClient
+	//PrivateClient->set_reconnect_attempts(0);
 	PrivateClient->sync_close();
 }
 

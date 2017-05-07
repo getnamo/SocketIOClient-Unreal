@@ -1,5 +1,6 @@
 #include "SocketIOClientPrivatePCH.h"
 #include "SocketIONative.h"
+#include "SIOLambdaRunnable.h"
 
 #define LOCTEXT_NAMESPACE "FSocketIOClientModule"
 
@@ -7,12 +8,14 @@ class FSocketIOClientModule : public ISocketIOClientModule
 {
 public:
 	virtual FSocketIONative* NewValidNativePointer() override;
+	void ReleaseNativePointer(FSocketIONative* PointerToRelease) override;
 
 	/** IModuleInterface implementation */
 	virtual void StartupModule() override;
 	virtual void ShutdownModule() override;
 
 private:
+	FCriticalSection DeleteSection;
 	TArray<FSocketIONative*> ModulePointers;
 };
 
@@ -28,11 +31,18 @@ void FSocketIOClientModule::ShutdownModule()
 {
 	// This function may be called during shutdown to clean up your module.  For modules that support dynamic reloading,
 	// we call this function before unloading the module.
+	FScopeLock Lock(&DeleteSection);
 
-	for (auto Pointer : ModulePointers)
+	ModulePointers.Empty();
+	
+	/*for (auto& Pointer : ModulePointers)
 	{
-		delete Pointer;
-	}
+		if (Pointer)
+		{
+			delete Pointer;
+			Pointer = nullptr;
+		}
+	}*/
 }
 
 FSocketIONative* FSocketIOClientModule::NewValidNativePointer()
@@ -41,6 +51,29 @@ FSocketIONative* FSocketIOClientModule::NewValidNativePointer()
 	ModulePointers.Add(NewPointer);
 
 	return NewPointer;
+}
+
+void FSocketIOClientModule::ReleaseNativePointer(FSocketIONative* PointerToRelease)
+{
+	PointerToRelease->OnConnectedCallback = [PointerToRelease](const FString& SessionId)
+	{
+		//If we're still connected, disconnect us
+		if (PointerToRelease)
+		{
+			PointerToRelease->SyncDisconnect();
+		}
+	};
+
+	//Release the pointer on the background thread
+	FSIOLambdaRunnable::RunLambdaOnBackGroundThread([PointerToRelease, this]
+	{
+		FScopeLock Lock(&DeleteSection);
+
+		if (PointerToRelease)
+		{
+			delete PointerToRelease;
+		}
+	});
 }
 
 #undef LOCTEXT_NAMESPACE

@@ -34,4 +34,5 @@ public:
 	* Utility to get module scoped pointers that get deleted when the module unloads.
 	*/
 	virtual FSocketIONative* NewValidNativePointer() { return nullptr; };
+	virtual void ReleaseNativePointer(FSocketIONative* PointerToRelease) {};
 };

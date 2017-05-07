@@ -288,5 +288,8 @@ protected:
 	bool CallBPFunctionWithResponse(UObject* Target, const FString& FunctionName, TArray<TSharedPtr<FJsonValue>> Response);
 	bool CallBPFunctionWithMessage(UObject* Target, const FString& FunctionName, TSharedPtr<FJsonValue> Message);
 
+	FCriticalSection AllocationSection;
 	TSharedPtr<FSocketIONative> NativeClient;
+
+	//FSocketIONative* NativeClient;
 };

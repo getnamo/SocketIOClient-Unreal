@@ -96,7 +96,6 @@ namespace UnrealBuildTool.Rules
 
         public SocketIOClient(TargetInfo Target)
         {
-
             PublicIncludePaths.AddRange(
                 new string[] {
                 "SocketIOClient/Public",
