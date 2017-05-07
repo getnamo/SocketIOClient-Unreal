@@ -154,6 +154,8 @@ To use the C++ code from the plugin add it as a dependency module in your projec
 PublicDependencyModuleNames.AddRange(new string[] { "Core", "CoreUObject", "Engine", "InputCore", "SocketIOClient"});
 ```
 
+This guide assumes you want to use the client component method. See the _FSocketIONative_ section for non-actor based C++ details.
+
 ```#include "SocketIOClientComponent.h"``` and add *USocketIoClientComponent* to your actor of choice via e.g. a UProperty
 
 and *CreateDefaultSubobject* in your constructor
@@ -364,6 +366,10 @@ SIOClientComponent->EmitNative(FString("callbackTest"),  FTestCppStruct::StaticS
 });
 ```
 
+## C++ FSocketIONative
+
+If you do not wish to use UE4 AActors or UObjects, you can use the native base class [FSocketIONative](https://github.com/getnamo/socketio-client-ue4/blob/master/Source/SocketIOClient/Public/SocketIONative.h). Please see the class header for API. It generally follows a similar pattern to ```USocketIOClientComponent``` with the exception of native callbacks which you can for example see in use here: https://github.com/getnamo/socketio-client-ue4/blob/master/Source/SocketIOClient/Private/SocketIOClientComponent.cpp#L140
+
 ### Alternative Raw C++ Complex message using sio::message
 
 see [sio::message](https://github.com/socketio/socket.io-client-cpp/blob/master/src/sio_message.h) for how to form a raw message. Generally it supports a lot of std:: variants e.g. std::string or more complex messages e.g. [socket.io c++ emit readme](https://github.com/socketio/socket.io-client-cpp#emit-an-event). Note that there are static helper functions attached to the component class to convert from std::string to FString and the reverse.
@@ -372,6 +378,12 @@ see [sio::message](https://github.com/socketio/socket.io-client-cpp/blob/master/
 static std::string USIOMessageConvert::StdString(FString UEString);
 
 static FString USIOMessageConvert::FStringFromStd(std::string StdString);
+```
+
+and assuming 
+
+```c++
+FSocketIONative* NativeClient;
 ```
 	
 e.g. emitting *{type:"image"}* object
@@ -384,7 +396,7 @@ auto message = sio::object_message::create();
 message->get_map()["type"] = sio::string_message::create(std::string("image"));
 
 //emit message
-SIOComponent->EmitRaw(ShareResourceEventName, message);
+NativeClient->EmitRaw(ShareResourceEventName, message);
 ```
 
 with a callback
@@ -403,7 +415,7 @@ To receive events you can bind lambdas which makes things awesomely easy e.g.
 #### Binary
 
 ```c++
-SIOComponent->OnBinaryEvent([&](const FString& Name, const TArray<uint8>& Buffer)
+NativeClient->OnBinaryEvent([&](const FString& Name, const TArray<uint8>& Buffer)
 		{
 			//Do something with your buffer
 		}, FString(TEXT("myBinaryReceiveEvent")));
@@ -416,7 +428,7 @@ See [sio::message](https://github.com/socketio/socket.io-client-cpp/blob/master/
 e.g. expecting a result {type:"some type"}
 
 ```c++
-SIOComponent->OnRawEvent([&](const FString& Name, const sio::message::ptr& Message)
+NativeClient->OnRawEvent([&](const FString& Name, const sio::message::ptr& Message)
 		{
 		        //if you expected an object e.g. {}
 			if (Message->get_flag() != sio::message::flag_object)
