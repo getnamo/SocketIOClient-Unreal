@@ -154,7 +154,7 @@ To use the C++ code from the plugin add it as a dependency module in your projec
 PublicDependencyModuleNames.AddRange(new string[] { "Core", "CoreUObject", "Engine", "InputCore", "SocketIOClient"});
 ```
 
-This guide assumes you want to use the client component method. See the _FSocketIONative_ section for non-actor based C++ details.
+This guide assumes you want to use the client component method. See the [_FSocketIONative_](https://github.com/getnamo/socketio-client-ue4#c-fsocketionative) section for non-actor based C++ details.
 
 ```#include "SocketIOClientComponent.h"``` and add *USocketIoClientComponent* to your actor of choice via e.g. a UProperty
 
