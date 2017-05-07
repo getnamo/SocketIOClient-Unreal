@@ -46,7 +46,7 @@ If you want to connect at your own time, you change the default variable *Should
 
 Call *Bind Event* for each event you wish the client to subscribe, e.g. 'chat message'
 
-If you expect to receive events, select your component and in the Details pane press the + to add an 'On' event to your event graph
+If you expect to receive events, select your component and in the Details pane press the + to add an 'OnEvent' event to your event graph
 
 Handle this event for your event types, e.g. printing 'chat message' event strings.
 
