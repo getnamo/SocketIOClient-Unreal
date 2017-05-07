@@ -44,7 +44,7 @@ uint32 FSIOLambdaRunnable::Run()
 	{
 		FunctionPointer();
 	}
-	UE_LOG(LogClass, Log, TEXT("FLambdaRunnable %d Run complete"), Number);
+	//UE_LOG(LogClass, Log, TEXT("FLambdaRunnable %d Run complete"), Number);
 	return 0;
 }
 
@@ -56,7 +56,6 @@ void FSIOLambdaRunnable::Stop()
 
 void FSIOLambdaRunnable::Kill()
 {
-	UE_LOG(LogClass, Log, TEXT("Yolo!"));
 	Thread->Kill(false);
 	Finished = true;
 }
