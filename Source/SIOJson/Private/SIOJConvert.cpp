@@ -377,7 +377,7 @@ void USIOJConvert::ReplaceJsonValueNamesWithMap(TSharedPtr<FJsonValue>& JsonValu
 
 		for (auto Pair : AllValues)
 		{
-			if (SubMap.Num() > 0)
+			if (SubMap.Num() > 0 && SubMap.Contains(Pair.Key))
 			{
 				//Get the long key for entry
 				const FString& LongKey = SubMap[Pair.Key]->LongKey;
