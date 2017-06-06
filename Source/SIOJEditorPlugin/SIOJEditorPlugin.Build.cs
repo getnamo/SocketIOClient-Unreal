@@ -4,8 +4,8 @@ using UnrealBuildTool;
 
 public class SIOJEditorPlugin : ModuleRules
 {
-	public SIOJEditorPlugin(TargetInfo Target)
-	{
+	public SIOJEditorPlugin(ReadOnlyTargetRules Target) : base(Target)
+    {
 		
 		PublicIncludePaths.AddRange(
 			new string[] {

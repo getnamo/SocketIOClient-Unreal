@@ -20,7 +20,7 @@ namespace UnrealBuildTool.Rules
             get { return Path.GetFullPath(Path.Combine(ThirdPartyPath, "Boost")); }
         }
 
-        public bool LoadLib(TargetInfo Target)
+        public bool LoadLib(ReadOnlyTargetRules Target)
         {
             bool isLibrarySupported = false;
 
@@ -94,7 +94,7 @@ namespace UnrealBuildTool.Rules
             return isLibrarySupported;
         }
 
-        public SocketIOClient(TargetInfo Target)
+        public SocketIOClient(ReadOnlyTargetRules Target) : base(Target)
         {
             PublicIncludePaths.AddRange(
                 new string[] {

@@ -6,8 +6,8 @@ namespace UnrealBuildTool.Rules
 {
 	public class SIOJson : ModuleRules
 	{
-		public SIOJson(TargetInfo Target)
-		{
+		public SIOJson(ReadOnlyTargetRules Target) : base(Target)
+        {
 			PrivateIncludePaths.AddRange(
 				new string[] {
 					"SIOJson/Private",
