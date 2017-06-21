@@ -370,7 +370,7 @@ SIOClientComponent->EmitNative(FString("callbackTest"),  FTestCppStruct::StaticS
 
 If you do not wish to use UE4 AActors or UObjects, you can use the native base class [FSocketIONative](https://github.com/getnamo/socketio-client-ue4/blob/master/Source/SocketIOClient/Public/SocketIONative.h). Please see the class header for API. It generally follows a similar pattern to ```USocketIOClientComponent``` with the exception of native callbacks which you can for example see in use here: https://github.com/getnamo/socketio-client-ue4/blob/master/Source/SocketIOClient/Private/SocketIOClientComponent.cpp#L140
 
-### Alternative Raw C++ Complex message using sio::message
+## Alternative Raw C++ Complex message using sio::message
 
 see [sio::message](https://github.com/socketio/socket.io-client-cpp/blob/master/src/sio_message.h) for how to form a raw message. Generally it supports a lot of std:: variants e.g. std::string or more complex messages e.g. [socket.io c++ emit readme](https://github.com/socketio/socket.io-client-cpp#emit-an-event). Note that there are static helper functions attached to the component class to convert from std::string to FString and the reverse.
 
