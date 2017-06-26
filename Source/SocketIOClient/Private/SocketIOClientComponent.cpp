@@ -31,6 +31,8 @@ void USocketIOClientComponent::InitializeComponent()
 
 void USocketIOClientComponent::UninitializeComponent()
 {
+	Super::UninitializeComponent();
+
 	//This may lock up so run it on a background thread
 	if (bAsyncQuitDisconnect)
 	{
@@ -51,8 +53,6 @@ void USocketIOClientComponent::UninitializeComponent()
 	}
 
 	//UE_LOG(SocketIOLog, Log, TEXT("UninitializeComponent() call"));
-
-	Super::UninitializeComponent();
 }
 
 bool USocketIOClientComponent::CallBPFunctionWithResponse(UObject* Target, const FString& FunctionName, TArray<TSharedPtr<FJsonValue>> Response)
