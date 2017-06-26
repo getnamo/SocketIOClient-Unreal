@@ -41,7 +41,6 @@ void USocketIOClientComponent::UninitializeComponent()
 				FScopeLock lock(&AllocationSection);
 				NativeClient = nullptr;
 			});
-			return;
 		}
 	}
 	else
@@ -51,7 +50,6 @@ void USocketIOClientComponent::UninitializeComponent()
 	}
 
 	//UE_LOG(SocketIOLog, Log, TEXT("UninitializeComponent() call"));
-
 	Super::UninitializeComponent();
 }
 
