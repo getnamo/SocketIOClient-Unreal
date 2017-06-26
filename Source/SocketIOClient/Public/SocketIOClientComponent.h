@@ -285,7 +285,8 @@ public:
 
 	virtual void InitializeComponent() override;
 	virtual void UninitializeComponent() override;
-
+	virtual void BeginPlay() override;
+	
 protected:
 
 	bool CallBPFunctionWithResponse(UObject* Target, const FString& FunctionName, TArray<TSharedPtr<FJsonValue>> Response);

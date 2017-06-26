@@ -23,6 +23,11 @@ void USocketIOClientComponent::InitializeComponent()
 		NativeClient = MakeShareable(new FSocketIONative);
 	}
 
+}
+
+void USocketIOClientComponent::BeginPlay()
+{
+	Super::BeginPlay();
 	if (bShouldAutoConnect)
 	{
 		Connect(AddressAndPort);	//connect to default address
