@@ -27,7 +27,7 @@ public:
 	*/
 	static inline bool IsAvailable()
 	{
-		return FModuleManager::Get().IsModuleLoaded("LeapMotionC");
+		return FModuleManager::Get().IsModuleLoaded("SocketIOClient");
 	}
 
 	/** 
