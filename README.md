@@ -32,6 +32,10 @@ Missing static libraries and support for platforms:
  6.	Restart the Editor and open your project again. Plugin is now ready to use.
 
 
+## Example Project - Chat
+
+For an example project check out https://github.com/getnamo/socketio-client-ue4-example which contains both server and client parts required to try out socket.io based chat, from UE4 to any other client and vice versa.
+
 ## How to use - BP Basics
 
 Add the SocketIO Client Component to your blueprint actor of choice 
