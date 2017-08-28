@@ -200,7 +200,7 @@ void USIOJRequestJSON::ApplyURL(const FString& Url, USIOJsonObject *&Result, UOb
 	HttpRequest->SetURL(Url);
 
 	// Prepare latent action
-	if (UWorld* World = GEngine->GetWorldFromContextObject(WorldContextObject))
+	if (UWorld* World = GEngine->GetWorldFromContextObject(WorldContextObject, EGetWorldErrorMode::LogAndReturnNull))
 	{
 		FLatentActionManager& LatentActionManager = World->GetLatentActionManager();
 		FSIOJLatentAction<USIOJsonObject*> *Kont = LatentActionManager.FindExistingAction<FSIOJLatentAction<USIOJsonObject*>>(LatentInfo.CallbackTarget, LatentInfo.UUID);
