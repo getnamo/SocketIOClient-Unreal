@@ -1,13 +1,13 @@
 The MIT License (MIT)
 
 Socket.IO Client UE4
-Copyright (c) 2016 Jan Kaniewski (Getnamo)
+Copyright (c) 2016-present, Jan Kaniewski (Getnamo)
 
 VARest
-Copyright (c) 2014 Vladimir Alyamkin
+Copyright (c) 2014-present, Vladimir Alyamkin
 
-Socket.io-client-cpp
-Copyright (c) 2015, Melo Yao
+Socket.IO C++ Client
+Copyright (c) 2015-present, Melo Yao
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
