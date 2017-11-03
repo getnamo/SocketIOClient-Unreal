@@ -249,7 +249,15 @@ FString USIOJsonValue::AsString() const
 		return FString();
 	}
 
-	return JsonVal->AsString();
+	//Auto-convert non-strings instead of getting directly
+	if (JsonVal->Type != EJson::String)
+	{
+		return EncodeJson();
+	}
+	else
+	{
+		return JsonVal->AsString();
+	}
 }
 
 bool USIOJsonValue::AsBool() const
