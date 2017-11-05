@@ -252,23 +252,21 @@ void USIOJConvert::TrimValueKeyNames(const TSharedPtr<FJsonValue>& JsonValue)
 
 			bool DidNeedTrimming = TrimKey(Key, TrimmedKey);
 
-			//Positive count? trim it
+			//keep attempting sub keys even if we have a valid string
+			auto SubValue = Pair.Value;
+			TrimValueKeyNames(SubValue);
+
 			if (DidNeedTrimming)
 			{
-				//Trim subvalue if applicable
-				auto SubValue = Pair.Value;
-				TrimValueKeyNames(SubValue);
-
+				//Replace field names with the trimmed key
 				JsonObject->SetField(TrimmedKey, SubValue);
 				JsonObject->RemoveField(Key);
-
-				//UE_LOG(LogTemp, Log, TEXT("orig: %s, trimmed: %s"), *Pair.Key, *TrimmedKey);
-			}
-			else
-			{
-				//UE_LOG(LogTemp, Log, TEXT("untrimmed: %s"), *Pair.Key);
 			}
 		}
+	}
+	else
+	{
+		//UE_LOG(LogTemp, Warning, TEXT("TrimValueKeyNames:: uncaught type is: %d"), (int)JsonValue->Type);
 	}
 }
 
@@ -292,7 +290,7 @@ bool USIOJConvert::TrimKey(const FString& InLongKey, FString& OutTrimmedKey)
 void USIOJConvert::SetTrimmedKeyMapForStruct(TSharedPtr<FTrimmedKeyMap>& InMap, UStruct* Struct)
 {
 	//Get the child fields
-	auto FieldPtr = Struct->Children;
+	UField* FieldPtr = Struct->Children;
 
 	//If it hasn't been set, the long key is the json standardized long name
 	if (InMap->LongKey.IsEmpty())
@@ -301,7 +299,8 @@ void USIOJConvert::SetTrimmedKeyMapForStruct(TSharedPtr<FTrimmedKeyMap>& InMap, 
 	}
 
 	//For each child field...
-	while (FieldPtr != NULL) {
+	while (FieldPtr != NULL)
+	{
 		//Map our trimmed name to our full name
 		const FString& LowerKey = FJsonObjectConverter::StandardizeCase(FieldPtr->GetName());
 		FString TrimmedKey;
@@ -319,21 +318,41 @@ void USIOJConvert::SetTrimmedKeyMapForStruct(TSharedPtr<FTrimmedKeyMap>& InMap, 
 
 		//Did we get a substructure?
 		UStructProperty* SubStruct = Cast<UStructProperty>(FieldPtr);
-		if (SubStruct != NULL)
+		UArrayProperty* ArrayProp = Cast<UArrayProperty>(FieldPtr);
+		UMapProperty* MapProperty = Cast<UMapProperty>(FieldPtr);
+
+		//We can also get a map which we need to handle
+		//UProperty* ObjectProp = Cast<UProperty>(FieldPtr);
+
+		if (SubStruct != nullptr)
 		{
 			//We did, embed the sub-map
 			SetTrimmedKeyMapForStruct(SubMap, SubStruct->Struct);
 		}
 
 		//Did we get a sub-array?
-		UArrayProperty* ArrayProp = Cast<UArrayProperty>(FieldPtr);
-		if (ArrayProp != NULL)
+		else if (ArrayProp != nullptr)
 		{
 			//set the inner map for the inner property
 			SetTrimmedKeyMapForProp(SubMap, ArrayProp->Inner);
 
 			//UE_LOG(LogTemp, Log, TEXT("found array: %s"), *ArrayProp->GetName());
 		}
+		else if (MapProperty != nullptr)
+		{
+			UE_LOG(LogTemp, Log, TEXT("I'm a tmap: %s"), *MapProperty->GetName());
+			SetTrimmedKeyMapForProp(SubMap, MapProperty->ValueProp);
+		}
+
+		//Debug types
+		/*if (ObjectProp)
+		{
+			UE_LOG(LogTemp, Log, TEXT("found map: %s, %s, type: %s, %s"),
+				*ObjectProp->GetName(),
+				*ObjectProp->GetNameCPP(),
+				*ObjectProp->GetClass()->GetFName().ToString(),
+				*ObjectProp->GetCPPType());
+		}*/
 
 		InMap->SubMap.Add(TrimmedKey, SubMap);
 		//UE_LOG(LogTemp, Log, TEXT("long: %s, trim: %s, is struct: %d"), *SubMap->LongKey, *TrimmedKey, SubStruct != NULL);
@@ -349,18 +368,21 @@ void USIOJConvert::SetTrimmedKeyMapForProp(TSharedPtr<FTrimmedKeyMap>& InMap, UP
 
 	//UE_LOG(LogTemp, Log, TEXT("got prop: %s"), *InnerProperty->GetName());
 	UStructProperty* SubStruct = Cast<UStructProperty>(InnerProperty);
-	if (SubStruct != NULL)
+	UArrayProperty* ArrayProp = Cast<UArrayProperty>(InnerProperty);
+
+	if (SubStruct != nullptr)
 	{
 		//We did, embed the sub-map
 		SetTrimmedKeyMapForStruct(InMap, SubStruct->Struct);
 	}
-
 	//Did we get a sub-array?
-	UArrayProperty* ArrayProp = Cast<UArrayProperty>(InnerProperty);
-	if (ArrayProp != NULL)
+	else if (ArrayProp != nullptr)
 	{
 		SetTrimmedKeyMapForProp(InMap, ArrayProp->Inner);
-		
+	}
+	else if (MapProperty != nullptr)
+	{
+		SetTrimmedKeyMapForProp(InMap, MapProperty->ValueProp);
 	}
 }
 
