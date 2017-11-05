@@ -369,6 +369,7 @@ void USIOJConvert::SetTrimmedKeyMapForProp(TSharedPtr<FTrimmedKeyMap>& InMap, UP
 	//UE_LOG(LogTemp, Log, TEXT("got prop: %s"), *InnerProperty->GetName());
 	UStructProperty* SubStruct = Cast<UStructProperty>(InnerProperty);
 	UArrayProperty* ArrayProp = Cast<UArrayProperty>(InnerProperty);
+	UMapProperty* MapProperty = Cast<UMapProperty>(InnerProperty);
 
 	if (SubStruct != nullptr)
 	{
