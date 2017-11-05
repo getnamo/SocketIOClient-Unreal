@@ -320,12 +320,34 @@ TArray<uint8> USIOJsonValue::AsBinary()
 	}
 	
 	//binary object pretending & starts with non-json format? it's our disguise binary
-	if (JsonVal->Type == EJson::String && 
-		FJsonValueBinary::IsBinary(JsonVal))
+	if (JsonVal->Type == EJson::String)
 	{
-		//Valid binary available
-		return FJsonValueBinary::AsBinary(JsonVal);
+		//it's a legit binary
+		if (FJsonValueBinary::IsBinary(JsonVal))
+		{
+			//Valid binary available
+			return FJsonValueBinary::AsBinary(JsonVal);
+		}
+
+		//It's a string, decode as if hex encoded binary
+		else
+		{
+			const FString& HexString = JsonVal->AsString();
+
+			TArray<uint8> ByteArray;
+			ByteArray.AddUninitialized(HexString.Len() / 2);
+
+			bool DidConvert = FString::ToHexBlob(HexString, ByteArray.GetData(), ByteArray.Num());
+			
+			//Empty our array if conversion failed
+			if (!DidConvert)
+			{
+				ByteArray.Empty();
+			}
+			return ByteArray;
+		}
 	}
+	//Not a binary nor binary string, return empty array
 	else
 	{
 		//Empty array
