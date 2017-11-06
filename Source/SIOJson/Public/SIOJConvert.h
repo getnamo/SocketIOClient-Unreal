@@ -9,6 +9,8 @@ struct FTrimmedKeyMap
 {
 	FString LongKey;
 	TMap<FString, TSharedPtr<FTrimmedKeyMap>> SubMap;
+
+	FString ToString();
 };
 
 /**

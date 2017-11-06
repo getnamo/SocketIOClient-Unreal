@@ -5,6 +5,22 @@
 typedef TJsonWriterFactory< TCHAR, TCondensedJsonPrintPolicy<TCHAR> > FCondensedJsonStringWriterFactory;
 typedef TJsonWriter< TCHAR, TCondensedJsonPrintPolicy<TCHAR> > FCondensedJsonStringWriter;
 
+//The one key that will break
+#define TMAP_STRING TEXT("!__!INTERNAL_TMAP")
+
+
+FString FTrimmedKeyMap::ToString()
+{
+	FString SubMapString;
+	for (auto Pair : SubMap)
+	{
+		FString PairString = FString::Printf(TEXT("{%s:%s}"), *Pair.Key, *Pair.Value->ToString());
+		SubMapString.Append(PairString);
+		SubMapString.Append(",");
+	}
+	return FString::Printf(TEXT("{%s:%s}"), *LongKey, *SubMapString);
+}
+
 FString USIOJConvert::ToJsonString(const TSharedPtr<FJsonObject>& JsonObject)
 {
 	FString OutputString;
@@ -216,6 +232,9 @@ bool USIOJConvert::JsonObjectToUStruct(TSharedPtr<FJsonObject> JsonObject, UStru
 		TSharedPtr<FTrimmedKeyMap> KeyMap = MakeShareable(new FTrimmedKeyMap);
 		SetTrimmedKeyMapForStruct(KeyMap, Struct);
 
+		//Print our keymap for debug
+		//UE_LOG(LogTemp, Log, TEXT("Keymap: %s"), *KeyMap->ToString());
+
 		//Adjust our passed in JsonObject to use the long key names
 		TSharedPtr<FJsonValue> JsonValue = MakeShareable(new FJsonValueObject(JsonObject));
 		ReplaceJsonValueNamesWithMap(JsonValue, KeyMap);
@@ -252,23 +271,21 @@ void USIOJConvert::TrimValueKeyNames(const TSharedPtr<FJsonValue>& JsonValue)
 
 			bool DidNeedTrimming = TrimKey(Key, TrimmedKey);
 
-			//Positive count? trim it
+			//keep attempting sub keys even if we have a valid string
+			auto SubValue = Pair.Value;
+			TrimValueKeyNames(SubValue);
+
 			if (DidNeedTrimming)
 			{
-				//Trim subvalue if applicable
-				auto SubValue = Pair.Value;
-				TrimValueKeyNames(SubValue);
-
+				//Replace field names with the trimmed key
 				JsonObject->SetField(TrimmedKey, SubValue);
 				JsonObject->RemoveField(Key);
-
-				//UE_LOG(LogTemp, Log, TEXT("orig: %s, trimmed: %s"), *Pair.Key, *TrimmedKey);
-			}
-			else
-			{
-				//UE_LOG(LogTemp, Log, TEXT("untrimmed: %s"), *Pair.Key);
 			}
 		}
+	}
+	else
+	{
+		//UE_LOG(LogTemp, Warning, TEXT("TrimValueKeyNames:: uncaught type is: %d"), (int)JsonValue->Type);
 	}
 }
 
@@ -292,7 +309,7 @@ bool USIOJConvert::TrimKey(const FString& InLongKey, FString& OutTrimmedKey)
 void USIOJConvert::SetTrimmedKeyMapForStruct(TSharedPtr<FTrimmedKeyMap>& InMap, UStruct* Struct)
 {
 	//Get the child fields
-	auto FieldPtr = Struct->Children;
+	UField* FieldPtr = Struct->Children;
 
 	//If it hasn't been set, the long key is the json standardized long name
 	if (InMap->LongKey.IsEmpty())
@@ -301,7 +318,8 @@ void USIOJConvert::SetTrimmedKeyMapForStruct(TSharedPtr<FTrimmedKeyMap>& InMap, 
 	}
 
 	//For each child field...
-	while (FieldPtr != NULL) {
+	while (FieldPtr != nullptr)
+	{
 		//Map our trimmed name to our full name
 		const FString& LowerKey = FJsonObjectConverter::StandardizeCase(FieldPtr->GetName());
 		FString TrimmedKey;
@@ -319,21 +337,39 @@ void USIOJConvert::SetTrimmedKeyMapForStruct(TSharedPtr<FTrimmedKeyMap>& InMap, 
 
 		//Did we get a substructure?
 		UStructProperty* SubStruct = Cast<UStructProperty>(FieldPtr);
-		if (SubStruct != NULL)
+		UArrayProperty* ArrayProp = Cast<UArrayProperty>(FieldPtr);
+		UMapProperty* MapProperty = Cast<UMapProperty>(FieldPtr);
+
+		if (SubStruct != nullptr)
 		{
 			//We did, embed the sub-map
 			SetTrimmedKeyMapForStruct(SubMap, SubStruct->Struct);
 		}
 
 		//Did we get a sub-array?
-		UArrayProperty* ArrayProp = Cast<UArrayProperty>(FieldPtr);
-		if (ArrayProp != NULL)
+		else if (ArrayProp != nullptr)
 		{
 			//set the inner map for the inner property
-			SetTrimmedKeyMapForProp(SubMap, ArrayProp->Inner);
-
 			//UE_LOG(LogTemp, Log, TEXT("found array: %s"), *ArrayProp->GetName());
+			SetTrimmedKeyMapForProp(SubMap, ArrayProp->Inner);
 		}
+		else if (MapProperty != nullptr)
+		{
+			//UE_LOG(LogTemp, Log, TEXT("I'm a tmap: %s"), *MapProperty->GetName());
+			SetTrimmedKeyMapForProp(SubMap, MapProperty);
+		}
+
+		//Debug types
+		/*
+		UProperty* ObjectProp = Cast<UProperty>(FieldPtr);
+		if (ObjectProp)
+		{
+			UE_LOG(LogTemp, Log, TEXT("found map: %s, %s, type: %s, %s"),
+				*ObjectProp->GetName(),
+				*ObjectProp->GetNameCPP(),
+				*ObjectProp->GetClass()->GetFName().ToString(),
+				*ObjectProp->GetCPPType());
+		}*/
 
 		InMap->SubMap.Add(TrimmedKey, SubMap);
 		//UE_LOG(LogTemp, Log, TEXT("long: %s, trim: %s, is struct: %d"), *SubMap->LongKey, *TrimmedKey, SubStruct != NULL);
@@ -349,18 +385,30 @@ void USIOJConvert::SetTrimmedKeyMapForProp(TSharedPtr<FTrimmedKeyMap>& InMap, UP
 
 	//UE_LOG(LogTemp, Log, TEXT("got prop: %s"), *InnerProperty->GetName());
 	UStructProperty* SubStruct = Cast<UStructProperty>(InnerProperty);
-	if (SubStruct != NULL)
+	UArrayProperty* ArrayProp = Cast<UArrayProperty>(InnerProperty);
+	UMapProperty* MapProperty = Cast<UMapProperty>(InnerProperty);
+
+	if (SubStruct != nullptr)
 	{
 		//We did, embed the sub-map
 		SetTrimmedKeyMapForStruct(InMap, SubStruct->Struct);
 	}
-
 	//Did we get a sub-array?
-	UArrayProperty* ArrayProp = Cast<UArrayProperty>(InnerProperty);
-	if (ArrayProp != NULL)
+	else if (ArrayProp != nullptr)
 	{
 		SetTrimmedKeyMapForProp(InMap, ArrayProp->Inner);
-		
+	}
+	else if (MapProperty != nullptr)
+	{
+		//Make a special submap with special TMAP identifier key
+		TSharedPtr<FTrimmedKeyMap> SubMap = MakeShareable(new FTrimmedKeyMap);
+		SubMap->LongKey = TMAP_STRING;
+		InMap->SubMap.Add(SubMap->LongKey, SubMap);
+
+		//Take the value property and set it as it's unique child
+		SetTrimmedKeyMapForProp(SubMap, MapProperty->ValueProp);
+
+		//Each child in the JSON object map will use the same structure (it's a UE4 limitation of maps anyway
 	}
 }
 
@@ -373,9 +421,18 @@ void USIOJConvert::ReplaceJsonValueNamesWithMap(TSharedPtr<FJsonValue>& JsonValu
 		auto SubMap = KeyMap->SubMap;
 		auto AllValues = Object->Values;
 
+		FString PreviewPreValue = USIOJConvert::ToJsonString(Object);
+		//UE_LOG(LogTemp, Log, TEXT("Rep::PreObject: <%s>"), *PreviewPreValue);
+
 		for (auto Pair : AllValues)
 		{
-			if (SubMap.Num() > 0 && SubMap.Contains(Pair.Key))
+			if (SubMap.Contains(TMAP_STRING))
+			{
+				FString TMapString = FString(TMAP_STRING);
+				//If we found a tmap, replace each sub key with list of keys
+				ReplaceJsonValueNamesWithMap(Pair.Value, SubMap[TMapString]);
+			}
+			else if (SubMap.Num() > 0 && SubMap.Contains(Pair.Key))
 			{
 				//Get the long key for entry
 				const FString& LongKey = SubMap[Pair.Key]->LongKey;
@@ -391,6 +448,9 @@ void USIOJConvert::ReplaceJsonValueNamesWithMap(TSharedPtr<FJsonValue>& JsonValu
 				}
 			}
 		}
+
+		FString PreviewPostValue = USIOJConvert::ToJsonString(Object);
+		//UE_LOG(LogTemp, Log, TEXT("Rep::PostObject: <%s>"), *PreviewPostValue);
 	}
 	else if (JsonValue->Type == EJson::Array)
 	{
@@ -402,3 +462,4 @@ void USIOJConvert::ReplaceJsonValueNamesWithMap(TSharedPtr<FJsonValue>& JsonValu
 		}
 	}
 }
+
