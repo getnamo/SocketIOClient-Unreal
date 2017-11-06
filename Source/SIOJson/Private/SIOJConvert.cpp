@@ -340,9 +340,6 @@ void USIOJConvert::SetTrimmedKeyMapForStruct(TSharedPtr<FTrimmedKeyMap>& InMap, 
 		UArrayProperty* ArrayProp = Cast<UArrayProperty>(FieldPtr);
 		UMapProperty* MapProperty = Cast<UMapProperty>(FieldPtr);
 
-		//We can also get a map which we need to handle
-		//UProperty* ObjectProp = Cast<UProperty>(FieldPtr);
-
 		if (SubStruct != nullptr)
 		{
 			//We did, embed the sub-map
@@ -363,7 +360,9 @@ void USIOJConvert::SetTrimmedKeyMapForStruct(TSharedPtr<FTrimmedKeyMap>& InMap, 
 		}
 
 		//Debug types
-		/*if (ObjectProp)
+		/*
+		UProperty* ObjectProp = Cast<UProperty>(FieldPtr);
+		if (ObjectProp)
 		{
 			UE_LOG(LogTemp, Log, TEXT("found map: %s, %s, type: %s, %s"),
 				*ObjectProp->GetName(),
