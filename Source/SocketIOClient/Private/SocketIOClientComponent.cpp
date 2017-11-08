@@ -169,14 +169,8 @@ bool USocketIOClientComponent::CallBPFunctionWithResponse(UObject* Target, const
 			FString Inner;
 			ArrayProp->GetCPPMacroType(Inner);
 
-			//array of USIOJsonValue?
-			if (Inner.Equals("USIOJsonObject*"))
-			{
-				Target->ProcessEvent(Function, &ResponseJsonValue);
-				return true;
-			}
-			//byte array?
-			else if (Inner.Equals("uint8"))
+			//byte array is the only supported version
+			if (Inner.Equals("uint8"))
 			{
 				TArray<uint8> Bytes = ResponseJsonValue->AsArray()[0]->AsBinary();
 				Target->ProcessEvent(Function, &Bytes);
@@ -185,7 +179,8 @@ bool USocketIOClientComponent::CallBPFunctionWithResponse(UObject* Target, const
 		}
 	}
 
-	return true;
+	UE_LOG(SocketIOLog, Warning, TEXT("CallFunctionByNameWithArguments: Function '%s' signature not supported expected <%s>"), *FunctionName, *ResponseJsonValue->EncodeJson());
+	return false;
 }
 
 bool USocketIOClientComponent::CallBPFunctionWithMessage(UObject* Target, const FString& FunctionName, TSharedPtr<FJsonValue> Message)
