@@ -12,7 +12,7 @@ enum ESIOConnectionCloseReason
 	CLOSE_REASON_DROP
 };
 
-class FSocketIONative
+SOCKETIOCLIENT_API class FSocketIONative
 {
 public:
 
