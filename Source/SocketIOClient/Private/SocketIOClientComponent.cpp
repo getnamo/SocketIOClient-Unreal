@@ -67,7 +67,23 @@ bool USocketIOClientComponent::CallBPFunctionWithResponse(UObject* Target, const
 		return false;
 	}
 
-	auto ResponseJsonValue = USIOJConvert::ToSIOJsonValue(Response);
+	//Check function signature
+	TFieldIterator<UProperty> IteratorA(Function);
+
+	while (IteratorA && (IteratorA->PropertyFlags & CPF_Parm))
+	{
+		UProperty* PropA = *IteratorA;
+		FString PropertyType = PropA->GetCPPType();
+
+		FString MyOtherType = USIOJsonValue::StaticClass()->GetFName().ToString();
+		UE_LOG(LogTemp, Log, TEXT("%s vs %s"), *PropertyType, *MyOtherType);
+
+		++IteratorA;
+	}
+
+	
+
+	/*auto ResponseJsonValue = USIOJConvert::ToSIOJsonValue(Response);
 
 	struct FDynamicArgs
 	{
@@ -86,7 +102,7 @@ bool USocketIOClientComponent::CallBPFunctionWithResponse(UObject* Target, const
 	Args.Arg02 = ResponseJsonValue;
 
 	//Call the function
-	Target->ProcessEvent(Function, &Args);
+	Target->ProcessEvent(Function, &Args);*/
 
 	return true;
 }
