@@ -70,13 +70,12 @@ bool USocketIOClientComponent::CallBPFunctionWithResponse(UObject* Target, const
 	//Check function signature
 	TFieldIterator<UProperty> IteratorA(Function);
 
-	TArray<FString> Properties;
+	TArray<UProperty*> Properties;
 	while (IteratorA && (IteratorA->PropertyFlags & CPF_Parm))
 	{
 		UProperty* PropA = *IteratorA;
-		FString PropertyType = PropA->GetCPPType();
-		UE_LOG(LogTemp, Log, TEXT("%s"), *PropertyType);
-		Properties.Add(PropertyType);
+		UE_LOG(LogTemp, Log, TEXT("%s"), *PropA->GetCPPType());
+		Properties.Add(PropA);
 		++IteratorA;
 	}
 
@@ -110,7 +109,7 @@ bool USocketIOClientComponent::CallBPFunctionWithResponse(UObject* Target, const
 
 		//add the full response array as second param
 		Args.Arg02 = ResponseJsonValue;
-		const FString& FirstParam = Properties[0];
+		const FString& FirstParam = Properties[0]->GetCPPType();
 		auto FirstFJsonValue = Response[0];
 
 		UE_LOG(LogTemp, Log, TEXT("First is: %s"), *FirstParam);
@@ -119,9 +118,11 @@ bool USocketIOClientComponent::CallBPFunctionWithResponse(UObject* Target, const
 		if (FirstParam.Equals("USIOJsonValue*")) ////USIOJsonValue::StaticClass()->GetFName().ToString()
 		{
 			//convenience wrapper, response is a single object
-			USIOJsonValue* Value= NewObject<USIOJsonValue>();
+			USIOJsonValue* Value = NewObject<USIOJsonValue>();
 			Value->SetRootValue(FirstFJsonValue);
 			Args.Arg01 = Value;
+			Target->ProcessEvent(Function, &Args);
+			return true;
 		}
 		//SIOJsonObject?
 		else if (FirstParam.Equals("USIOJsonObject*"))
@@ -130,41 +131,61 @@ bool USocketIOClientComponent::CallBPFunctionWithResponse(UObject* Target, const
 			USIOJsonObject* ObjectValue = NewObject<USIOJsonObject>();
 			ObjectValue->SetRootObject(FirstFJsonValue->AsObject());
 			Args.Arg01 = ObjectValue;
+			Target->ProcessEvent(Function, &Args);
+			return true;
 		}
 		//String?
 		else if (FirstParam.Equals("FString"))
 		{
-			//UStrProperty* Property = NewObject<UStrProperty>(this);
 			FString StringValue = FirstFJsonValue->AsString();
-			//Property->SetPropertyValue(Property->ContainerPtrToValuePtr<FString>(StringValue), FString("String"));
 			
-			Args.Arg01 = (void*)*StringValue;
+			Target->ProcessEvent(Function, &StringValue);
+			return true;
 		}
 		//Float?
 		else if (FirstParam.Equals("float"))
 		{
 			float NumberValue = (float)FirstFJsonValue->AsNumber();
-			Args.Arg01 = &NumberValue;
+			Target->ProcessEvent(Function, &NumberValue);
+			return true;
 		}
 		//Int?
 		else if (FirstParam.Equals("int32"))
 		{
 			int NumberValue = (int)FirstFJsonValue->AsNumber();
-			Args.Arg01 = &NumberValue;
+			Target->ProcessEvent(Function, &NumberValue);
+			return true;
 		}
 		//bool?
 		else if (FirstParam.Equals("bool"))
 		{
 			bool BoolValue = FirstFJsonValue->AsBool();
-			Args.Arg01 = &BoolValue;
+			Target->ProcessEvent(Function, &BoolValue);
+			return true;
 		}
-		//binary?
-
 		//array?
+		else if (FirstParam.Equals("TArray"))
+		{
+			UArrayProperty* ArrayProp = Cast<UArrayProperty>(Properties[0]);
 
-		//Call the function
-		Target->ProcessEvent(Function, &Args);
-		return true;
+			FString Inner;
+			ArrayProp->GetCPPMacroType(Inner);
+			UE_LOG(LogTemp, Log, TEXT("Array Type is: %s"), *Inner);
+
+			//array of siojsonvalue?
+			if (Inner.Equals("USIOJsonObject*"))
+			{
+				Target->ProcessEvent(Function, &ResponseJsonValue);
+				return true;
+			}
+			//byte array?
+			else if (Inner.Equals("uint8"))
+			{
+				TArray<uint8> Bytes = ResponseJsonValue->AsArray()[0]->AsBinary();
+				Target->ProcessEvent(Function, &Bytes);
+				return true;
+			}
+		}
 	}
 
 	return true;
