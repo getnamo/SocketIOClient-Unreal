@@ -67,52 +67,128 @@ bool USocketIOClientComponent::CallBPFunctionWithResponse(UObject* Target, const
 		return false;
 	}
 
+	//Check function signature
+	TFieldIterator<UProperty> Iterator(Function);
+
+	TArray<UProperty*> Properties;
+	while (Iterator && (Iterator->PropertyFlags & CPF_Parm))
+	{
+		UProperty* Prop = *Iterator;
+		Properties.Add(Prop);
+		++Iterator;
+	}
+
 	auto ResponseJsonValue = USIOJConvert::ToSIOJsonValue(Response);
 
-	struct FDynamicArgs
+	bool bResponseNumNotZero = Response.Num() > 0;
+	bool bNoFunctionParams = Properties.Num() == 0;
+	bool bNullResponse = ResponseJsonValue->IsNull();
+
+	if (bNullResponse && bNoFunctionParams)
 	{
-		USIOJsonValue* Arg01 = NULL;
-		USIOJsonValue* Arg02 = NULL;
-	};
+		Target->ProcessEvent(Function, nullptr);
+		return true;
+	}
+	else if (bResponseNumNotZero)
+	{
+		//function has too few params
+		if (bNoFunctionParams)
+		{
+			UE_LOG(SocketIOLog, Warning, TEXT("CallFunctionByNameWithArguments: Function '%s' has too few parameters, callback parameters ignored : <%s>"), *FunctionName, *ResponseJsonValue->EncodeJson());
+			Target->ProcessEvent(Function, nullptr);
+			return true;
+		}
+		struct FDynamicArgs
+		{
+			void* Arg01 = nullptr;
+			USIOJsonValue* Arg02 = nullptr;
+		};
+		//create the container
+		FDynamicArgs Args = FDynamicArgs();
 
-	//create the container
-	FDynamicArgs Args = FDynamicArgs();
+		//add the full response array as second param
+		Args.Arg02 = ResponseJsonValue;
+		const FString& FirstParam = Properties[0]->GetCPPType();
+		auto FirstFJsonValue = Response[0];
 
-	//convenience wrapper, response is a single object
-	Args.Arg01 = NewObject<USIOJsonValue>();	
-	Args.Arg01->SetRootValue(Response[0]);
+		//Is first param...
+		//SIOJsonValue?
+		if (FirstParam.Equals("USIOJsonValue*"))
+		{
+			//convenience wrapper, response is a single object
+			USIOJsonValue* Value = NewObject<USIOJsonValue>();
+			Value->SetRootValue(FirstFJsonValue);
+			Args.Arg01 = Value;
+			Target->ProcessEvent(Function, &Args);
+			return true;
+		}
+		//SIOJsonObject?
+		else if (FirstParam.Equals("USIOJsonObject*"))
+		{
+			//convenience wrapper, response is a single object
+			USIOJsonObject* ObjectValue = NewObject<USIOJsonObject>();
+			ObjectValue->SetRootObject(FirstFJsonValue->AsObject());
+			Args.Arg01 = ObjectValue;
+			Target->ProcessEvent(Function, &Args);
+			return true;
+		}
+		//String?
+		else if (FirstParam.Equals("FString"))
+		{
+			FString	StringValue = USIOJConvert::ToJsonString(FirstFJsonValue);
+			
+			Target->ProcessEvent(Function, &StringValue);
+			return true;
+		}
+		//Float?
+		else if (FirstParam.Equals("float"))
+		{
+			float NumberValue = (float)FirstFJsonValue->AsNumber();
+			Target->ProcessEvent(Function, &NumberValue);
+			return true;
+		}
+		//Int?
+		else if (FirstParam.Equals("int32"))
+		{
+			int NumberValue = (int)FirstFJsonValue->AsNumber();
+			Target->ProcessEvent(Function, &NumberValue);
+			return true;
+		}
+		//bool?
+		else if (FirstParam.Equals("bool"))
+		{
+			bool BoolValue = FirstFJsonValue->AsBool();
+			Target->ProcessEvent(Function, &BoolValue);
+			return true;
+		}
+		//array?
+		else if (FirstParam.Equals("TArray"))
+		{
+			UArrayProperty* ArrayProp = Cast<UArrayProperty>(Properties[0]);
 
-	//add the full response array as second param
-	Args.Arg02 = ResponseJsonValue;
+			FString Inner;
+			ArrayProp->GetCPPMacroType(Inner);
 
-	//Call the function
-	Target->ProcessEvent(Function, &Args);
+			//byte array is the only supported version
+			if (Inner.Equals("uint8"))
+			{
+				TArray<uint8> Bytes = ResponseJsonValue->AsArray()[0]->AsBinary();
+				Target->ProcessEvent(Function, &Bytes);
+				return true;
+			}
+		}
+	}
 
-	return true;
+	UE_LOG(SocketIOLog, Warning, TEXT("CallFunctionByNameWithArguments: Function '%s' signature not supported expected <%s>"), *FunctionName, *ResponseJsonValue->EncodeJson());
+	return false;
 }
 
 bool USocketIOClientComponent::CallBPFunctionWithMessage(UObject* Target, const FString& FunctionName, TSharedPtr<FJsonValue> Message)
 {
-	UFunction* Function = Target->FindFunction(FName(*FunctionName));
-	if (nullptr == Function)
-	{
-		UE_LOG(SocketIOLog, Warning, TEXT("CallFunctionByNameWithArguments: Function not found '%s'"), *FunctionName);
-		return false;
-	}
+	TArray<TSharedPtr<FJsonValue>> Response;
+	Response.Add(Message);
 
-	struct FDynamicArgs
-	{
-		USIOJsonValue* Arg01 = NULL;
-	};
-	FDynamicArgs Args = FDynamicArgs();
-
-	Args.Arg01 = NewObject<USIOJsonValue>();
-	Args.Arg01->SetRootValue(Message);
-
-	//Call the function
-	Target->ProcessEvent(Function, &Args);
-
-	return true;
+	return CallBPFunctionWithResponse(Target, FunctionName, Response);
 }
 
 #if PLATFORM_WINDOWS

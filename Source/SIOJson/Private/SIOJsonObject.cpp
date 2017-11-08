@@ -31,7 +31,7 @@ TSharedPtr<FJsonObject>& USIOJsonObject::GetRootObject()
 	return JsonObj;
 }
 
-void USIOJsonObject::SetRootObject(TSharedPtr<FJsonObject>& JsonObject)
+void USIOJsonObject::SetRootObject(const TSharedPtr<FJsonObject>& JsonObject)
 {
 	JsonObj = JsonObject;
 }
