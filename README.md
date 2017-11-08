@@ -131,6 +131,18 @@ If the function is missing or named incorrectly, your output log will warn you.
 
 Your function expects a *SIOJsonValue* reference signature. By default this contains your first response value from you callback parameter. If your callback uses more than one parameter, make a second *SIOJsonValue* Input parameter which contains an array of all the responses.
 
+Since 0.6.8, if you know your data type you can use that signature directly in your function name. E.g. if you're sending a callback with a float value you can make a function with the matching name and only one float parameter as your signature.
+
+Supported Signatures:
+- SIOJsonValue
+- SIOJsonObject
+- String
+- Float
+- Int
+- Bool
+- Byte Array
+
+
 ### Binding Events to Functions
 
 Instead of using the event graph and comparing strings, you can bind an event directly to a function. The format to make the function is the same as callbacks.
