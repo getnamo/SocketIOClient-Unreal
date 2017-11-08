@@ -70,39 +70,102 @@ bool USocketIOClientComponent::CallBPFunctionWithResponse(UObject* Target, const
 	//Check function signature
 	TFieldIterator<UProperty> IteratorA(Function);
 
+	TArray<FString> Properties;
 	while (IteratorA && (IteratorA->PropertyFlags & CPF_Parm))
 	{
 		UProperty* PropA = *IteratorA;
 		FString PropertyType = PropA->GetCPPType();
-
-		FString MyOtherType = USIOJsonValue::StaticClass()->GetFName().ToString();
-		UE_LOG(LogTemp, Log, TEXT("%s vs %s"), *PropertyType, *MyOtherType);
-
+		UE_LOG(LogTemp, Log, TEXT("%s"), *PropertyType);
+		Properties.Add(PropertyType);
 		++IteratorA;
 	}
 
-	
+	auto ResponseJsonValue = USIOJConvert::ToSIOJsonValue(Response);
 
-	/*auto ResponseJsonValue = USIOJConvert::ToSIOJsonValue(Response);
+	bool bResponseNumNotZero = Response.Num() > 0;
+	bool bNoFunctionParams = Properties.Num() == 0;
+	bool bNullResponse = ResponseJsonValue->IsNull();
 
-	struct FDynamicArgs
+	if (bNullResponse && bNoFunctionParams)
 	{
-		USIOJsonValue* Arg01 = NULL;
-		USIOJsonValue* Arg02 = NULL;
-	};
+		Target->ProcessEvent(Function, nullptr);
+		return true;
+	}
+	else if (bResponseNumNotZero)
+	{
+		//function has too few params
+		if (bNoFunctionParams)
+		{
+			UE_LOG(SocketIOLog, Warning, TEXT("CallFunctionByNameWithArguments: Function '%s' has too few parameters, callback parameters ignored : <%s>"), *FunctionName, *ResponseJsonValue->EncodeJson());
+			Target->ProcessEvent(Function, nullptr);
+			return true;
+		}
+		struct FDynamicArgs
+		{
+			void* Arg01 = nullptr;
+			USIOJsonValue* Arg02 = nullptr;
+		};
+		//create the container
+		FDynamicArgs Args = FDynamicArgs();
 
-	//create the container
-	FDynamicArgs Args = FDynamicArgs();
+		//add the full response array as second param
+		Args.Arg02 = ResponseJsonValue;
+		const FString& FirstParam = Properties[0];
+		auto FirstFJsonValue = Response[0];
 
-	//convenience wrapper, response is a single object
-	Args.Arg01 = NewObject<USIOJsonValue>();	
-	Args.Arg01->SetRootValue(Response[0]);
+		UE_LOG(LogTemp, Log, TEXT("First is: %s"), *FirstParam);
+		//Is first param...
+		//SIOJsonValue?
+		if (FirstParam.Equals("USIOJsonValue*")) ////USIOJsonValue::StaticClass()->GetFName().ToString()
+		{
+			//convenience wrapper, response is a single object
+			USIOJsonValue* Value= NewObject<USIOJsonValue>();
+			Value->SetRootValue(FirstFJsonValue);
+			Args.Arg01 = Value;
+		}
+		//SIOJsonObject?
+		else if (FirstParam.Equals("USIOJsonObject*"))
+		{
+			//convenience wrapper, response is a single object
+			USIOJsonObject* ObjectValue = NewObject<USIOJsonObject>();
+			ObjectValue->SetRootObject(FirstFJsonValue->AsObject());
+			Args.Arg01 = ObjectValue;
+		}
+		//String?
+		else if (FirstParam.Equals("FString"))
+		{
+			//UStrProperty* Property = NewObject<UStrProperty>(this);
+			FString StringValue = FirstFJsonValue->AsString();
+			//Property->SetPropertyValue(Property->ContainerPtrToValuePtr<FString>(StringValue), FString("String"));
+			
+			Args.Arg01 = (void*)*StringValue;
+		}
+		//Float?
+		else if (FirstParam.Equals("float"))
+		{
+			float NumberValue = (float)FirstFJsonValue->AsNumber();
+			Args.Arg01 = &NumberValue;
+		}
+		//Int?
+		else if (FirstParam.Equals("int32"))
+		{
+			int NumberValue = (int)FirstFJsonValue->AsNumber();
+			Args.Arg01 = &NumberValue;
+		}
+		//bool?
+		else if (FirstParam.Equals("bool"))
+		{
+			bool BoolValue = FirstFJsonValue->AsBool();
+			Args.Arg01 = &BoolValue;
+		}
+		//binary?
 
-	//add the full response array as second param
-	Args.Arg02 = ResponseJsonValue;
+		//array?
 
-	//Call the function
-	Target->ProcessEvent(Function, &Args);*/
+		//Call the function
+		Target->ProcessEvent(Function, &Args);
+		return true;
+	}
 
 	return true;
 }
