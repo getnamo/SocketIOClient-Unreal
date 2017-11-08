@@ -74,7 +74,6 @@ bool USocketIOClientComponent::CallBPFunctionWithResponse(UObject* Target, const
 	while (IteratorA && (IteratorA->PropertyFlags & CPF_Parm))
 	{
 		UProperty* PropA = *IteratorA;
-		UE_LOG(LogTemp, Log, TEXT("%s"), *PropA->GetCPPType());
 		Properties.Add(PropA);
 		++IteratorA;
 	}
@@ -112,10 +111,9 @@ bool USocketIOClientComponent::CallBPFunctionWithResponse(UObject* Target, const
 		const FString& FirstParam = Properties[0]->GetCPPType();
 		auto FirstFJsonValue = Response[0];
 
-		UE_LOG(LogTemp, Log, TEXT("First is: %s"), *FirstParam);
 		//Is first param...
 		//SIOJsonValue?
-		if (FirstParam.Equals("USIOJsonValue*")) ////USIOJsonValue::StaticClass()->GetFName().ToString()
+		if (FirstParam.Equals("USIOJsonValue*"))
 		{
 			//convenience wrapper, response is a single object
 			USIOJsonValue* Value = NewObject<USIOJsonValue>();
@@ -170,9 +168,8 @@ bool USocketIOClientComponent::CallBPFunctionWithResponse(UObject* Target, const
 
 			FString Inner;
 			ArrayProp->GetCPPMacroType(Inner);
-			UE_LOG(LogTemp, Log, TEXT("Array Type is: %s"), *Inner);
 
-			//array of siojsonvalue?
+			//array of USIOJsonValue?
 			if (Inner.Equals("USIOJsonObject*"))
 			{
 				Target->ProcessEvent(Function, &ResponseJsonValue);
