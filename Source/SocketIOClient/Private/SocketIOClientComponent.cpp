@@ -68,14 +68,14 @@ bool USocketIOClientComponent::CallBPFunctionWithResponse(UObject* Target, const
 	}
 
 	//Check function signature
-	TFieldIterator<UProperty> IteratorA(Function);
+	TFieldIterator<UProperty> Iterator(Function);
 
 	TArray<UProperty*> Properties;
-	while (IteratorA && (IteratorA->PropertyFlags & CPF_Parm))
+	while (Iterator && (Iterator->PropertyFlags & CPF_Parm))
 	{
-		UProperty* PropA = *IteratorA;
-		Properties.Add(PropA);
-		++IteratorA;
+		UProperty* Prop = *Iterator;
+		Properties.Add(Prop);
+		++Iterator;
 	}
 
 	auto ResponseJsonValue = USIOJConvert::ToSIOJsonValue(Response);
@@ -135,7 +135,7 @@ bool USocketIOClientComponent::CallBPFunctionWithResponse(UObject* Target, const
 		//String?
 		else if (FirstParam.Equals("FString"))
 		{
-			FString StringValue = FirstFJsonValue->AsString();
+			FString	StringValue = USIOJConvert::ToJsonString(FirstFJsonValue);
 			
 			Target->ProcessEvent(Function, &StringValue);
 			return true;
@@ -185,26 +185,10 @@ bool USocketIOClientComponent::CallBPFunctionWithResponse(UObject* Target, const
 
 bool USocketIOClientComponent::CallBPFunctionWithMessage(UObject* Target, const FString& FunctionName, TSharedPtr<FJsonValue> Message)
 {
-	UFunction* Function = Target->FindFunction(FName(*FunctionName));
-	if (nullptr == Function)
-	{
-		UE_LOG(SocketIOLog, Warning, TEXT("CallFunctionByNameWithArguments: Function not found '%s'"), *FunctionName);
-		return false;
-	}
+	TArray<TSharedPtr<FJsonValue>> Response;
+	Response.Add(Message);
 
-	struct FDynamicArgs
-	{
-		USIOJsonValue* Arg01 = NULL;
-	};
-	FDynamicArgs Args = FDynamicArgs();
-
-	Args.Arg01 = NewObject<USIOJsonValue>();
-	Args.Arg01->SetRootValue(Message);
-
-	//Call the function
-	Target->ProcessEvent(Function, &Args);
-
-	return true;
+	return CallBPFunctionWithResponse(Target, FunctionName, Response);
 }
 
 #if PLATFORM_WINDOWS
