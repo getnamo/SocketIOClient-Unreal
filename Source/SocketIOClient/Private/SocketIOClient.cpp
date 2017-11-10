@@ -16,7 +16,8 @@ public:
 
 private:
 	FCriticalSection DeleteSection;
-	TArray<FSocketIONative*> ModulePointers;
+	TArray<FSocketIONative*> PluginNativePointers;
+	FThreadSafeBool bHasActiveNativePointers;
 };
 
 
@@ -24,32 +25,29 @@ void FSocketIOClientModule::StartupModule()
 {
 	// This code will execute after your module is loaded into memory; the exact timing is specified in the .uplugin file per-module
 
-	ModulePointers.Empty();
+	PluginNativePointers.Empty();
 }
 
 void FSocketIOClientModule::ShutdownModule()
 {
 	// This function may be called during shutdown to clean up your module.  For modules that support dynamic reloading,
 	// we call this function before unloading the module.
-	FScopeLock Lock(&DeleteSection);
 
-
-	/*for (auto& Pointer : ModulePointers)
+	//Wait for all pointers to release
+	while (bHasActiveNativePointers)
 	{
-	if (Pointer)
-	{
-	delete Pointer;
-	Pointer = nullptr;
+		FPlatformProcess::Sleep(0.01f);
 	}
-	}*/
 
-	ModulePointers.Empty();
+	//Native pointers will be automatically released by uninitialize components
+	PluginNativePointers.Empty();
 }
 
 FSocketIONative* FSocketIOClientModule::NewValidNativePointer()
 {
 	FSocketIONative* NewPointer = new FSocketIONative;
-	ModulePointers.Add(NewPointer);
+	PluginNativePointers.Add(NewPointer);
+	bHasActiveNativePointers = true;
 
 	return NewPointer;
 }
@@ -59,8 +57,6 @@ void FSocketIOClientModule::ReleaseNativePointer(FSocketIONative* PointerToRelea
 	//Release the pointer on the background thread
 	FSIOLambdaRunnable::RunLambdaOnBackGroundThread([PointerToRelease, this]
 	{
-		FScopeLock Lock(&DeleteSection);
-		
 		if (PointerToRelease)
 		{
 			//Disconnect
@@ -69,11 +65,14 @@ void FSocketIOClientModule::ReleaseNativePointer(FSocketIONative* PointerToRelea
 				PointerToRelease->SyncDisconnect();
 			}
 
-			//Delete pointer
+			//Delete pointer ensure this get's hit safely
 			if (PointerToRelease)
 			{
-				ModulePointers.Remove(PointerToRelease);
+				FScopeLock Lock(&DeleteSection);
+
+				PluginNativePointers.Remove(PointerToRelease);
 				delete PointerToRelease;
+				bHasActiveNativePointers = PluginNativePointers.Num() > 0;
 			}
 		}
 	});
