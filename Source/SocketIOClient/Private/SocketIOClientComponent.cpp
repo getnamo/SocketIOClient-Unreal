@@ -26,7 +26,7 @@ void USocketIOClientComponent::InitializeComponent()
 	{
 		//Because our connections can last longer than game world 
 		//end, we let plugin-scoped structures manage our memory
-		NativeClient = MakeShareable(ISocketIOClientModule::Get().NewValidNativePointer());
+		NativeClient = ISocketIOClientModule::Get().NewValidNativePointer();
 	}
 
 }
@@ -44,7 +44,7 @@ void USocketIOClientComponent::UninitializeComponent()
 {
 	//Because our connections can last longer than game world 
 	//end, we let plugin-scoped structures manage our memory.
-	ISocketIOClientModule::Get().ReleaseNativePointer(NativeClient.Get());
+	ISocketIOClientModule::Get().ReleaseNativePointer(NativeClient);
 	NativeClient = nullptr;
 
 	//UE_LOG(SocketIOLog, Log, TEXT("UninitializeComponent() call"));

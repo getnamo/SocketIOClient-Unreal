@@ -7,8 +7,8 @@
 class FSocketIOClientModule : public ISocketIOClientModule
 {
 public:
-	virtual FSocketIONative* NewValidNativePointer() override;
-	void ReleaseNativePointer(FSocketIONative* PointerToRelease) override;
+	virtual TSharedPtr<FSocketIONative> NewValidNativePointer() override;
+	void ReleaseNativePointer(TSharedPtr<FSocketIONative> PointerToRelease) override;
 
 	/** IModuleInterface implementation */
 	virtual void StartupModule() override;
@@ -16,7 +16,7 @@ public:
 
 private:
 	FCriticalSection DeleteSection;
-	TArray<FSocketIONative*> PluginNativePointers;
+	TArray<TSharedPtr<FSocketIONative>> PluginNativePointers;
 	FThreadSafeBool bHasActiveNativePointers;
 };
 
@@ -52,21 +52,21 @@ void FSocketIOClientModule::ShutdownModule()
 	PluginNativePointers.Empty();
 }
 
-FSocketIONative* FSocketIOClientModule::NewValidNativePointer()
+TSharedPtr<FSocketIONative> FSocketIOClientModule::NewValidNativePointer()
 {
-	FSocketIONative* NewPointer = new FSocketIONative;
+	TSharedPtr<FSocketIONative> NewPointer = MakeShareable(new FSocketIONative);
 	PluginNativePointers.Add(NewPointer);
 	bHasActiveNativePointers = true;
 
 	return NewPointer;
 }
 
-void FSocketIOClientModule::ReleaseNativePointer(FSocketIONative* PointerToRelease)
+void FSocketIOClientModule::ReleaseNativePointer(TSharedPtr<FSocketIONative> PointerToRelease)
 {
 	//Release the pointer on the background thread
 	FSIOLambdaRunnable::RunLambdaOnBackGroundThread([PointerToRelease, this]
 	{
-		if (PointerToRelease)
+		if (PointerToRelease.IsValid())
 		{
 			//Disconnect
 			if (PointerToRelease->bIsConnected)
@@ -74,13 +74,14 @@ void FSocketIOClientModule::ReleaseNativePointer(FSocketIONative* PointerToRelea
 				PointerToRelease->SyncDisconnect();
 			}
 
-			//Delete pointer ensure this get's hit safely
-			if (PointerToRelease)
+			//Last operation took a while, ensure it's still true
+			if (PointerToRelease.IsValid())
 			{
 				FScopeLock Lock(&DeleteSection);
 
 				PluginNativePointers.Remove(PointerToRelease);
-				delete PointerToRelease;
+				//delete PointerToRelease;
+				//PointerToRelease = nullptr;
 				bHasActiveNativePointers = PluginNativePointers.Num() > 0;
 			}
 		}
