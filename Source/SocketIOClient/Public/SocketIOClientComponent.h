@@ -53,9 +53,16 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "SocketIO Properties")
 	bool bLimitConnectionToGameWorld;
 
+	/** 
+	* Toggle which enables plugin scoped connections. 
+	* If you enable this the connection will remain until you manually call disconnect
+	* or close the app. Additionally any connections with the same PluginScopedId will use the same connection
+	* and receive the same events.
+	*/
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "SocketIO Properties")
 	bool bPluginScopedConnection;
 
+	/** If you leave this as is all plugin scoped connection components will share same connection*/
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "SocketIO Properties")
 	FString PluginScopedId;
 

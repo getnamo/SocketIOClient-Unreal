@@ -17,7 +17,7 @@ USocketIOClientComponent::USocketIOClientComponent(const FObjectInitializer &ini
 	
 	//Plugin scoped utilities
 	bPluginScopedConnection = false;
-	PluginScopedId = TEXT("Not Scoped");	//default for non-scoped id
+	PluginScopedId = TEXT("Default");
 }
 
 void USocketIOClientComponent::InitializeComponent()
@@ -34,9 +34,11 @@ void USocketIOClientComponent::InitializeComponent()
 void USocketIOClientComponent::BeginPlay()
 {
 	Super::BeginPlay();
-	if (bShouldAutoConnect)
+
+	//Auto-connect to default address if supported and not already connected
+	if (bShouldAutoConnect && !bIsConnected)
 	{
-		Connect(AddressAndPort);	//connect to default address
+		Connect(AddressAndPort);
 	}
 }
 
@@ -45,8 +47,13 @@ void USocketIOClientComponent::UninitializeComponent()
 	//Because our connections can last longer than game world 
 	//end, we let plugin-scoped structures manage our memory.
 	//We must ensure we set our pointer to null however.
-	ISocketIOClientModule::Get().ReleaseNativePointer(NativeClient);
-	NativeClient = nullptr;
+
+	//If we're a regular connection we should close and release when we quit
+	if (!bPluginScopedConnection)
+	{
+		ISocketIOClientModule::Get().ReleaseNativePointer(NativeClient);
+		NativeClient = nullptr;
+	}
 
 	//UE_LOG(SocketIOLog, Log, TEXT("UninitializeComponent() call"));
 	Super::UninitializeComponent();
