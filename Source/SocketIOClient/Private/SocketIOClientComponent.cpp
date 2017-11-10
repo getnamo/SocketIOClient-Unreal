@@ -44,6 +44,7 @@ void USocketIOClientComponent::UninitializeComponent()
 {
 	//Because our connections can last longer than game world 
 	//end, we let plugin-scoped structures manage our memory.
+	//We must ensure we set our pointer to null however.
 	ISocketIOClientModule::Get().ReleaseNativePointer(NativeClient);
 	NativeClient = nullptr;
 
