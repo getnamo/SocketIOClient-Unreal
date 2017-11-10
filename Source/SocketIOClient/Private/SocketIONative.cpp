@@ -37,8 +37,9 @@ void FSocketIONative::Connect(const FString& InAddressAndPort, const TSharedPtr<
 		PrivateClient->set_close_listener(sio::client::close_listener([&](sio::client::close_reason const& reason)
 		{
 			bIsConnected = false;
+			
+			UE_LOG(SocketIOLog, Log, TEXT("SocketIO Disconnected %s reason: %d"), *SessionId, (int32)reason);
 			SessionId = FString(TEXT("invalid"));
-			UE_LOG(SocketIOLog, Log, TEXT("SocketIO Disconnected: %d"), (int32)reason);
 
 			if (OnDisconnectedCallback)
 			{
@@ -120,7 +121,10 @@ void FSocketIONative::Disconnect()
 
 void FSocketIONative::SyncDisconnect()
 {
-	OnDisconnectedCallback(ESIOConnectionCloseReason::CLOSE_REASON_NORMAL);
+	if (OnDisconnectedCallback)
+	{
+		OnDisconnectedCallback(ESIOConnectionCloseReason::CLOSE_REASON_NORMAL);
+	}
 	ClearCallbacks();
 	PrivateClient->sync_close();
 }

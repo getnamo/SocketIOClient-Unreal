@@ -51,7 +51,13 @@ public:
 	bool bShouldAutoConnect;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "SocketIO Properties")
-	bool bAsyncQuitDisconnect;
+	bool bLimitConnectionToGameWorld;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "SocketIO Properties")
+	bool bPluginScopedConnection;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "SocketIO Properties")
+	FString PluginScopedId;
 
 	UPROPERTY(BlueprintReadOnly, Category = "SocketIO Properties")
 	bool bIsConnected;
@@ -293,7 +299,6 @@ protected:
 	bool CallBPFunctionWithMessage(UObject* Target, const FString& FunctionName, TSharedPtr<FJsonValue> Message);
 
 	FCriticalSection AllocationSection;
-	TSharedPtr<FSocketIONative> NativeClient;
-
-	//FSocketIONative* NativeClient;
+	//TSharedPtr<FSocketIONative> NativeClient;
+	FSocketIONative* NativeClient;
 };

@@ -3,6 +3,7 @@
 #include "SocketIOClientComponent.h"
 #include "SIOLambdaRunnable.h"
 #include "SIOJConvert.h"
+#include "SocketIOClient.h"
 
 USocketIOClientComponent::USocketIOClientComponent(const FObjectInitializer &init) : UActorComponent(init)
 {
@@ -10,17 +11,20 @@ USocketIOClientComponent::USocketIOClientComponent(const FObjectInitializer &ini
 	bWantsInitializeComponent = true;
 	bAutoActivate = true;
 	NativeClient = nullptr;
-	bAsyncQuitDisconnect = true;
+	bLimitConnectionToGameWorld = true;
 	AddressAndPort = FString(TEXT("http://localhost:3000"));	//default to 127.0.0.1
 	SessionId = FString(TEXT("invalid"));
+	
+	//Plugin scoped utilities
+	bPluginScopedConnection = false;
+	PluginScopedId = TEXT("Not Scoped");	//default for non-scoped id
 }
 
 void USocketIOClientComponent::InitializeComponent()
 {
 	Super::InitializeComponent();
 	{
-		FScopeLock lock(&AllocationSection);
-		NativeClient = MakeShareable(new FSocketIONative);
+		NativeClient = ISocketIOClientModule::Get().NewValidNativePointer();
 	}
 
 }
@@ -36,23 +40,9 @@ void USocketIOClientComponent::BeginPlay()
 
 void USocketIOClientComponent::UninitializeComponent()
 {
-	//This may lock up so run it on a background thread
-	if (bAsyncQuitDisconnect)
-	{
-		if (bIsConnected)
-		{
-			FSIOLambdaRunnable::RunLambdaOnBackGroundThread([&]
-			{
-				FScopeLock lock(&AllocationSection);
-				NativeClient = nullptr;
-			});
-		}
-	}
-	else
-	{
-		FScopeLock lock(&AllocationSection);
-		NativeClient = nullptr;;
-	}
+	//Let the plugin release the pointer on it's own time
+	ISocketIOClientModule::Get().ReleaseNativePointer(NativeClient);
+	NativeClient = nullptr;
 
 	//UE_LOG(SocketIOLog, Log, TEXT("UninitializeComponent() call"));
 	Super::UninitializeComponent();
@@ -197,6 +187,25 @@ bool USocketIOClientComponent::CallBPFunctionWithMessage(UObject* Target, const 
 
 void USocketIOClientComponent::Connect(const FString& InAddressAndPort, USIOJsonObject* Query /*= nullptr*/, USIOJsonObject* Headers /*= nullptr*/)
 {
+	//Check if we're limiting this component
+	if(bLimitConnectionToGameWorld)
+	{ 
+		UWorld* World = GEngine->GetWorldFromContextObject(this, EGetWorldErrorMode::LogAndReturnNull);
+		if (World)
+		{
+			bool bIsGameWorld = (World->IsGameWorld() || World->IsPreviewWorld());
+			if(!bIsGameWorld)
+			{
+				UE_LOG(SocketIOLog, Log, TEXT("USocketIOClientComponent::Connect attempt in non-game world blocked by bLimitConnectionToGameWorld."));
+				return;
+			}
+		}
+		else
+		{
+			UE_LOG(SocketIOLog, Warning, TEXT("USocketIOClientComponent::Connect attempt while in invalid world."));
+			return;
+		}
+	}
 	TSharedPtr<FJsonObject> QueryFJson;
 	TSharedPtr<FJsonObject> HeadersFJson;
 

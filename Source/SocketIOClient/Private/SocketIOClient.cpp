@@ -33,16 +33,17 @@ void FSocketIOClientModule::ShutdownModule()
 	// we call this function before unloading the module.
 	FScopeLock Lock(&DeleteSection);
 
-	ModulePointers.Empty();
-	
+
 	/*for (auto& Pointer : ModulePointers)
 	{
-		if (Pointer)
-		{
-			delete Pointer;
-			Pointer = nullptr;
-		}
+	if (Pointer)
+	{
+	delete Pointer;
+	Pointer = nullptr;
+	}
 	}*/
+
+	ModulePointers.Empty();
 }
 
 FSocketIONative* FSocketIOClientModule::NewValidNativePointer()
@@ -55,23 +56,25 @@ FSocketIONative* FSocketIOClientModule::NewValidNativePointer()
 
 void FSocketIOClientModule::ReleaseNativePointer(FSocketIONative* PointerToRelease)
 {
-	PointerToRelease->OnConnectedCallback = [PointerToRelease](const FString& SessionId)
-	{
-		//If we're still connected, disconnect us
-		if (PointerToRelease)
-		{
-			PointerToRelease->SyncDisconnect();
-		}
-	};
-
 	//Release the pointer on the background thread
 	FSIOLambdaRunnable::RunLambdaOnBackGroundThread([PointerToRelease, this]
 	{
 		FScopeLock Lock(&DeleteSection);
-
+		
 		if (PointerToRelease)
 		{
-			delete PointerToRelease;
+			//Disconnect
+			if (PointerToRelease->bIsConnected)
+			{
+				PointerToRelease->SyncDisconnect();
+			}
+
+			//Delete pointer
+			if (PointerToRelease)
+			{
+				ModulePointers.Remove(PointerToRelease);
+				delete PointerToRelease;
+			}
 		}
 	});
 }
