@@ -24,7 +24,9 @@ void USocketIOClientComponent::InitializeComponent()
 {
 	Super::InitializeComponent();
 	{
-		NativeClient = ISocketIOClientModule::Get().NewValidNativePointer();
+		//Because our connections can last longer than game world 
+		//end, we let plugin-scoped structures manage our memory
+		NativeClient = MakeShareable(ISocketIOClientModule::Get().NewValidNativePointer());
 	}
 
 }
@@ -40,8 +42,9 @@ void USocketIOClientComponent::BeginPlay()
 
 void USocketIOClientComponent::UninitializeComponent()
 {
-	//Let the plugin release the pointer on it's own time
-	ISocketIOClientModule::Get().ReleaseNativePointer(NativeClient);
+	//Because our connections can last longer than game world 
+	//end, we let plugin-scoped structures manage our memory.
+	ISocketIOClientModule::Get().ReleaseNativePointer(NativeClient.Get());
 	NativeClient = nullptr;
 
 	//UE_LOG(SocketIOLog, Log, TEXT("UninitializeComponent() call"));
