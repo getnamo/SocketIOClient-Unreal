@@ -38,7 +38,9 @@ void FSocketIONative::Connect(const FString& InAddressAndPort, const TSharedPtr<
 		{
 			bIsConnected = false;
 			
-			UE_LOG(SocketIOLog, Log, TEXT("SocketIO Disconnected %s reason: %d"), *SessionId, (int32)reason);
+			ESIOConnectionCloseReason DisconnectReason = (ESIOConnectionCloseReason)reason;
+			FString DisconnectReasonString = USIOJConvert::EnumToString(TEXT("ESIOConnectionCloseReason"), DisconnectReason);
+			UE_LOG(SocketIOLog, Log, TEXT("SocketIO Disconnected %s reason: %s"), *SessionId, *DisconnectReasonString);
 			SessionId = FString(TEXT("invalid"));
 
 			if (OnDisconnectedCallback)
