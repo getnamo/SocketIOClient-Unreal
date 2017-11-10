@@ -34,9 +34,18 @@ void FSocketIOClientModule::ShutdownModule()
 	// we call this function before unloading the module.
 
 	//Wait for all pointers to release
+	float Elapsed = 0.f;
 	while (bHasActiveNativePointers)
 	{
 		FPlatformProcess::Sleep(0.01f);
+		Elapsed += 0.01f;
+
+		//if it takes more than 5 seconds, just quit
+		if (Elapsed > 5.f)
+		{
+			UE_LOG(SocketIOLog, Warning, TEXT("FSocketIOClientModule::ShutdownModule force quit due to long quit."));
+			break;
+		}
 	}
 
 	//Native pointers will be automatically released by uninitialize components
