@@ -76,6 +76,11 @@ void USocketIOClientComponent::SetupCallbacks()
 {
 	//Sync current connected state
 	bIsConnected = NativeClient->bIsConnected;
+	if (bIsConnected)
+	{
+		SessionId = NativeClient->SessionId;
+		AddressAndPort = NativeClient->AddressAndPort;
+	}
 
 	NativeClient->OnConnectedCallback = [this](const FString& InSessionId)
 	{
