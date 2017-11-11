@@ -302,13 +302,6 @@ public:
 	virtual void BeginPlay() override;
 	
 protected:
-
-	//Internal Nativecallbacks
-	TSetFunctionWrapper<TFunction<void(const FString& SessionId)>> OnConnectedCallback;
-	TSetFunctionWrapper<TFunction<void(const ESIOConnectionCloseReason Reason)>> OnDisconnectedCallback;
-	TSetFunctionWrapper<TFunction<void(const FString& Namespace)>> OnNamespaceConnectedCallback;
-	TSetFunctionWrapper<TFunction<void(const FString& Namespace)>> OnNamespaceDisconnectedCallback;
-	TSetFunctionWrapper<TFunction<void()>> OnFailCallback;
 	void SetupCallbacks();
 	void ClearCallbacks();
 

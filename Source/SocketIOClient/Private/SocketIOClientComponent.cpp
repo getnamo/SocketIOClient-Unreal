@@ -77,7 +77,7 @@ void USocketIOClientComponent::SetupCallbacks()
 	//Sync current connected state
 	bIsConnected = NativeClient->bIsConnected;
 
-	OnConnectedCallback.Function = [this](const FString& InSessionId)
+	NativeClient->OnConnectedCallback = [this](const FString& InSessionId)
 	{
 		FSIOLambdaRunnable::RunShortLambdaOnGameThread([this, InSessionId]
 		{
@@ -90,11 +90,9 @@ void USocketIOClientComponent::SetupCallbacks()
 		});
 	};
 
-    NativeClient->OnConnectedCallbacks.Add(OnConnectedCallback);
-
 	const FSIOCCloseEventSignature OnDisconnectedSafe = OnDisconnected;
 
-	OnDisconnectedCallback.Function = [OnDisconnectedSafe, this](const ESIOConnectionCloseReason Reason)
+	NativeClient->OnDisconnectedCallback = [OnDisconnectedSafe, this](const ESIOConnectionCloseReason Reason)
 	{
 		FSIOLambdaRunnable::RunShortLambdaOnGameThread([OnDisconnectedSafe, this, Reason]
 		{
@@ -106,9 +104,7 @@ void USocketIOClientComponent::SetupCallbacks()
 		});
 	};
 
-	NativeClient->OnDisconnectedCallbacks.Add(OnDisconnectedCallback);
-
-	OnNamespaceConnectedCallback.Function = [this](const FString& Namespace)
+	NativeClient->OnNamespaceConnectedCallback = [this](const FString& Namespace)
 	{
 		FSIOLambdaRunnable::RunShortLambdaOnGameThread([this, Namespace]
 		{
@@ -119,11 +115,9 @@ void USocketIOClientComponent::SetupCallbacks()
 		});
 	};
 
-	NativeClient->OnNamespaceConnectedCallbacks.Add(OnNamespaceConnectedCallback);
-
 	const FSIOCSocketEventSignature OnSocketNamespaceDisconnectedSafe = OnSocketNamespaceDisconnected;
 
-	OnNamespaceDisconnectedCallback.Function = [this, OnSocketNamespaceDisconnectedSafe](const FString& Namespace)
+	NativeClient->OnNamespaceDisconnectedCallback = [this, OnSocketNamespaceDisconnectedSafe](const FString& Namespace)
 	{
 		FSIOLambdaRunnable::RunShortLambdaOnGameThread([OnSocketNamespaceDisconnectedSafe, this, Namespace]
 		{
@@ -133,34 +127,19 @@ void USocketIOClientComponent::SetupCallbacks()
 			}
 		});
 	};
-	NativeClient->OnNamespaceDisconnectedCallbacks.Add(OnNamespaceDisconnectedCallback);
 
-	OnFailCallback.Function = [this]()
+	NativeClient->OnFailCallback = [this]()
 	{
 		FSIOLambdaRunnable::RunShortLambdaOnGameThread([this]
 		{
 			OnFail.Broadcast();
 		});
 	};
-	NativeClient->OnFailCallbacks.Add(OnFailCallback);
 }
 
 void USocketIOClientComponent::ClearCallbacks()
 {
-	if (NativeClient.IsValid())
-	{
-		NativeClient->OnConnectedCallbacks.Remove(OnConnectedCallback);
-		NativeClient->OnDisconnectedCallbacks.Remove(OnDisconnectedCallback);
-		NativeClient->OnNamespaceConnectedCallbacks.Remove(OnNamespaceConnectedCallback);
-		NativeClient->OnNamespaceDisconnectedCallbacks.Remove(OnNamespaceDisconnectedCallback);
-		NativeClient->OnFailCallbacks.Remove(OnFailCallback);
-	}
-
-	OnConnectedCallback.Function = nullptr;
-	OnDisconnectedCallback.Function = nullptr;
-	OnNamespaceConnectedCallback.Function = nullptr;
-	OnNamespaceDisconnectedCallback.Function = nullptr;
-	OnFailCallback.Function = nullptr;
+	NativeClient->ClearCallbacks();
 }
 
 bool USocketIOClientComponent::CallBPFunctionWithResponse(UObject* Target, const FString& FunctionName, TArray<TSharedPtr<FJsonValue>> Response)

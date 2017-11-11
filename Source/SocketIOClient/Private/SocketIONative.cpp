@@ -8,8 +8,9 @@ FSocketIONative::FSocketIONative()
 {
 	ConnectionThread = nullptr;
 	PrivateClient = nullptr;
-	AddressAndPort = FString(TEXT("http://localhost:3000"));	//default to 127.0.0.1
-	SessionId = FString(TEXT("invalid"));
+	AddressAndPort = TEXT("http://localhost:3000");	//default to 127.0.0.1
+	SessionId = TEXT("Invalid");
+	LastSessionId = TEXT("None");
 	bIsConnected = false;
 
 	ClearCallbacks();
@@ -41,17 +42,12 @@ void FSocketIONative::Connect(const FString& InAddressAndPort, const TSharedPtr<
 			ESIOConnectionCloseReason DisconnectReason = (ESIOConnectionCloseReason)reason;
 			FString DisconnectReasonString = USIOJConvert::EnumToString(TEXT("ESIOConnectionCloseReason"), DisconnectReason);
 			UE_LOG(SocketIOLog, Log, TEXT("SocketIO Disconnected %s reason: %s"), *SessionId, *DisconnectReasonString);
-			SessionId = FString(TEXT("invalid"));
+			LastSessionId = SessionId;
+			SessionId = TEXT("Invalid");
 
-			if (OnDisconnectedCallbacks.Num()>0)
+			if (OnDisconnectedCallback)
 			{
-				for (auto& Wrapper : OnDisconnectedCallbacks)
-				{
-					if (Wrapper.Function)
-					{
-						Wrapper.Function(DisconnectReason);
-					}
-				}
+				OnDisconnectedCallback(DisconnectReason);
 			}
 		}));
 
@@ -69,62 +65,42 @@ void FSocketIONative::Connect(const FString& InAddressAndPort, const TSharedPtr<
 
 				UE_LOG(SocketIOLog, Log, TEXT("SocketIO Connected with session: %s"), *SessionId);
 
-				if (OnConnectedCallbacks.Num() > 0)
+				if (OnConnectedCallback)
 				{
-					for (auto& Wrapper : OnConnectedCallbacks)
-					{
-						if (Wrapper.Function)
-						{
-							Wrapper.Function(SessionId);
-						}
-					}
+					OnConnectedCallback(SessionId);
 				}
 			}
 
 			FString Namespace = USIOMessageConvert::FStringFromStd(nsp);
 			UE_LOG(SocketIOLog, Log, TEXT("SocketIO %s connected to namespace: %s"), *SessionId, *Namespace);
 
-			if (OnNamespaceConnectedCallbacks.Num() > 0)
+			if (OnNamespaceConnectedCallback)
 			{
-				for (auto& Wrapper : OnNamespaceConnectedCallbacks)
-				{
-					if (Wrapper.Function)
-					{
-						Wrapper.Function(Namespace);
-					}
-				}
+				OnNamespaceConnectedCallback(Namespace);
 			}
 		}));
 
 		PrivateClient->set_socket_close_listener(sio::client::socket_listener([&](std::string const& nsp)
 		{
 			FString Namespace = USIOMessageConvert::FStringFromStd(nsp);
-			UE_LOG(SocketIOLog, Log, TEXT("SocketIO disconnected from namespace: %s"), *Namespace);
-
-			if (OnNamespaceDisconnectedCallbacks.Num() > 0)
+			FString NamespaceSession = SessionId;
+			if(NamespaceSession.Equals(TEXT("Invalid")))
 			{
-				for (auto& Wrapper : OnNamespaceDisconnectedCallbacks)
-				{
-					if (Wrapper.Function)
-					{
-						Wrapper.Function(USIOMessageConvert::FStringFromStd(nsp));
-					}
-				}
+				NamespaceSession = LastSessionId;
+			}
+			UE_LOG(SocketIOLog, Log, TEXT("SocketIO %s disconnected from namespace: %s"), *NamespaceSession, *Namespace);
+			if (OnNamespaceDisconnectedCallback)
+			{
+				OnNamespaceDisconnectedCallback(USIOMessageConvert::FStringFromStd(nsp));
 			}
 		}));
 
 		PrivateClient->set_fail_listener(sio::client::con_listener([&]()
 		{
 			UE_LOG(SocketIOLog, Log, TEXT("SocketIO failed to connect."));
-			if (OnFailCallbacks.Num() > 0)
+			if (OnFailCallback)
 			{
-				for (auto Wrapper : OnFailCallbacks)
-				{
-					if (Wrapper.Function)
-					{
-						Wrapper.Function();
-					}
-				}
+				OnFailCallback();
 			}
 		}));
 
@@ -153,24 +129,22 @@ void FSocketIONative::Disconnect()
 
 void FSocketIONative::SyncDisconnect()
 {
-	/*if (OnDisconnectedCallbacks.Num() > 0)
+	if (OnDisconnectedCallback)
 	{
-		for (auto Callback : OnDisconnectedCallbacks)
-		{
-			Callback(ESIOConnectionCloseReason::CLOSE_REASON_NORMAL);
-		}
-	}*/
+		OnDisconnectedCallback(ESIOConnectionCloseReason::CLOSE_REASON_NORMAL);
+	}
 	ClearCallbacks();
 	PrivateClient->sync_close();
 }
 
 void FSocketIONative::ClearCallbacks()
 {
-	OnConnectedCallbacks.Empty();
-	OnDisconnectedCallbacks.Empty();
-	OnNamespaceConnectedCallbacks.Empty();
-	OnNamespaceDisconnectedCallbacks.Empty();
-	OnFailCallbacks.Empty();
+	EventFunctionMap.Empty();
+	OnConnectedCallback = nullptr;
+	OnDisconnectedCallback = nullptr;
+	OnNamespaceConnectedCallback = nullptr;
+	OnNamespaceDisconnectedCallback = nullptr;
+	OnFailCallback = nullptr;
 }
 
 void FSocketIONative::Emit(const FString& EventName, const TSharedPtr<FJsonValue>& Message /*= nullptr*/, TFunction< void(const TArray<TSharedPtr<FJsonValue>>&)> CallbackFunction /*= nullptr*/, const FString& Namespace /*= FString(TEXT("/"))*/)
@@ -255,6 +229,8 @@ void FSocketIONative::EmitRawBinary(const FString& EventName, uint8* Data, int32
 
 void FSocketIONative::OnEvent(const FString& EventName, TFunction< void(const FString&, const TSharedPtr<FJsonValue>&)> CallbackFunction, const FString& Namespace /*= FString(TEXT("/"))*/)
 {
+	EventFunctionMap.Add(EventName, CallbackFunction);
+
 	OnRawEvent(EventName, [&, CallbackFunction](const FString& Event, const sio::message::ptr& RawMessage) {
 		CallbackFunction(Event, USIOMessageConvert::ToJsonValue(RawMessage));
 	}, Namespace);
@@ -262,37 +238,18 @@ void FSocketIONative::OnEvent(const FString& EventName, TFunction< void(const FS
 
 void FSocketIONative::OnRawEvent(const FString& EventName, TFunction< void(const FString&, const sio::message::ptr&)> CallbackFunction, const FString& Namespace /*= FString(TEXT("/"))*/)
 {
-	//const TFunction< void(const FString&, const sio::message::ptr&)> SafeFunction = CallbackFunction;	//copy the function so it remains in context
-	if (!EventFunctionMap.Contains(EventName))
-	{
-		TArray<TFunction< void(const FString&, const sio::message::ptr&)>> FunctionArray;
-		EventFunctionMap.Add(EventName, FunctionArray);
-	}
-
-	TArray<TFunction< void(const FString&, const sio::message::ptr&)>>& FunctionArray = EventFunctionMap[EventName];
-	FunctionArray.Add(CallbackFunction);
+	const TFunction< void(const FString&, const sio::message::ptr&)> SafeFunction = CallbackFunction;	//copy the function so it remains in context
 
 	PrivateClient->socket(USIOMessageConvert::StdString(Namespace))->on(
 		USIOMessageConvert::StdString(EventName),
 		sio::socket::event_listener_aux(
-			[&](std::string const& name, sio::message::ptr const& data, bool isAck, sio::message::list &ack_resp)
+			[&, SafeFunction](std::string const& name, sio::message::ptr const& data, bool isAck, sio::message::list &ack_resp)
 	{
 		const FString SafeName = USIOMessageConvert::FStringFromStd(name);
 
-		FFunctionGraphTask::CreateAndDispatchWhenReady([&, SafeName, data]
+		FFunctionGraphTask::CreateAndDispatchWhenReady([&, SafeFunction, SafeName, data]
 		{
-			auto& FunctionArray = EventFunctionMap[SafeName];
-
-			for (auto& Callback : FunctionArray)
-			{
-				Callback(SafeName, data);
-			}
-			/*for (auto& Pair : EventFunctionMap)
-			{
-				Pair.Value(SafeName, data);
-			}*/
-			//SafeFunction(SafeName, data);
-
+				SafeFunction(SafeName, data);
 		}, TStatId(), nullptr, ENamedThreads::GameThread);
 	}));
 }
@@ -326,5 +283,10 @@ void FSocketIONative::OnBinaryEvent(const FString& EventName, TFunction< void(co
 			UE_LOG(SocketIOLog, Warning, TEXT("Non-binary message received to binary message lambda, check server message data!"));
 		}
 	}));
+}
+
+void FSocketIONative::UnbindEvent(const FString& EventName, const FString& Namespace /*= TEXT("/")*/)
+{
+	OnRawEvent(EventName, nullptr, Namespace);
 }
 
