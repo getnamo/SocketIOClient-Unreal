@@ -13,19 +13,25 @@ enum ESIOConnectionCloseReason
 	CLOSE_REASON_DROP
 };
 
-template <typename FuncType>
-struct FFunctionWrapper
+template <typename T>
+struct TSetFunctionWrapper
 {
-	FuncType Function;
+	T Function;
 
-	bool operator==(const FFunctionWrapper& Other) const
+	bool operator==(const TSetFunctionWrapper<T>& Other) const
 	{
 		return &Other == this;
 	}
 
-	friend FORCEINLINE uint32 GetTypeHash(const FFunctionWrapper& Key)
+	friend FORCEINLINE uint32 GetTypeHash(const TSetFunctionWrapper<T>& Key)
 	{
-		return GetTypeHash((void*)&Key);
+		return ::PointerHash(&Key);
+	}
+
+	TSetFunctionWrapper() {}
+	TSetFunctionWrapper(T InFunction)
+	{
+		Function = InFunction;
 	}
 };
 
@@ -35,11 +41,11 @@ SOCKETIOCLIENT_API class FSocketIONative
 public:
 
 	//Native Callbacks
-	TSet<FFunctionWrapper<TFunction<void(const FString& SessionId)>>> OnConnectedCallbacks;					//TFunction<void(const FString& SessionId)>
-	//TSet<TFunction<void(const ESIOConnectionCloseReason Reason)>> OnDisconnectedCallbacks;	//TFunction<void(const ESIOConnectionCloseReason Reason)>
-	//TSet<TFunction<void(const FString& Namespace)>> OnNamespaceConnectedCallbacks;			//TFunction<void(const FString& Namespace)>
-	//TSet<TFunction<void(const FString& Namespace)>> OnNamespaceDisconnectedCallbacks;		//TFunction<void(const FString& Namespace)>
-	//TSet<TFunction<void()>> OnFailCallbacks;												//TFunction<void()>
+	TSet<TSetFunctionWrapper<TFunction<void(const FString& SessionId)>>> OnConnectedCallbacks;					//TFunction<void(const FString& SessionId)>
+	TSet<TSetFunctionWrapper<TFunction<void(const ESIOConnectionCloseReason Reason)>>> OnDisconnectedCallbacks;	//TFunction<void(const ESIOConnectionCloseReason Reason)>
+	TSet<TSetFunctionWrapper<TFunction<void(const FString& Namespace)>>> OnNamespaceConnectedCallbacks;			//TFunction<void(const FString& Namespace)>
+	TSet<TSetFunctionWrapper<TFunction<void(const FString& Namespace)>>> OnNamespaceDisconnectedCallbacks;		//TFunction<void(const FString& Namespace)>
+	TSet<TSetFunctionWrapper<TFunction<void()>>> OnFailCallbacks;												//TFunction<void()>
 
 	//TODO: fix tset of functions, we may want to use a struct inbetween function binds e.g. struct -> function and return a hash.
 

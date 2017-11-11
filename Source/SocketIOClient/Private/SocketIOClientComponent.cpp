@@ -66,7 +66,7 @@ void USocketIOClientComponent::UninitializeComponent()
 
 void USocketIOClientComponent::SetupCallbacks()
 {
-	OnConnectedCallback = [this](const FString& InSessionId)
+	OnConnectedCallback.Function = [this](const FString& InSessionId)
 	{
 		FSIOLambdaRunnable::RunShortLambdaOnGameThread([this, InSessionId]
 		{
@@ -78,13 +78,12 @@ void USocketIOClientComponent::SetupCallbacks()
 			}
 		});
 	};
-	FFunctionWrapper < TFunction<void(const FString& InSessionId)>> Wrapper;
-	Wrapper.Function = OnConnectedCallback;
-    NativeClient->OnConnectedCallbacks.Add(Wrapper);
+
+    NativeClient->OnConnectedCallbacks.Add(OnConnectedCallback);
 
 	const FSIOCCloseEventSignature OnDisconnectedSafe = OnDisconnected;
 
-	OnDisconnectedCallback = [OnDisconnectedSafe, this](const ESIOConnectionCloseReason Reason)
+	OnDisconnectedCallback.Function = [OnDisconnectedSafe, this](const ESIOConnectionCloseReason Reason)
 	{
 		FSIOLambdaRunnable::RunShortLambdaOnGameThread([OnDisconnectedSafe, this, Reason]
 		{
@@ -96,9 +95,9 @@ void USocketIOClientComponent::SetupCallbacks()
 		});
 	};
 
-	//NativeClient->OnDisconnectedCallbacks.Add(&OnDisconnectedCallback);
+	NativeClient->OnDisconnectedCallbacks.Add(OnDisconnectedCallback);
 
-	OnNamespaceConnectedCallback = [this](const FString& Namespace)
+	OnNamespaceConnectedCallback.Function = [this](const FString& Namespace)
 	{
 		FSIOLambdaRunnable::RunShortLambdaOnGameThread([this, Namespace]
 		{
@@ -108,11 +107,12 @@ void USocketIOClientComponent::SetupCallbacks()
 			}
 		});
 	};
-	//NativeClient->OnNamespaceConnectedCallbacks.Add(&OnNamespaceConnectedCallback);
+
+	NativeClient->OnNamespaceConnectedCallbacks.Add(OnNamespaceConnectedCallback);
 
 	const FSIOCSocketEventSignature OnSocketNamespaceDisconnectedSafe = OnSocketNamespaceDisconnected;
 
-	OnNamespaceDisconnectedCallback = [this, OnSocketNamespaceDisconnectedSafe](const FString& Namespace)
+	OnNamespaceDisconnectedCallback.Function = [this, OnSocketNamespaceDisconnectedSafe](const FString& Namespace)
 	{
 		FSIOLambdaRunnable::RunShortLambdaOnGameThread([OnSocketNamespaceDisconnectedSafe, this, Namespace]
 		{
@@ -122,34 +122,34 @@ void USocketIOClientComponent::SetupCallbacks()
 			}
 		});
 	};
-	//NativeClient->OnNamespaceDisconnectedCallbacks.Add(&OnNamespaceDisconnectedCallback);
+	NativeClient->OnNamespaceDisconnectedCallbacks.Add(OnNamespaceDisconnectedCallback);
 
-	OnFailCallback = [this]()
+	OnFailCallback.Function = [this]()
 	{
 		FSIOLambdaRunnable::RunShortLambdaOnGameThread([this]
 		{
 			OnFail.Broadcast();
 		});
 	};
-	//NativeClient->OnFailCallbacks.Add(&OnFailCallback);
+	NativeClient->OnFailCallbacks.Add(OnFailCallback);
 }
 
 void USocketIOClientComponent::ClearCallbacks()
 {
 	if (NativeClient.IsValid())
 	{
-		/*NativeClient->OnConnectedCallbacks.Remove(&OnConnectedCallback);
-		NativeClient->OnDisconnectedCallbacks.Remove(&OnConnectedCallback);
-		NativeClient->OnNamespaceConnectedCallbacks.Remove(&OnNamespaceConnectedCallback);
-		NativeClient->OnNamespaceDisconnectedCallbacks.Remove(&OnNamespaceDisconnectedCallback);
-		NativeClient->OnFailCallbacks.Remove(&OnFailCallback);*/
+		NativeClient->OnConnectedCallbacks.Remove(OnConnectedCallback);
+		NativeClient->OnDisconnectedCallbacks.Remove(OnDisconnectedCallback);
+		NativeClient->OnNamespaceConnectedCallbacks.Remove(OnNamespaceConnectedCallback);
+		NativeClient->OnNamespaceDisconnectedCallbacks.Remove(OnNamespaceDisconnectedCallback);
+		NativeClient->OnFailCallbacks.Remove(OnFailCallback);
 	}
 
-	OnConnectedCallback = nullptr;
-	OnDisconnectedCallback = nullptr;
-	OnNamespaceConnectedCallback = nullptr;
-	OnNamespaceDisconnectedCallback = nullptr;
-	OnFailCallback = nullptr;
+	OnConnectedCallback.Function = nullptr;
+	OnDisconnectedCallback.Function = nullptr;
+	OnNamespaceConnectedCallback.Function = nullptr;
+	OnNamespaceDisconnectedCallback.Function = nullptr;
+	OnFailCallback.Function = nullptr;
 }
 
 bool USocketIOClientComponent::CallBPFunctionWithResponse(UObject* Target, const FString& FunctionName, TArray<TSharedPtr<FJsonValue>> Response)

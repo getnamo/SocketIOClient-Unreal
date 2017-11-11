@@ -304,11 +304,11 @@ public:
 protected:
 
 	//Internal Nativecallbacks
-	TFunction<void(const FString& SessionId)> OnConnectedCallback;
-	TFunction<void(const ESIOConnectionCloseReason Reason)> OnDisconnectedCallback;
-	TFunction<void(const FString& Namespace)> OnNamespaceConnectedCallback;
-	TFunction<void(const FString& Namespace)> OnNamespaceDisconnectedCallback;
-	TFunction<void()> OnFailCallback;
+	TSetFunctionWrapper<TFunction<void(const FString& SessionId)>> OnConnectedCallback;
+	TSetFunctionWrapper<TFunction<void(const ESIOConnectionCloseReason Reason)>> OnDisconnectedCallback;
+	TSetFunctionWrapper<TFunction<void(const FString& Namespace)>> OnNamespaceConnectedCallback;
+	TSetFunctionWrapper<TFunction<void(const FString& Namespace)>> OnNamespaceDisconnectedCallback;
+	TSetFunctionWrapper<TFunction<void()>> OnFailCallback;
 	void SetupCallbacks();
 	void ClearCallbacks();
 

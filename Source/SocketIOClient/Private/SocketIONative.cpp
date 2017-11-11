@@ -43,16 +43,16 @@ void FSocketIONative::Connect(const FString& InAddressAndPort, const TSharedPtr<
 			UE_LOG(SocketIOLog, Log, TEXT("SocketIO Disconnected %s reason: %s"), *SessionId, *DisconnectReasonString);
 			SessionId = FString(TEXT("invalid"));
 
-			/*if (OnDisconnectedCallbacks.Num()>0)
+			if (OnDisconnectedCallbacks.Num()>0)
 			{
-				for (auto Callback : OnDisconnectedCallbacks)
+				for (auto& Wrapper : OnDisconnectedCallbacks)
 				{
-					if (Callback)
+					if (Wrapper.Function)
 					{
-						Callback(DisconnectReason);
+						Wrapper.Function(DisconnectReason);
 					}
 				}
-			}*/
+			}
 		}));
 
 		PrivateClient->set_socket_open_listener(sio::client::socket_listener([&](std::string const& nsp)
@@ -84,16 +84,16 @@ void FSocketIONative::Connect(const FString& InAddressAndPort, const TSharedPtr<
 			FString Namespace = USIOMessageConvert::FStringFromStd(nsp);
 			UE_LOG(SocketIOLog, Log, TEXT("SocketIO %s connected to namespace: %s"), *SessionId, *Namespace);
 
-			/*if (OnNamespaceConnectedCallbacks.Num() > 0)
+			if (OnNamespaceConnectedCallbacks.Num() > 0)
 			{
-				for (auto Callback : OnNamespaceConnectedCallbacks)
+				for (auto& Wrapper : OnNamespaceConnectedCallbacks)
 				{
-					if (Callback)
+					if (Wrapper.Function)
 					{
-						Callback(Namespace);
+						Wrapper.Function(Namespace);
 					}
 				}
-			}*/
+			}
 		}));
 
 		PrivateClient->set_socket_close_listener(sio::client::socket_listener([&](std::string const& nsp)
@@ -101,31 +101,31 @@ void FSocketIONative::Connect(const FString& InAddressAndPort, const TSharedPtr<
 			FString Namespace = USIOMessageConvert::FStringFromStd(nsp);
 			UE_LOG(SocketIOLog, Log, TEXT("SocketIO disconnected from namespace: %s"), *Namespace);
 
-			/*if (OnNamespaceDisconnectedCallbacks.Num() > 0)
+			if (OnNamespaceDisconnectedCallbacks.Num() > 0)
 			{
-				for (auto Callback : OnNamespaceDisconnectedCallbacks)
+				for (auto& Wrapper : OnNamespaceDisconnectedCallbacks)
 				{
-					if (Callback)
+					if (Wrapper.Function)
 					{
-						Callback(USIOMessageConvert::FStringFromStd(nsp));
+						Wrapper.Function(USIOMessageConvert::FStringFromStd(nsp));
 					}
 				}
-			}*/
+			}
 		}));
 
 		PrivateClient->set_fail_listener(sio::client::con_listener([&]()
 		{
 			UE_LOG(SocketIOLog, Log, TEXT("SocketIO failed to connect."));
-			/*if (OnFailCallbacks.Num() > 0)
+			if (OnFailCallbacks.Num() > 0)
 			{
-				for (auto Callback : OnFailCallbacks)
+				for (auto Wrapper : OnFailCallbacks)
 				{
-					if (Callback)
+					if (Wrapper.Function)
 					{
-						Callback();
+						Wrapper.Function();
 					}
 				}
-			}*/
+			}
 		}));
 
 		std::map<std::string, std::string> QueryMap = {};
@@ -167,10 +167,10 @@ void FSocketIONative::SyncDisconnect()
 void FSocketIONative::ClearCallbacks()
 {
 	OnConnectedCallbacks.Empty();
-	/*OnDisconnectedCallbacks.Empty();
+	OnDisconnectedCallbacks.Empty();
 	OnNamespaceConnectedCallbacks.Empty();
 	OnNamespaceDisconnectedCallbacks.Empty();
-	OnFailCallbacks.Empty();*/
+	OnFailCallbacks.Empty();
 }
 
 void FSocketIONative::Emit(const FString& EventName, const TSharedPtr<FJsonValue>& Message /*= nullptr*/, TFunction< void(const TArray<TSharedPtr<FJsonValue>>&)> CallbackFunction /*= nullptr*/, const FString& Namespace /*= FString(TEXT("/"))*/)
