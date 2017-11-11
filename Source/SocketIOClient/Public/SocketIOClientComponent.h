@@ -85,7 +85,7 @@ public:
 	bool bVerboseConnectionLog;
 
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "SocketIO Connection Properties")
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "SocketIO Scope Properties")
 	bool bLimitConnectionToGameWorld;
 
 	/** 
