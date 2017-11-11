@@ -6,9 +6,10 @@
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE(FSIOCEventSignature);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FSIOCSocketEventSignature, FString, Namespace);
-DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FSIOCOpenEventSignature, FString, SessionId);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FSIOCOpenEventSignature, FString, SessionId, bool, bIsReconnection);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FSIOCCloseEventSignature, TEnumAsByte<ESIOConnectionCloseReason>, Reason);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FSIOCEventJsonSignature, FString, Event, class USIOJsonValue*, MessageJson);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_ThreeParams(FSIOConnectionProblemSignature, int32, Attempts, int32,  NextAttemptInMs, float, TimeSinceConnected);
 
 UCLASS(ClassGroup = "Networking", meta = (BlueprintSpawnableComponent))
 class SOCKETIOCLIENT_API USocketIOClientComponent : public UActorComponent
@@ -18,47 +19,97 @@ public:
 
 	//Async events
 
-	/** Event received on socket.io connection established. */
-	UPROPERTY(BlueprintAssignable, Category = "SocketIO Events")
-	FSIOCOpenEventSignature OnConnected;
-
-	/** Event received on socket.io connection disconnected. */
-	UPROPERTY(BlueprintAssignable, Category = "SocketIO Events")
-	FSIOCCloseEventSignature OnDisconnected;
-
-	/** Event received on having joined namespace. */
-	UPROPERTY(BlueprintAssignable, Category = "SocketIO Events")
-	FSIOCSocketEventSignature OnSocketNamespaceConnected;
-
-	/** Event received on having left namespace. */
-	UPROPERTY(BlueprintAssignable, Category = "SocketIO Events")
-	FSIOCSocketEventSignature OnSocketNamespaceDisconnected;
-
-	/** Event received on connection failure. */
-	UPROPERTY(BlueprintAssignable, Category = "SocketIO Events")
-	FSIOCEventSignature OnFail;
-
 	/** On bound event received. */
 	UPROPERTY(BlueprintAssignable, Category = "SocketIO Events")
 	FSIOCEventJsonSignature OnEvent;
 
+	/** Received on socket.io connection established. */
+	UPROPERTY(BlueprintAssignable, Category = "SocketIO Events")
+	FSIOCOpenEventSignature OnConnected;
+
+	/** 
+	* Received on socket.io connection disconnected. This may never get 
+	* called in default settings, see OnConnectionProblems event for details. 
+	*/
+	UPROPERTY(BlueprintAssignable, Category = "SocketIO Events")
+	FSIOCCloseEventSignature OnDisconnected;
+
+	/** 
+	* Received when connection problems arise. In default settings the
+	* connection will keep repeating trying to reconnect an infinite
+	* amount of times and you may never get OnDisconnected callback
+	* unless you call it.
+	*/
+	UPROPERTY(BlueprintAssignable, Category = "SocketIO Events")
+	FSIOConnectionProblemSignature OnConnectionProblems;
+
+	/** Received on having joined namespace. */
+	UPROPERTY(BlueprintAssignable, Category = "SocketIO Events")
+	FSIOCSocketEventSignature OnSocketNamespaceConnected;
+
+	/** Received on having left namespace. */
+	UPROPERTY(BlueprintAssignable, Category = "SocketIO Events")
+	FSIOCSocketEventSignature OnSocketNamespaceDisconnected;
+
+	/** Received on connection failure. */
+	UPROPERTY(BlueprintAssignable, Category = "SocketIO Events")
+	FSIOCEventSignature OnFail;
+
+
 	/** Default connection address string in form e.g. http://localhost:80. */
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "SocketIO Properties")
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "SocketIO Connection Properties")
 	FString AddressAndPort;
 
 	/** If true will auto-connect on begin play to address specified in AddressAndPort. */
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "SocketIO Properties")
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "SocketIO Connection Properties")
 	bool bShouldAutoConnect;
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "SocketIO Properties")
-	bool bAsyncQuitDisconnect;
+	/** Delay between reconnection attempts */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "SocketIO Connection Properties")
+	int32 ReconnectionDelayInMs;
 
-	UPROPERTY(BlueprintReadOnly, Category = "SocketIO Properties")
+	/**
+	* Number of times the connection should try before giving up.
+	* Default: infinity, this means you never truly disconnect, just suffer connection problems 
+	*/
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "SocketIO Connection Properties")
+	int32 MaxReconnectionAttempts;
+
+	/** Optional parameter to limit reconnections by elapsed time. Default: infinity. */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "SocketIO Connection Properties")
+	float ReconnectionTimeout;
+
+	FDateTime TimeWhenConnectionProblemsStarted;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "SocketIO Connection Properties")
+	bool bVerboseConnectionLog;
+
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "SocketIO Scope Properties")
+	bool bLimitConnectionToGameWorld;
+
+	/** 
+	* Toggle which enables plugin scoped connections. 
+	* If you enable this the connection will remain until you manually call disconnect
+	* or close the app. The latest connection with the same PluginScopedId will use the same connection
+	* as the previous one and receive the same events.
+	*/
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "SocketIO Scope Properties")
+	bool bPluginScopedConnection;
+
+	/** If you leave this as is all plugin scoped connection components will share same connection*/
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "SocketIO Scope Properties")
+	FString PluginScopedId;
+
+	UPROPERTY(BlueprintReadOnly, Category = "SocketIO Connection Properties")
 	bool bIsConnected;
 
 	/** When connected this session id will be valid and contain a unique Id. */
-	UPROPERTY(BlueprintReadWrite, Category = "SocketIO Properties")
+	UPROPERTY(BlueprintReadOnly, Category = "SocketIO Connection Properties")
 	FString SessionId;
+
+	UPROPERTY(BlueprintReadOnly, Category = "SocketIO Connection Properties")
+	bool bIsHavingConnectionProblems;
 
 	/**
 	* Connect to a socket.io server, optional method if auto-connect is set to true.
@@ -75,7 +126,9 @@ public:
 					USIOJsonObject* Headers = nullptr);
 
 	/**
-	* Disconnect from current socket.io server, optional method.
+	* Disconnect from current socket.io server. This is an asynchronous action,
+	* subscribe to OnDisconnected to know when you can safely continue from a 
+	* disconnected state.
 	*
 	* @param AddressAndPort	the address in URL format with port
 	*/
@@ -288,12 +341,12 @@ public:
 	virtual void BeginPlay() override;
 	
 protected:
+	void SetupCallbacks();
+	void ClearCallbacks();
 
 	bool CallBPFunctionWithResponse(UObject* Target, const FString& FunctionName, TArray<TSharedPtr<FJsonValue>> Response);
 	bool CallBPFunctionWithMessage(UObject* Target, const FString& FunctionName, TSharedPtr<FJsonValue> Message);
 
 	FCriticalSection AllocationSection;
 	TSharedPtr<FSocketIONative> NativeClient;
-
-	//FSocketIONative* NativeClient;
 };

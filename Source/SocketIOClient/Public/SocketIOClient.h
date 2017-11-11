@@ -31,8 +31,18 @@ public:
 	}
 
 	/** 
-	* Utility to get module scoped pointers that get deleted when the module unloads.
+	* Request a new plugin scoped pointer as a shared ptr.
 	*/
-	virtual FSocketIONative* NewValidNativePointer() { return nullptr; };
-	virtual void ReleaseNativePointer(FSocketIONative* PointerToRelease) {};
+	virtual TSharedPtr<FSocketIONative> NewValidNativePointer() { return nullptr; };
+
+	/** 
+	* Request a shared FSocketIONative instance for a given id. May allocate a new pointer.
+	*/
+	virtual TSharedPtr<FSocketIONative> ValidSharedNativePointer(FString SharedId) { return nullptr; };
+
+	/** 
+	* Releases the given plugin scoped pointer using a background thread
+	* After calling this function make sure to set your pointer to nullptr.
+	*/
+	virtual void ReleaseNativePointer(TSharedPtr<FSocketIONative> PointerToRelease) {};
 };

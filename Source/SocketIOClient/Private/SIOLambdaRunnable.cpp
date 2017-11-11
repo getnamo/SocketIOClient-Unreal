@@ -97,12 +97,5 @@ FGraphEventRef FSIOLambdaRunnable::RunShortLambdaOnGameThread(TFunction< void()>
 
 void FSIOLambdaRunnable::ShutdownThreads()
 {
-	/*for (auto Runnable : Runnables)
-	{
-	if (Runnable != nullptr)
-	{
-	delete Runnable;
-	}
-	Runnable = nullptr;
-	}*/
+
 }

@@ -3,6 +3,7 @@
 #include "SocketIOClientComponent.h"
 #include "SIOLambdaRunnable.h"
 #include "SIOJConvert.h"
+#include "SocketIOClient.h"
 
 USocketIOClientComponent::USocketIOClientComponent(const FObjectInitializer &init) : UActorComponent(init)
 {
@@ -10,17 +11,37 @@ USocketIOClientComponent::USocketIOClientComponent(const FObjectInitializer &ini
 	bWantsInitializeComponent = true;
 	bAutoActivate = true;
 	NativeClient = nullptr;
-	bAsyncQuitDisconnect = true;
+	bLimitConnectionToGameWorld = true;
 	AddressAndPort = FString(TEXT("http://localhost:3000"));	//default to 127.0.0.1
-	SessionId = FString(TEXT("invalid"));
+	SessionId = FString(TEXT("Invalid"));
+	
+	//Plugin scoped utilities
+	bPluginScopedConnection = false;
+	PluginScopedId = TEXT("Default");
+	bVerboseConnectionLog = true;
+	ReconnectionTimeout = 0.f;
+	MaxReconnectionAttempts = -1.f;
+	ReconnectionDelayInMs = 5000;
+
+	ClearCallbacks();
 }
 
 void USocketIOClientComponent::InitializeComponent()
 {
 	Super::InitializeComponent();
 	{
-		FScopeLock lock(&AllocationSection);
-		NativeClient = MakeShareable(new FSocketIONative);
+		//Because our connections can last longer than game world 
+		//end, we let plugin-scoped structures manage our memory
+		if (bPluginScopedConnection)
+		{
+			NativeClient = ISocketIOClientModule::Get().ValidSharedNativePointer(PluginScopedId);
+		}
+		else
+		{
+			NativeClient = ISocketIOClientModule::Get().NewValidNativePointer();
+		}
+		
+		SetupCallbacks();
 	}
 
 }
@@ -28,38 +49,146 @@ void USocketIOClientComponent::InitializeComponent()
 void USocketIOClientComponent::BeginPlay()
 {
 	Super::BeginPlay();
-	if (bShouldAutoConnect)
+
+	//Auto-connect to default address if supported and not already connected
+	if (bShouldAutoConnect && !bIsConnected)
 	{
-		Connect(AddressAndPort);	//connect to default address
+		Connect(AddressAndPort);
 	}
 }
 
 void USocketIOClientComponent::UninitializeComponent()
 {
-	//This may lock up so run it on a background thread
-	if (bAsyncQuitDisconnect)
+	//Because our connections can last longer than game world 
+	//end, we let plugin-scoped structures manage our memory.
+	//We must ensure we set our pointer to null however.
+
+	ClearCallbacks();
+
+	//If we're a regular connection we should close and release when we quit
+	if (!bPluginScopedConnection)
 	{
-		if (bIsConnected)
-		{
-			FSIOLambdaRunnable::RunLambdaOnBackGroundThread([&]
-			{
-				FScopeLock lock(&AllocationSection);
-				NativeClient = nullptr;
-			});
-		}
-	}
-	else
-	{
-		FScopeLock lock(&AllocationSection);
-		NativeClient = nullptr;;
+		ISocketIOClientModule::Get().ReleaseNativePointer(NativeClient);
+		NativeClient = nullptr;
 	}
 
 	//UE_LOG(SocketIOLog, Log, TEXT("UninitializeComponent() call"));
 	Super::UninitializeComponent();
 }
 
+void USocketIOClientComponent::SetupCallbacks()
+{
+	//Sync current connected state
+	bIsConnected = NativeClient->bIsConnected;
+	if (bIsConnected)
+	{
+		SessionId = NativeClient->SessionId;
+		AddressAndPort = NativeClient->AddressAndPort;
+	}
+
+	NativeClient->OnConnectedCallback = [this](const FString& InSessionId)
+	{
+		FSIOLambdaRunnable::RunShortLambdaOnGameThread([this, InSessionId]
+		{
+			if (this)
+			{
+				bIsConnected = true;
+				SessionId = InSessionId;
+				OnConnected.Broadcast(SessionId, bIsHavingConnectionProblems);
+				bIsHavingConnectionProblems = false;
+			}
+		});
+	};
+
+	const FSIOCCloseEventSignature OnDisconnectedSafe = OnDisconnected;
+
+	NativeClient->OnDisconnectedCallback = [OnDisconnectedSafe, this](const ESIOConnectionCloseReason Reason)
+	{
+		FSIOLambdaRunnable::RunShortLambdaOnGameThread([OnDisconnectedSafe, this, Reason]
+		{
+			if (this && OnDisconnectedSafe.IsBound())
+			{
+				bIsConnected = false;
+				OnDisconnectedSafe.Broadcast(Reason);
+			}
+		});
+	};
+
+	NativeClient->OnNamespaceConnectedCallback = [this](const FString& Namespace)
+	{
+		FSIOLambdaRunnable::RunShortLambdaOnGameThread([this, Namespace]
+		{
+			if (this && OnSocketNamespaceConnected.IsBound())
+			{
+				OnSocketNamespaceConnected.Broadcast(Namespace);
+			}
+		});
+	};
+
+	const FSIOCSocketEventSignature OnSocketNamespaceDisconnectedSafe = OnSocketNamespaceDisconnected;
+
+	NativeClient->OnNamespaceDisconnectedCallback = [this, OnSocketNamespaceDisconnectedSafe](const FString& Namespace)
+	{
+		FSIOLambdaRunnable::RunShortLambdaOnGameThread([OnSocketNamespaceDisconnectedSafe, this, Namespace]
+		{
+			if (this && OnSocketNamespaceDisconnectedSafe.IsBound())
+			{
+				OnSocketNamespaceDisconnectedSafe.Broadcast(Namespace);
+			}
+		});
+	};
+	NativeClient->OnReconnectionCallback = [this](const uint32 AttemptCount, const uint32 DelayInMs)
+	{
+		FSIOLambdaRunnable::RunShortLambdaOnGameThread([this, AttemptCount, DelayInMs]
+		{
+			//First time we know about this problem?
+			if (!bIsHavingConnectionProblems)
+			{
+				TimeWhenConnectionProblemsStarted = FDateTime::Now();
+				bIsHavingConnectionProblems = true;
+			}
+
+			FTimespan Difference = FDateTime::Now() - TimeWhenConnectionProblemsStarted;
+			float ElapsedInSec = Difference.GetTotalSeconds();
+
+			if (ReconnectionTimeout > 0 && ElapsedInSec>ReconnectionTimeout)
+			{
+				//Let's stop trying and disconnect if we're using timeouts
+				Disconnect();
+			}
+
+			if (this && OnConnectionProblems.IsBound())
+			{
+				OnConnectionProblems.Broadcast(AttemptCount, DelayInMs, ElapsedInSec);
+			}
+		});
+	};
+
+	NativeClient->OnFailCallback = [this]()
+	{
+		FSIOLambdaRunnable::RunShortLambdaOnGameThread([this]
+		{
+			OnFail.Broadcast();
+		});
+	};
+}
+
+void USocketIOClientComponent::ClearCallbacks()
+{
+	if (NativeClient.IsValid())
+	{
+		NativeClient->ClearCallbacks();
+	}
+}
+
 bool USocketIOClientComponent::CallBPFunctionWithResponse(UObject* Target, const FString& FunctionName, TArray<TSharedPtr<FJsonValue>> Response)
 {
+	if (!Target->IsValidLowLevel())
+	{
+		UE_LOG(SocketIOLog, Warning, TEXT("CallFunctionByNameWithArguments: Target not found for '%s'"), *FunctionName);
+		return false;
+	}
+
 	UFunction* Function = Target->FindFunction(FName(*FunctionName));
 	if (nullptr == Function)
 	{
@@ -197,6 +326,25 @@ bool USocketIOClientComponent::CallBPFunctionWithMessage(UObject* Target, const 
 
 void USocketIOClientComponent::Connect(const FString& InAddressAndPort, USIOJsonObject* Query /*= nullptr*/, USIOJsonObject* Headers /*= nullptr*/)
 {
+	//Check if we're limiting this component
+	if(bLimitConnectionToGameWorld)
+	{ 
+		UWorld* World = GEngine->GetWorldFromContextObject(this, EGetWorldErrorMode::LogAndReturnNull);
+		if (World)
+		{
+			bool bIsGameWorld = (World->IsGameWorld() || World->IsPreviewWorld());
+			if(!bIsGameWorld)
+			{
+				UE_LOG(SocketIOLog, Log, TEXT("USocketIOClientComponent::Connect attempt in non-game world blocked by bLimitConnectionToGameWorld."));
+				return;
+			}
+		}
+		else
+		{
+			UE_LOG(SocketIOLog, Warning, TEXT("USocketIOClientComponent::Connect attempt while in invalid world."));
+			return;
+		}
+	}
 	TSharedPtr<FJsonObject> QueryFJson;
 	TSharedPtr<FJsonObject> HeadersFJson;
 
@@ -209,74 +357,18 @@ void USocketIOClientComponent::Connect(const FString& InAddressAndPort, USIOJson
 	{
 		HeadersFJson = Headers->GetRootObject();
 	}
+
+	//Ensure we sync our native max/reconnection attempts before connecting
+	NativeClient->MaxReconnectionAttempts = MaxReconnectionAttempts;
+	NativeClient->ReconnectionDelay = ReconnectionDelayInMs;
+	NativeClient->VerboseLog = bVerboseConnectionLog;
 	
 	ConnectNative(InAddressAndPort, QueryFJson, HeadersFJson);
 }
 
 void USocketIOClientComponent::ConnectNative(const FString& InAddressAndPort, const TSharedPtr<FJsonObject>& Query /*= nullptr*/, const TSharedPtr<FJsonObject>& Headers /*= nullptr*/)
 {
-	//Set native callback functions
-	NativeClient->OnConnectedCallback = [this](const FString& InSessionId)
-	{
-		FSIOLambdaRunnable::RunShortLambdaOnGameThread([this, InSessionId]
-		{
-			if (this)
-			{
-				bIsConnected = true;
-				SessionId = InSessionId;
-				OnConnected.Broadcast(SessionId);
-			}
-		});
-	};
-	const FSIOCCloseEventSignature OnDisconnectedSafe = OnDisconnected;
-
-	NativeClient->OnDisconnectedCallback = [OnDisconnectedSafe, this](const ESIOConnectionCloseReason Reason)
-	{
-		FSIOLambdaRunnable::RunShortLambdaOnGameThread([OnDisconnectedSafe, this, Reason]
-		{
-			if (this && OnDisconnectedSafe.IsBound())
-			{
-				bIsConnected = false;
-				OnDisconnectedSafe.Broadcast(Reason);
-			}
-		});
-	};
-
-	NativeClient->OnNamespaceConnectedCallback = [this](const FString& Namespace)
-	{
-		FSIOLambdaRunnable::RunShortLambdaOnGameThread([this, Namespace]
-		{
-			if (this)
-			{
-				OnSocketNamespaceConnected.Broadcast(Namespace);
-			}
-		});
-	};
-
-	const FSIOCSocketEventSignature OnSocketNamespaceDisconnectedSafe = OnSocketNamespaceDisconnected;
-
-	NativeClient->OnNamespaceDisconnectedCallback = [this, OnSocketNamespaceDisconnectedSafe](const FString& Namespace)
-	{
-		FSIOLambdaRunnable::RunShortLambdaOnGameThread([OnSocketNamespaceDisconnectedSafe, this, Namespace]
-		{
-			if (this && OnSocketNamespaceDisconnectedSafe.IsBound())
-			{
-				OnSocketNamespaceDisconnectedSafe.Broadcast(Namespace);
-			}
-		});
-	};
-
-	NativeClient->OnFailCallback = [this]()
-	{
-		FSIOLambdaRunnable::RunShortLambdaOnGameThread([this]
-		{
-			OnFail.Broadcast();
-		});
-	};
-
-	{
-		NativeClient->Connect(InAddressAndPort, Query, Headers);
-	}
+	NativeClient->Connect(InAddressAndPort, Query, Headers);
 }
 
 void USocketIOClientComponent::Disconnect()

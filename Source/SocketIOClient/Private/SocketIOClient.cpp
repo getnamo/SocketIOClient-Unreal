@@ -4,11 +4,15 @@
 
 #define LOCTEXT_NAMESPACE "FSocketIOClientModule"
 
+//struct 
+
 class FSocketIOClientModule : public ISocketIOClientModule
 {
 public:
-	virtual FSocketIONative* NewValidNativePointer() override;
-	void ReleaseNativePointer(FSocketIONative* PointerToRelease) override;
+	//virtual TSharedPtr<FSocketIONative> NewValidNativePointer() override;
+	virtual TSharedPtr<FSocketIONative> NewValidNativePointer() override;
+	virtual TSharedPtr<FSocketIONative> ValidSharedNativePointer(FString SharedId) override;
+	void ReleaseNativePointer(TSharedPtr<FSocketIONative> PointerToRelease) override;
 
 	/** IModuleInterface implementation */
 	virtual void StartupModule() override;
@@ -16,7 +20,15 @@ public:
 
 private:
 	FCriticalSection DeleteSection;
-	TArray<FSocketIONative*> ModulePointers;
+
+	//All native pointers manages by the plugin
+	TArray<TSharedPtr<FSocketIONative>> PluginNativePointers;
+
+	//Shared pointers, these will typically be alive past game world lifecycles
+	TMap<FString, TSharedPtr<FSocketIONative>> SharedNativePointers;
+	TSet<TSharedPtr<FSocketIONative>> AllSharedPtrs;	//reverse lookup
+
+	FThreadSafeBool bHasActiveNativePointers;
 };
 
 
@@ -24,54 +36,109 @@ void FSocketIOClientModule::StartupModule()
 {
 	// This code will execute after your module is loaded into memory; the exact timing is specified in the .uplugin file per-module
 
-	ModulePointers.Empty();
+	PluginNativePointers.Empty();
 }
 
 void FSocketIOClientModule::ShutdownModule()
 {
 	// This function may be called during shutdown to clean up your module.  For modules that support dynamic reloading,
 	// we call this function before unloading the module.
-	FScopeLock Lock(&DeleteSection);
 
-	ModulePointers.Empty();
-	
-	/*for (auto& Pointer : ModulePointers)
+	/*
+	Ensure we call release pointers, this will catch all the plugin scoped 
+	connections pointers which don't get auto-released between game worlds.
+	*/
+	auto AllActivePointers = PluginNativePointers;
+	for (auto& Pointer : AllActivePointers)
 	{
-		if (Pointer)
+		ReleaseNativePointer(Pointer);
+	}
+	AllActivePointers.Empty();
+
+	//Wait for all pointers to release
+	float Elapsed = 0.f;
+	while (bHasActiveNativePointers)
+	{
+		FPlatformProcess::Sleep(0.01f);
+		Elapsed += 0.01f;
+
+		//if it takes more than 5 seconds, just quit
+		if (Elapsed > 5.f)
 		{
-			delete Pointer;
-			Pointer = nullptr;
+			UE_LOG(SocketIOLog, Warning, TEXT("FSocketIOClientModule::ShutdownModule force quit due to long wait to quit."));
+			break;
 		}
-	}*/
+	}
+
+	//Native pointers will be automatically released by uninitialize components
+	PluginNativePointers.Empty();
 }
 
-FSocketIONative* FSocketIOClientModule::NewValidNativePointer()
+TSharedPtr<FSocketIONative> FSocketIOClientModule::NewValidNativePointer()
 {
-	FSocketIONative* NewPointer = new FSocketIONative;
-	ModulePointers.Add(NewPointer);
+	TSharedPtr<FSocketIONative> NewPointer = MakeShareable(new FSocketIONative);
+	
+	PluginNativePointers.Add(NewPointer);
+	
+	bHasActiveNativePointers = true;
 
 	return NewPointer;
 }
 
-void FSocketIOClientModule::ReleaseNativePointer(FSocketIONative* PointerToRelease)
+TSharedPtr<FSocketIONative> FSocketIOClientModule::ValidSharedNativePointer(FString SharedId)
 {
-	PointerToRelease->OnConnectedCallback = [PointerToRelease](const FString& SessionId)
+	//Found key? return it
+	if (SharedNativePointers.Contains(SharedId))
 	{
-		//If we're still connected, disconnect us
-		if (PointerToRelease)
+		return SharedNativePointers[SharedId];
+	}
+	//Otherwise request a new id and return it
+	else
+	{
+		TSharedPtr<FSocketIONative> NewNativePtr = NewValidNativePointer();
+		SharedNativePointers.Add(SharedId, NewNativePtr);
+		AllSharedPtrs.Add(NewNativePtr);
+		return NewNativePtr;
+	}
+}
+
+void FSocketIOClientModule::ReleaseNativePointer(TSharedPtr<FSocketIONative> PointerToRelease)
+{
+	//Remove shared ptr references if any
+	if (AllSharedPtrs.Contains(PointerToRelease))
+	{
+		AllSharedPtrs.Remove(PointerToRelease);
+		for (auto& Pair : SharedNativePointers)
 		{
-			PointerToRelease->SyncDisconnect();
+			if (Pair.Value == PointerToRelease)
+			{
+				SharedNativePointers.Remove(Pair.Key);
+				break;
+			}
 		}
-	};
+	}
 
 	//Release the pointer on the background thread
 	FSIOLambdaRunnable::RunLambdaOnBackGroundThread([PointerToRelease, this]
 	{
-		FScopeLock Lock(&DeleteSection);
-
-		if (PointerToRelease)
+		if (PointerToRelease.IsValid())
 		{
-			delete PointerToRelease;
+			//Disconnect
+			if (PointerToRelease->bIsConnected)
+			{
+				PointerToRelease->SyncDisconnect();
+			}
+
+			//Last operation took a while, ensure it's still true
+			if (PointerToRelease.IsValid())
+			{
+				//Ensure only one thread at a time removes from array 
+				FScopeLock Lock(&DeleteSection);
+				PluginNativePointers.Remove(PointerToRelease);
+				
+				//Update our active status
+				bHasActiveNativePointers = PluginNativePointers.Num() > 0;
+			}
 		}
 	});
 }

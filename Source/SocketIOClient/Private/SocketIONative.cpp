@@ -8,13 +8,16 @@ FSocketIONative::FSocketIONative()
 {
 	ConnectionThread = nullptr;
 	PrivateClient = nullptr;
-	AddressAndPort = FString(TEXT("http://localhost:3000"));	//default to 127.0.0.1
-	SessionId = FString(TEXT("invalid"));
+	AddressAndPort = TEXT("http://localhost:3000");	//default to 127.0.0.1
+	SessionId = TEXT("Invalid");
+	LastSessionId = TEXT("None");
 	bIsConnected = false;
-
-	ClearCallbacks();
+	MaxReconnectionAttempts = -1;
+	ReconnectionDelay = 5000;
 
 	PrivateClient = MakeShareable(new sio::client);
+
+	ClearCallbacks();
 }
 
 void FSocketIONative::Connect(const FString& InAddressAndPort, const TSharedPtr<FJsonObject>& Query /*= nullptr*/, const TSharedPtr<FJsonObject>& Headers /*= nullptr*/)
@@ -28,73 +31,6 @@ void FSocketIONative::Connect(const FString& InAddressAndPort, const TSharedPtr<
 	//Connect to the server on a background thread so it never blocks
 	ConnectionThread = FSIOLambdaRunnable::RunLambdaOnBackGroundThread([&, Query, Headers]
 	{
-		//Attach the specific connection status events events
-
-		PrivateClient->set_open_listener(sio::client::con_listener([&]() {
-			//too early to get session id here so we defer the connection event until we connect to a namespace
-		}));
-
-		PrivateClient->set_close_listener(sio::client::close_listener([&](sio::client::close_reason const& reason)
-		{
-			bIsConnected = false;
-			SessionId = FString(TEXT("invalid"));
-			UE_LOG(SocketIOLog, Log, TEXT("SocketIO Disconnected: %d"), (int32)reason);
-
-			if (OnDisconnectedCallback)
-			{
-				OnDisconnectedCallback((ESIOConnectionCloseReason)reason);
-			}
-		}));
-
-		PrivateClient->set_socket_open_listener(sio::client::socket_listener([&](std::string const& nsp)
-		{
-			//Special case, we have a latent connection after already having been disconnected
-			if (!PrivateClient.IsValid())
-			{
-				return;
-			}
-			if (!bIsConnected)
-			{
-				bIsConnected = true;
-				SessionId = USIOMessageConvert::FStringFromStd(PrivateClient->get_sessionid());
-
-				UE_LOG(SocketIOLog, Log, TEXT("SocketIO Connected with session: %s"), *SessionId);
-
-				if (OnConnectedCallback)
-				{
-					OnConnectedCallback(SessionId);
-				}
-			}
-
-			FString Namespace = USIOMessageConvert::FStringFromStd(nsp);
-			UE_LOG(SocketIOLog, Log, TEXT("SocketIO connected to namespace: %s"), *Namespace);
-
-			if (OnNamespaceConnectedCallback)
-			{
-				OnNamespaceConnectedCallback(Namespace);
-			}
-		}));
-
-		PrivateClient->set_socket_close_listener(sio::client::socket_listener([&](std::string const& nsp)
-		{
-			FString Namespace = USIOMessageConvert::FStringFromStd(nsp);
-			UE_LOG(SocketIOLog, Log, TEXT("SocketIO disconnected from namespace: %s"), *Namespace);
-
-			if (OnNamespaceDisconnectedCallback)
-			{
-				OnNamespaceDisconnectedCallback(USIOMessageConvert::FStringFromStd(nsp));
-			}
-		}));
-
-		PrivateClient->set_fail_listener(sio::client::con_listener([&]()
-		{
-			UE_LOG(SocketIOLog, Log, TEXT("SocketIO failed to connect."));
-			if (OnFailCallback)
-			{
-				OnFailCallback();
-			}
-		}));
-
 		std::map<std::string, std::string> QueryMap = {};
 		std::map<std::string, std::string> HeadersMap = {};
 
@@ -109,6 +45,9 @@ void FSocketIONative::Connect(const FString& InAddressAndPort, const TSharedPtr<
 			QueryMap = USIOMessageConvert::JsonObjectToStdStringMap(Query);
 		}
 
+		PrivateClient->set_reconnect_attempts(MaxReconnectionAttempts);
+		PrivateClient->set_reconnect_delay(ReconnectionDelay);
+
 		PrivateClient->connect(StdAddressString, QueryMap, HeadersMap);
 	});
 }
@@ -120,17 +59,25 @@ void FSocketIONative::Disconnect()
 
 void FSocketIONative::SyncDisconnect()
 {
-	OnDisconnectedCallback(ESIOConnectionCloseReason::CLOSE_REASON_NORMAL);
+	if (OnDisconnectedCallback)
+	{
+		OnDisconnectedCallback(ESIOConnectionCloseReason::CLOSE_REASON_NORMAL);
+	}
 	ClearCallbacks();
 	PrivateClient->sync_close();
 }
 
 void FSocketIONative::ClearCallbacks()
 {
+	PrivateClient->clear_socket_listeners();
+	SetupInternalCallbacks();					//if clear socket listeners cleared our internal callbacks. reset them
+	EventFunctionMap.Empty();
+
 	OnConnectedCallback = nullptr;
 	OnDisconnectedCallback = nullptr;
 	OnNamespaceConnectedCallback = nullptr;
 	OnNamespaceDisconnectedCallback = nullptr;
+	OnReconnectionCallback = nullptr;
 	OnFailCallback = nullptr;
 }
 
@@ -216,6 +163,9 @@ void FSocketIONative::EmitRawBinary(const FString& EventName, uint8* Data, int32
 
 void FSocketIONative::OnEvent(const FString& EventName, TFunction< void(const FString&, const TSharedPtr<FJsonValue>&)> CallbackFunction, const FString& Namespace /*= FString(TEXT("/"))*/)
 {
+	//Keep track of all the bound functions
+	EventFunctionMap.Add(EventName, CallbackFunction);
+
 	OnRawEvent(EventName, [&, CallbackFunction](const FString& Event, const sio::message::ptr& RawMessage) {
 		CallbackFunction(Event, USIOMessageConvert::ToJsonValue(RawMessage));
 	}, Namespace);
@@ -266,6 +216,115 @@ void FSocketIONative::OnBinaryEvent(const FString& EventName, TFunction< void(co
 		else
 		{
 			UE_LOG(SocketIOLog, Warning, TEXT("Non-binary message received to binary message lambda, check server message data!"));
+		}
+	}));
+}
+
+void FSocketIONative::UnbindEvent(const FString& EventName, const FString& Namespace /*= TEXT("/")*/)
+{
+	OnRawEvent(EventName, nullptr, Namespace);
+}
+
+void FSocketIONative::SetupInternalCallbacks()
+{
+	PrivateClient->set_open_listener(sio::client::con_listener([&]() {
+		//too early to get session id here so we defer the connection event until we connect to a namespace
+	}));
+
+	PrivateClient->set_close_listener(sio::client::close_listener([&](sio::client::close_reason const& reason)
+	{
+		bIsConnected = false;
+
+		ESIOConnectionCloseReason DisconnectReason = (ESIOConnectionCloseReason)reason;
+		FString DisconnectReasonString = USIOJConvert::EnumToString(TEXT("ESIOConnectionCloseReason"), DisconnectReason);
+		if (VerboseLog)
+		{
+			UE_LOG(SocketIOLog, Log, TEXT("SocketIO Disconnected %s reason: %s"), *SessionId, *DisconnectReasonString);
+		}
+		LastSessionId = SessionId;
+		SessionId = TEXT("Invalid");
+
+		if (OnDisconnectedCallback)
+		{
+			OnDisconnectedCallback(DisconnectReason);
+		}
+	}));
+
+	PrivateClient->set_socket_open_listener(sio::client::socket_listener([&](std::string const& nsp)
+	{
+		//Special case, we have a latent connection after already having been disconnected
+		if (!PrivateClient.IsValid())
+		{
+			return;
+		}
+		if (!bIsConnected)
+		{
+			bIsConnected = true;
+			SessionId = USIOMessageConvert::FStringFromStd(PrivateClient->get_sessionid());
+
+			if (VerboseLog)
+			{
+				UE_LOG(SocketIOLog, Log, TEXT("SocketIO Connected with session: %s"), *SessionId);
+			}
+			if (OnConnectedCallback)
+			{
+				OnConnectedCallback(SessionId);
+			}
+		}
+
+		FString Namespace = USIOMessageConvert::FStringFromStd(nsp);
+
+		if (VerboseLog)
+		{
+			UE_LOG(SocketIOLog, Log, TEXT("SocketIO %s connected to namespace: %s"), *SessionId, *Namespace);
+		}
+		if (OnNamespaceConnectedCallback)
+		{
+			OnNamespaceConnectedCallback(Namespace);
+		}
+	}));
+
+	PrivateClient->set_socket_close_listener(sio::client::socket_listener([&](std::string const& nsp)
+	{
+		FString Namespace = USIOMessageConvert::FStringFromStd(nsp);
+		FString NamespaceSession = SessionId;
+		if (NamespaceSession.Equals(TEXT("Invalid")))
+		{
+			NamespaceSession = LastSessionId;
+		}
+		if (VerboseLog)
+		{
+			UE_LOG(SocketIOLog, Log, TEXT("SocketIO %s disconnected from namespace: %s"), *NamespaceSession, *Namespace);
+		}
+		if (OnNamespaceDisconnectedCallback)
+		{
+			OnNamespaceDisconnectedCallback(USIOMessageConvert::FStringFromStd(nsp));
+		}
+	}));
+
+	PrivateClient->set_fail_listener(sio::client::con_listener([&]()
+	{
+		if (VerboseLog)
+		{
+			UE_LOG(SocketIOLog, Log, TEXT("SocketIO failed to connect."));
+		}
+		if (OnFailCallback)
+		{
+			OnFailCallback();
+		}
+	}));
+
+	PrivateClient->set_reconnect_listener(sio::client::reconnect_listener([&](unsigned num, unsigned delay)
+	{
+		bIsConnected = false;
+
+		if (VerboseLog)
+		{
+			UE_LOG(SocketIOLog, Log, TEXT("SocketIO %s appears to have lost connection, reconnecting attempt %d with delay %d"), *SessionId, num, delay);
+		}
+		if (OnReconnectionCallback)
+		{
+			OnReconnectionCallback(num, delay);
 		}
 	}));
 }
