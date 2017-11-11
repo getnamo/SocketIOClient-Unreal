@@ -4,6 +4,8 @@
 
 #define LOCTEXT_NAMESPACE "FSocketIOClientModule"
 
+//struct 
+
 class FSocketIOClientModule : public ISocketIOClientModule
 {
 public:

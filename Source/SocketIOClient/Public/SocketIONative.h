@@ -4,6 +4,7 @@
 #include "SIOJsonObject.h"
 #include "SIOJsonValue.h"
 #include "SIOJConvert.h"
+#include "CoreMinimal.h"
 
 UENUM(BlueprintType)
 enum ESIOConnectionCloseReason
@@ -12,16 +13,35 @@ enum ESIOConnectionCloseReason
 	CLOSE_REASON_DROP
 };
 
+template <typename FuncType>
+struct FFunctionWrapper
+{
+	FuncType Function;
+
+	bool operator==(const FFunctionWrapper& Other) const
+	{
+		return &Other == this;
+	}
+
+	friend FORCEINLINE uint32 GetTypeHash(const FFunctionWrapper& Key)
+	{
+		return GetTypeHash((void*)&Key);
+	}
+};
+
+
 SOCKETIOCLIENT_API class FSocketIONative
 {
 public:
 
 	//Native Callbacks
-	TFunction<void(const FString& SessionId)> OnConnectedCallback;
-	TFunction<void(const ESIOConnectionCloseReason Reason)> OnDisconnectedCallback;
-	TFunction<void(const FString& Namespace)> OnNamespaceConnectedCallback;
-	TFunction<void(const FString& Namespace)> OnNamespaceDisconnectedCallback;
-	TFunction<void()> OnFailCallback;
+	TSet<FFunctionWrapper<TFunction<void(const FString& SessionId)>>> OnConnectedCallbacks;					//TFunction<void(const FString& SessionId)>
+	//TSet<TFunction<void(const ESIOConnectionCloseReason Reason)>> OnDisconnectedCallbacks;	//TFunction<void(const ESIOConnectionCloseReason Reason)>
+	//TSet<TFunction<void(const FString& Namespace)>> OnNamespaceConnectedCallbacks;			//TFunction<void(const FString& Namespace)>
+	//TSet<TFunction<void(const FString& Namespace)>> OnNamespaceDisconnectedCallbacks;		//TFunction<void(const FString& Namespace)>
+	//TSet<TFunction<void()>> OnFailCallbacks;												//TFunction<void()>
+
+	//TODO: fix tset of functions, we may want to use a struct inbetween function binds e.g. struct -> function and return a hash.
 
 	/** Default connection address string in form e.g. http://localhost:80. */
 	FString AddressAndPort;

@@ -88,7 +88,8 @@ public:
 					USIOJsonObject* Headers = nullptr);
 
 	/**
-	* Disconnect from current socket.io server, optional method.
+	* Disconnect from current socket.io server. Subscribe to OnDisconnected to know
+	* when you can continue from a disconnected state.
 	*
 	* @param AddressAndPort	the address in URL format with port
 	*/
@@ -301,6 +302,15 @@ public:
 	virtual void BeginPlay() override;
 	
 protected:
+
+	//Internal Nativecallbacks
+	TFunction<void(const FString& SessionId)> OnConnectedCallback;
+	TFunction<void(const ESIOConnectionCloseReason Reason)> OnDisconnectedCallback;
+	TFunction<void(const FString& Namespace)> OnNamespaceConnectedCallback;
+	TFunction<void(const FString& Namespace)> OnNamespaceDisconnectedCallback;
+	TFunction<void()> OnFailCallback;
+	void SetupCallbacks();
+	void ClearCallbacks();
 
 	bool CallBPFunctionWithResponse(UObject* Target, const FString& FunctionName, TArray<TSharedPtr<FJsonValue>> Response);
 	bool CallBPFunctionWithMessage(UObject* Target, const FString& FunctionName, TSharedPtr<FJsonValue> Message);
