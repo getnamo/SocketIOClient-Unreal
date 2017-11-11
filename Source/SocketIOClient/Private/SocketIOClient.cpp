@@ -104,7 +104,7 @@ TSharedPtr<FSocketIONative> FSocketIOClientModule::ValidSharedNativePointer(FStr
 
 void FSocketIOClientModule::ReleaseNativePointer(TSharedPtr<FSocketIONative> PointerToRelease)
 {
-	//Remove shared ptr references
+	//Remove shared ptr references if any
 	if (AllSharedPtrs.Contains(PointerToRelease))
 	{
 		AllSharedPtrs.Remove(PointerToRelease);

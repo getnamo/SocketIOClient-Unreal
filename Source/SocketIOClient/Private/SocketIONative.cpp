@@ -12,6 +12,8 @@ FSocketIONative::FSocketIONative()
 	SessionId = TEXT("Invalid");
 	LastSessionId = TEXT("None");
 	bIsConnected = false;
+	MaxReconnectionAttempts = -1;
+	ReconnectionDelay = 5000;
 
 	PrivateClient = MakeShareable(new sio::client);
 
@@ -43,6 +45,9 @@ void FSocketIONative::Connect(const FString& InAddressAndPort, const TSharedPtr<
 			QueryMap = USIOMessageConvert::JsonObjectToStdStringMap(Query);
 		}
 
+		PrivateClient->set_reconnect_attempts(MaxReconnectionAttempts);
+		PrivateClient->set_reconnect_delay(ReconnectionDelay);
+
 		PrivateClient->connect(StdAddressString, QueryMap, HeadersMap);
 	});
 }
@@ -72,6 +77,7 @@ void FSocketIONative::ClearCallbacks()
 	OnDisconnectedCallback = nullptr;
 	OnNamespaceConnectedCallback = nullptr;
 	OnNamespaceDisconnectedCallback = nullptr;
+	OnReconnectionCallback = nullptr;
 	OnFailCallback = nullptr;
 }
 
@@ -230,7 +236,10 @@ void FSocketIONative::SetupInternalCallbacks()
 
 		ESIOConnectionCloseReason DisconnectReason = (ESIOConnectionCloseReason)reason;
 		FString DisconnectReasonString = USIOJConvert::EnumToString(TEXT("ESIOConnectionCloseReason"), DisconnectReason);
-		UE_LOG(SocketIOLog, Log, TEXT("SocketIO Disconnected %s reason: %s"), *SessionId, *DisconnectReasonString);
+		if (VerboseLog)
+		{
+			UE_LOG(SocketIOLog, Log, TEXT("SocketIO Disconnected %s reason: %s"), *SessionId, *DisconnectReasonString);
+		}
 		LastSessionId = SessionId;
 		SessionId = TEXT("Invalid");
 
@@ -252,8 +261,10 @@ void FSocketIONative::SetupInternalCallbacks()
 			bIsConnected = true;
 			SessionId = USIOMessageConvert::FStringFromStd(PrivateClient->get_sessionid());
 
-			UE_LOG(SocketIOLog, Log, TEXT("SocketIO Connected with session: %s"), *SessionId);
-
+			if (VerboseLog)
+			{
+				UE_LOG(SocketIOLog, Log, TEXT("SocketIO Connected with session: %s"), *SessionId);
+			}
 			if (OnConnectedCallback)
 			{
 				OnConnectedCallback(SessionId);
@@ -261,8 +272,11 @@ void FSocketIONative::SetupInternalCallbacks()
 		}
 
 		FString Namespace = USIOMessageConvert::FStringFromStd(nsp);
-		UE_LOG(SocketIOLog, Log, TEXT("SocketIO %s connected to namespace: %s"), *SessionId, *Namespace);
 
+		if (VerboseLog)
+		{
+			UE_LOG(SocketIOLog, Log, TEXT("SocketIO %s connected to namespace: %s"), *SessionId, *Namespace);
+		}
 		if (OnNamespaceConnectedCallback)
 		{
 			OnNamespaceConnectedCallback(Namespace);
@@ -277,7 +291,10 @@ void FSocketIONative::SetupInternalCallbacks()
 		{
 			NamespaceSession = LastSessionId;
 		}
-		UE_LOG(SocketIOLog, Log, TEXT("SocketIO %s disconnected from namespace: %s"), *NamespaceSession, *Namespace);
+		if (VerboseLog)
+		{
+			UE_LOG(SocketIOLog, Log, TEXT("SocketIO %s disconnected from namespace: %s"), *NamespaceSession, *Namespace);
+		}
 		if (OnNamespaceDisconnectedCallback)
 		{
 			OnNamespaceDisconnectedCallback(USIOMessageConvert::FStringFromStd(nsp));
@@ -286,10 +303,25 @@ void FSocketIONative::SetupInternalCallbacks()
 
 	PrivateClient->set_fail_listener(sio::client::con_listener([&]()
 	{
-		UE_LOG(SocketIOLog, Log, TEXT("SocketIO failed to connect."));
+		if (VerboseLog)
+		{
+			UE_LOG(SocketIOLog, Log, TEXT("SocketIO failed to connect."));
+		}
 		if (OnFailCallback)
 		{
 			OnFailCallback();
+		}
+	}));
+
+	PrivateClient->set_reconnect_listener(sio::client::reconnect_listener([&](unsigned num, unsigned delay)
+	{
+		if (VerboseLog)
+		{
+			UE_LOG(SocketIOLog, Log, TEXT("SocketIO %s appears to have lost connection, reconnecting attempt %d with delay %d"), *SessionId, num, delay);
+		}
+		if (OnReconnectionCallback)
+		{
+			OnReconnectionCallback(num, delay);
 		}
 	}));
 }

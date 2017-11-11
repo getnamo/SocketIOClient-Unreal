@@ -13,11 +13,13 @@ USocketIOClientComponent::USocketIOClientComponent(const FObjectInitializer &ini
 	NativeClient = nullptr;
 	bLimitConnectionToGameWorld = true;
 	AddressAndPort = FString(TEXT("http://localhost:3000"));	//default to 127.0.0.1
-	SessionId = FString(TEXT("invalid"));
+	SessionId = FString(TEXT("Invalid"));
 	
 	//Plugin scoped utilities
 	bPluginScopedConnection = false;
 	PluginScopedId = TEXT("Default");
+	bVerboseConnectionLog = true;
+	ReconnectionTimeout = 0.f;
 
 	ClearCallbacks();
 }
@@ -113,7 +115,7 @@ void USocketIOClientComponent::SetupCallbacks()
 	{
 		FSIOLambdaRunnable::RunShortLambdaOnGameThread([this, Namespace]
 		{
-			if (this)
+			if (this && OnSocketNamespaceConnected.IsBound())
 			{
 				OnSocketNamespaceConnected.Broadcast(Namespace);
 			}
@@ -129,6 +131,32 @@ void USocketIOClientComponent::SetupCallbacks()
 			if (this && OnSocketNamespaceDisconnectedSafe.IsBound())
 			{
 				OnSocketNamespaceDisconnectedSafe.Broadcast(Namespace);
+			}
+		});
+	};
+	NativeClient->OnReconnectionCallback = [this](const uint32 AttemptCount, const uint32 DelayInMs)
+	{
+		FSIOLambdaRunnable::RunShortLambdaOnGameThread([this, AttemptCount, DelayInMs]
+		{
+			//First time we know about this problem?
+			if (!bIsHavingConnectionProblems)
+			{
+				TimeWhenConnectionProblemsStarted = FDateTime::Now();
+				bIsHavingConnectionProblems = true;
+			}
+
+			FTimespan Difference = FDateTime::Now() - TimeWhenConnectionProblemsStarted;
+			float ElapsedInSec = Difference.GetTotalSeconds();
+
+			if (ReconnectionTimeout > 0 && ElapsedInSec>ReconnectionTimeout)
+			{
+				//Let's stop trying and disconnect if we're using timeouts
+				Disconnect();
+			}
+
+			if (this && OnConnectionProblems.IsBound())
+			{
+				OnConnectionProblems.Broadcast(AttemptCount, ElapsedInSec);
 			}
 		});
 	};
@@ -295,6 +323,8 @@ bool USocketIOClientComponent::CallBPFunctionWithMessage(UObject* Target, const 
 
 void USocketIOClientComponent::Connect(const FString& InAddressAndPort, USIOJsonObject* Query /*= nullptr*/, USIOJsonObject* Headers /*= nullptr*/)
 {
+
+
 	//Check if we're limiting this component
 	if(bLimitConnectionToGameWorld)
 	{ 
@@ -326,6 +356,11 @@ void USocketIOClientComponent::Connect(const FString& InAddressAndPort, USIOJson
 	{
 		HeadersFJson = Headers->GetRootObject();
 	}
+
+	//Ensure we sync our native max/reconnection attempts before connecting
+	NativeClient->MaxReconnectionAttempts = MaxReconnectionAttempts;
+	NativeClient->ReconnectionDelay = ReconnectionDelay;
+	NativeClient->VerboseLog = bVerboseConnectionLog;
 	
 	ConnectNative(InAddressAndPort, QueryFJson, HeadersFJson);
 }

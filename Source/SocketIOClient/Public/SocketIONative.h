@@ -10,7 +10,8 @@ UENUM(BlueprintType)
 enum ESIOConnectionCloseReason
 {
 	CLOSE_REASON_NORMAL,
-	CLOSE_REASON_DROP
+	CLOSE_REASON_DROP,
+	CLOSE_REASON_STOPPED_TRYING
 };
 
 //Wrapper function for TFunctions which can be hashed based on pointers. I.e. no duplicate functions allowed
@@ -47,6 +48,7 @@ public:
 	TFunction<void(const ESIOConnectionCloseReason Reason)> OnDisconnectedCallback;	//TFunction<void(const ESIOConnectionCloseReason Reason)>
 	TFunction<void(const FString& Namespace)> OnNamespaceConnectedCallback;			//TFunction<void(const FString& Namespace)>
 	TFunction<void(const FString& Namespace)> OnNamespaceDisconnectedCallback;		//TFunction<void(const FString& Namespace)>
+	TFunction<void(const uint32 AttemptCount, const uint32 DelayInMs)> OnReconnectionCallback;
 	TFunction<void()> OnFailCallback;			
 
 	//Map for all native functions bound to this socket
@@ -54,6 +56,12 @@ public:
 
 	/** Default connection address string in form e.g. http://localhost:80. */
 	FString AddressAndPort;
+
+	/** The number of attempts before giving up. 0 = infinity. Set before connecting*/
+	uint32 MaxReconnectionAttempts;
+
+	/** in milliseconds, default is 5000 */
+	uint32 ReconnectionDelay;
 
 	/** If true will auto-connect on begin play to address specified in AddressAndPort. */
 	bool bIsConnected;
@@ -63,6 +71,9 @@ public:
 
 	//This will remain valid even after we disconnect. Replaced on disconnect.
 	FString LastSessionId;
+
+	/** If set to true, each state change callback will log to console*/
+	bool VerboseLog;
 
 	FSocketIONative();
 
