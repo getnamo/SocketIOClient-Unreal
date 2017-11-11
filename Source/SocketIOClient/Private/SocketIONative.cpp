@@ -8,8 +8,9 @@ FSocketIONative::FSocketIONative()
 {
 	ConnectionThread = nullptr;
 	PrivateClient = nullptr;
-	AddressAndPort = FString(TEXT("http://localhost:3000"));	//default to 127.0.0.1
-	SessionId = FString(TEXT("invalid"));
+	AddressAndPort = TEXT("http://localhost:3000");	//default to 127.0.0.1
+	SessionId = TEXT("Invalid");
+	LastSessionId = TEXT("None");
 	bIsConnected = false;
 
 	ClearCallbacks();
@@ -41,11 +42,12 @@ void FSocketIONative::Connect(const FString& InAddressAndPort, const TSharedPtr<
 			ESIOConnectionCloseReason DisconnectReason = (ESIOConnectionCloseReason)reason;
 			FString DisconnectReasonString = USIOJConvert::EnumToString(TEXT("ESIOConnectionCloseReason"), DisconnectReason);
 			UE_LOG(SocketIOLog, Log, TEXT("SocketIO Disconnected %s reason: %s"), *SessionId, *DisconnectReasonString);
-			SessionId = FString(TEXT("invalid"));
+			LastSessionId = SessionId;
+			SessionId = TEXT("Invalid");
 
 			if (OnDisconnectedCallback)
 			{
-				OnDisconnectedCallback((ESIOConnectionCloseReason)reason);
+				OnDisconnectedCallback(DisconnectReason);
 			}
 		}));
 
@@ -70,7 +72,7 @@ void FSocketIONative::Connect(const FString& InAddressAndPort, const TSharedPtr<
 			}
 
 			FString Namespace = USIOMessageConvert::FStringFromStd(nsp);
-			UE_LOG(SocketIOLog, Log, TEXT("SocketIO connected to namespace: %s"), *Namespace);
+			UE_LOG(SocketIOLog, Log, TEXT("SocketIO %s connected to namespace: %s"), *SessionId, *Namespace);
 
 			if (OnNamespaceConnectedCallback)
 			{
@@ -81,8 +83,12 @@ void FSocketIONative::Connect(const FString& InAddressAndPort, const TSharedPtr<
 		PrivateClient->set_socket_close_listener(sio::client::socket_listener([&](std::string const& nsp)
 		{
 			FString Namespace = USIOMessageConvert::FStringFromStd(nsp);
-			UE_LOG(SocketIOLog, Log, TEXT("SocketIO disconnected from namespace: %s"), *Namespace);
-
+			FString NamespaceSession = SessionId;
+			if(NamespaceSession.Equals(TEXT("Invalid")))
+			{
+				NamespaceSession = LastSessionId;
+			}
+			UE_LOG(SocketIOLog, Log, TEXT("SocketIO %s disconnected from namespace: %s"), *NamespaceSession, *Namespace);
 			if (OnNamespaceDisconnectedCallback)
 			{
 				OnNamespaceDisconnectedCallback(USIOMessageConvert::FStringFromStd(nsp));
@@ -133,6 +139,7 @@ void FSocketIONative::SyncDisconnect()
 
 void FSocketIONative::ClearCallbacks()
 {
+	EventFunctionMap.Empty();
 	OnConnectedCallback = nullptr;
 	OnDisconnectedCallback = nullptr;
 	OnNamespaceConnectedCallback = nullptr;
@@ -222,6 +229,8 @@ void FSocketIONative::EmitRawBinary(const FString& EventName, uint8* Data, int32
 
 void FSocketIONative::OnEvent(const FString& EventName, TFunction< void(const FString&, const TSharedPtr<FJsonValue>&)> CallbackFunction, const FString& Namespace /*= FString(TEXT("/"))*/)
 {
+	EventFunctionMap.Add(EventName, CallbackFunction);
+
 	OnRawEvent(EventName, [&, CallbackFunction](const FString& Event, const sio::message::ptr& RawMessage) {
 		CallbackFunction(Event, USIOMessageConvert::ToJsonValue(RawMessage));
 	}, Namespace);
@@ -240,7 +249,7 @@ void FSocketIONative::OnRawEvent(const FString& EventName, TFunction< void(const
 
 		FFunctionGraphTask::CreateAndDispatchWhenReady([&, SafeFunction, SafeName, data]
 		{
-			SafeFunction(SafeName, data);
+				SafeFunction(SafeName, data);
 		}, TStatId(), nullptr, ENamedThreads::GameThread);
 	}));
 }
@@ -274,5 +283,10 @@ void FSocketIONative::OnBinaryEvent(const FString& EventName, TFunction< void(co
 			UE_LOG(SocketIOLog, Warning, TEXT("Non-binary message received to binary message lambda, check server message data!"));
 		}
 	}));
+}
+
+void FSocketIONative::UnbindEvent(const FString& EventName, const FString& Namespace /*= TEXT("/")*/)
+{
+	OnRawEvent(EventName, nullptr, Namespace);
 }
 

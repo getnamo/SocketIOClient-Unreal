@@ -4,6 +4,7 @@
 #include "SIOJsonObject.h"
 #include "SIOJsonValue.h"
 #include "SIOJConvert.h"
+#include "CoreMinimal.h"
 
 UENUM(BlueprintType)
 enum ESIOConnectionCloseReason
@@ -12,16 +13,44 @@ enum ESIOConnectionCloseReason
 	CLOSE_REASON_DROP
 };
 
+//Wrapper function for TFunctions which can be hashed based on pointers. I.e. no duplicate functions allowed
+//NB: Not currently used
+template <typename T>
+struct TSetFunctionWrapper
+{
+	T Function;
+
+	bool operator==(const TSetFunctionWrapper<T>& Other) const
+	{
+		return GetTypeHash(Other) == GetTypeHash(this);
+	}
+
+	friend FORCEINLINE uint32 GetTypeHash(const TSetFunctionWrapper<T>& Key)
+	{
+		return ::PointerHash(&Key);
+	}
+
+	TSetFunctionWrapper() {}
+	TSetFunctionWrapper(T InFunction)
+	{
+		Function = InFunction;
+	}
+};
+
+
 SOCKETIOCLIENT_API class FSocketIONative
 {
 public:
 
 	//Native Callbacks
-	TFunction<void(const FString& SessionId)> OnConnectedCallback;
-	TFunction<void(const ESIOConnectionCloseReason Reason)> OnDisconnectedCallback;
-	TFunction<void(const FString& Namespace)> OnNamespaceConnectedCallback;
-	TFunction<void(const FString& Namespace)> OnNamespaceDisconnectedCallback;
-	TFunction<void()> OnFailCallback;
+	TFunction<void(const FString& SessionId)> OnConnectedCallback;					//TFunction<void(const FString& SessionId)>
+	TFunction<void(const ESIOConnectionCloseReason Reason)> OnDisconnectedCallback;	//TFunction<void(const ESIOConnectionCloseReason Reason)>
+	TFunction<void(const FString& Namespace)> OnNamespaceConnectedCallback;			//TFunction<void(const FString& Namespace)>
+	TFunction<void(const FString& Namespace)> OnNamespaceDisconnectedCallback;		//TFunction<void(const FString& Namespace)>
+	TFunction<void()> OnFailCallback;			
+
+	//Map for all native functions bound to this socket
+	TMap<FString, TFunction< void(const FString&, const TSharedPtr<FJsonValue>&)>> EventFunctionMap;
 
 	/** Default connection address string in form e.g. http://localhost:80. */
 	FString AddressAndPort;
@@ -31,6 +60,9 @@ public:
 
 	/** When connected this session id will be valid and contain a unique Id. */
 	FString SessionId;
+
+	//This will remain valid even after we disconnect. Replaced on disconnect.
+	FString LastSessionId;
 
 	FSocketIONative();
 
@@ -71,7 +103,7 @@ public:
 		const FString& EventName,
 		const TSharedPtr<FJsonValue>& Message = nullptr,
 		TFunction< void(const TArray<TSharedPtr<FJsonValue>>&)> CallbackFunction = nullptr,
-		const FString& Namespace = FString(TEXT("/")));
+		const FString& Namespace = TEXT("/"));
 
 	/**
 	* (Overloaded) Emit an event with a Json Object message
@@ -85,7 +117,7 @@ public:
 		const FString& EventName,
 		const TSharedPtr<FJsonObject>& ObjectMessage = nullptr,
 		TFunction< void(const TArray<TSharedPtr<FJsonValue>>&)> CallbackFunction = nullptr,
-		const FString& Namespace = FString(TEXT("/")));
+		const FString& Namespace = TEXT("/"));
 
 	/**
 	* (Overloaded) Emit an event with a string message
@@ -99,7 +131,7 @@ public:
 		const FString& EventName,
 		const FString& StringMessage = FString(),
 		TFunction< void(const TArray<TSharedPtr<FJsonValue>>&)> CallbackFunction = nullptr,
-		const FString& Namespace = FString(TEXT("/")));
+		const FString& Namespace = TEXT("/"));
 
 	/**
 	* (Overloaded) Emit an event with a number (double) message
@@ -113,7 +145,7 @@ public:
 		const FString& EventName,
 		double NumberMessage,
 		TFunction< void(const TArray<TSharedPtr<FJsonValue>>&)> CallbackFunction = nullptr,
-		const FString& Namespace = FString(TEXT("/")));
+		const FString& Namespace = TEXT("/"));
 
 	/**
 	* (Overloaded) Emit an event with a bool message
@@ -127,7 +159,7 @@ public:
 		const FString& EventName,
 		bool BooleanMessage,
 		TFunction< void(const TArray<TSharedPtr<FJsonValue>>&)> CallbackFunction = nullptr,
-		const FString& Namespace = FString(TEXT("/")));
+		const FString& Namespace = TEXT("/"));
 
 	/**
 	* (Overloaded) Emit an event with a binary message
@@ -141,7 +173,7 @@ public:
 	(const FString& EventName,
 		const TArray<uint8>& BinaryMessage,
 		TFunction< void(const TArray<TSharedPtr<FJsonValue>>&)> CallbackFunction = nullptr,
-		const FString& Namespace = FString(TEXT("/")));
+		const FString& Namespace = TEXT("/"));
 
 	/**
 	* (Overloaded) Emit an event with an array message
@@ -155,7 +187,7 @@ public:
 		const FString& EventName,
 		const TArray<TSharedPtr<FJsonValue>>& ArrayMessage,
 		TFunction< void(const TArray<TSharedPtr<FJsonValue>>&)> CallbackFunction = nullptr,
-		const FString& Namespace = FString(TEXT("/")));
+		const FString& Namespace = TEXT("/"));
 
 	/**
 	* (Overloaded) Emit an event with an UStruct message
@@ -171,7 +203,7 @@ public:
 		UStruct* Struct,
 		const void* StructPtr,
 		TFunction< void(const TArray<TSharedPtr<FJsonValue>>&)> CallbackFunction = nullptr,
-		const FString& Namespace = FString(TEXT("/")));
+		const FString& Namespace = TEXT("/"));
 
 	/**
 	* Emit a raw sio::message event
@@ -185,7 +217,7 @@ public:
 		const FString& EventName,
 		const sio::message::list& MessageList = nullptr,
 		TFunction<void(const sio::message::list&)> CallbackFunction = nullptr,
-		const FString& Namespace = FString(TEXT("/")));
+		const FString& Namespace = TEXT("/"));
 
 	/**
 	* Emit an optimized binary message
@@ -199,7 +231,7 @@ public:
 		const FString& EventName,
 		uint8* Data,
 		int32 DataLength,
-		const FString& Namespace = FString(TEXT("/")));
+		const FString& Namespace = TEXT("/"));
 
 
 	/**
@@ -212,7 +244,7 @@ public:
 	void OnEvent(
 		const FString& EventName,
 		TFunction< void(const FString&, const TSharedPtr<FJsonValue>&)> CallbackFunction,
-		const FString& Namespace = FString(TEXT("/")));
+		const FString& Namespace = TEXT("/"));
 
 	/**
 	* Call function callback on receiving raw event. C++ only.
@@ -224,7 +256,7 @@ public:
 	void OnRawEvent(
 		const FString& EventName,
 		TFunction< void(const FString&, const sio::message::ptr&)> CallbackFunction,
-		const FString& Namespace = FString(TEXT("/")));
+		const FString& Namespace = TEXT("/"));
 	/**
 	* Call function callback on receiving binary event. C++ only.
 	*
@@ -235,7 +267,14 @@ public:
 	void OnBinaryEvent(
 		const FString& EventName,
 		TFunction< void(const FString&, const TArray<uint8>&)> CallbackFunction,
-		const FString& Namespace = FString(TEXT("/")));
+		const FString& Namespace = TEXT("/"));
+
+	/**
+	* Unbinds currently bound callback from given event.
+	*
+	* @param EventName	Event name
+	*/
+	void UnbindEvent(const FString& EventName, const FString& Namespace = TEXT("/"));
 
 protected:
 	TSharedPtr<sio::client> PrivateClient;

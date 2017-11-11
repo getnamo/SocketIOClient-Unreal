@@ -4,10 +4,14 @@
 
 #define LOCTEXT_NAMESPACE "FSocketIOClientModule"
 
+//struct 
+
 class FSocketIOClientModule : public ISocketIOClientModule
 {
 public:
+	//virtual TSharedPtr<FSocketIONative> NewValidNativePointer() override;
 	virtual TSharedPtr<FSocketIONative> NewValidNativePointer() override;
+	virtual TSharedPtr<FSocketIONative> ValidSharedNativePointer(FString SharedId) override;
 	void ReleaseNativePointer(TSharedPtr<FSocketIONative> PointerToRelease) override;
 
 	/** IModuleInterface implementation */
@@ -16,7 +20,14 @@ public:
 
 private:
 	FCriticalSection DeleteSection;
+
+	//All native pointers manages by the plugin
 	TArray<TSharedPtr<FSocketIONative>> PluginNativePointers;
+
+	//Shared pointers, these will typically be alive past game world lifecycles
+	TMap<FString, TSharedPtr<FSocketIONative>> SharedNativePointers;
+	TSet<TSharedPtr<FSocketIONative>> AllSharedPtrs;	//reverse lookup
+
 	FThreadSafeBool bHasActiveNativePointers;
 };
 
@@ -66,14 +77,47 @@ void FSocketIOClientModule::ShutdownModule()
 TSharedPtr<FSocketIONative> FSocketIOClientModule::NewValidNativePointer()
 {
 	TSharedPtr<FSocketIONative> NewPointer = MakeShareable(new FSocketIONative);
+	
 	PluginNativePointers.Add(NewPointer);
+	
 	bHasActiveNativePointers = true;
 
 	return NewPointer;
 }
 
+TSharedPtr<FSocketIONative> FSocketIOClientModule::ValidSharedNativePointer(FString SharedId)
+{
+	//Found key? return it
+	if (SharedNativePointers.Contains(SharedId))
+	{
+		return SharedNativePointers[SharedId];
+	}
+	//Otherwise request a new id and return it
+	else
+	{
+		TSharedPtr<FSocketIONative> NewNativePtr = NewValidNativePointer();
+		SharedNativePointers.Add(SharedId, NewNativePtr);
+		AllSharedPtrs.Add(NewNativePtr);
+		return NewNativePtr;
+	}
+}
+
 void FSocketIOClientModule::ReleaseNativePointer(TSharedPtr<FSocketIONative> PointerToRelease)
 {
+	//Remove shared ptr references
+	if (AllSharedPtrs.Contains(PointerToRelease))
+	{
+		AllSharedPtrs.Remove(PointerToRelease);
+		for (auto& Pair : SharedNativePointers)
+		{
+			if (Pair.Value == PointerToRelease)
+			{
+				SharedNativePointers.Remove(Pair.Key);
+				break;
+			}
+		}
+	}
+
 	//Release the pointer on the background thread
 	FSIOLambdaRunnable::RunLambdaOnBackGroundThread([PointerToRelease, this]
 	{
