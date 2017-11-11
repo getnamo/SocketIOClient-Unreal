@@ -154,6 +154,12 @@ void USocketIOClientComponent::ClearCallbacks()
 
 bool USocketIOClientComponent::CallBPFunctionWithResponse(UObject* Target, const FString& FunctionName, TArray<TSharedPtr<FJsonValue>> Response)
 {
+	if (!Target->IsValidLowLevel())
+	{
+		UE_LOG(SocketIOLog, Warning, TEXT("CallFunctionByNameWithArguments: Target not found for '%s'"), *FunctionName);
+		return false;
+	}
+
 	UFunction* Function = Target->FindFunction(FName(*FunctionName));
 	if (nullptr == Function)
 	{
