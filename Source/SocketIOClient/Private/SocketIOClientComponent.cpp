@@ -20,6 +20,8 @@ USocketIOClientComponent::USocketIOClientComponent(const FObjectInitializer &ini
 	PluginScopedId = TEXT("Default");
 	bVerboseConnectionLog = true;
 	ReconnectionTimeout = 0.f;
+	MaxReconnectionAttempts = -1.f;
+	ReconnectionDelayInMs = 5000;
 
 	ClearCallbacks();
 }
@@ -92,7 +94,8 @@ void USocketIOClientComponent::SetupCallbacks()
 			{
 				bIsConnected = true;
 				SessionId = InSessionId;
-				OnConnected.Broadcast(SessionId);
+				OnConnected.Broadcast(SessionId, bIsHavingConnectionProblems);
+				bIsHavingConnectionProblems = false;
 			}
 		});
 	};
@@ -359,7 +362,7 @@ void USocketIOClientComponent::Connect(const FString& InAddressAndPort, USIOJson
 
 	//Ensure we sync our native max/reconnection attempts before connecting
 	NativeClient->MaxReconnectionAttempts = MaxReconnectionAttempts;
-	NativeClient->ReconnectionDelay = ReconnectionDelay;
+	NativeClient->ReconnectionDelay = ReconnectionDelayInMs;
 	NativeClient->VerboseLog = bVerboseConnectionLog;
 	
 	ConnectNative(InAddressAndPort, QueryFJson, HeadersFJson);

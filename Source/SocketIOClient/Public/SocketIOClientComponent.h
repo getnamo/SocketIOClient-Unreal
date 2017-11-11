@@ -6,7 +6,7 @@
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE(FSIOCEventSignature);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FSIOCSocketEventSignature, FString, Namespace);
-DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FSIOCOpenEventSignature, FString, SessionId);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FSIOCOpenEventSignature, FString, SessionId, bool, bIsReconnection);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FSIOCCloseEventSignature, TEnumAsByte<ESIOConnectionCloseReason>, Reason);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FSIOCEventJsonSignature, FString, Event, class USIOJsonValue*, MessageJson);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FSIOConnectionProblemSignature, int32, Attempts, float, TimeSinceConnected);
@@ -57,31 +57,34 @@ public:
 
 
 	/** Default connection address string in form e.g. http://localhost:80. */
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "SocketIO Properties")
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "SocketIO Connection Properties")
 	FString AddressAndPort;
 
 	/** If true will auto-connect on begin play to address specified in AddressAndPort. */
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "SocketIO Properties")
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "SocketIO Connection Properties")
 	bool bShouldAutoConnect;
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "SocketIO Properties")
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "SocketIO Connection Properties")
 	bool bLimitConnectionToGameWorld;
 
-	/** in ms */
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "SocketIO Properties")
-	int32 ReconnectionDelay;
+	/** Delay between reconnection attempts */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "SocketIO Connection Properties")
+	int32 ReconnectionDelayInMs;
 
-	/** default: infinity, this means you never truly disconnect, just suffer connection problems */
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "SocketIO Properties")
+	/**
+	* Number of times the connection should try before giving up.
+	* Default: infinity, this means you never truly disconnect, just suffer connection problems 
+	*/
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "SocketIO Connection Properties")
 	int32 MaxReconnectionAttempts;
 
-	/** Optional parameter to limit reconnections default: infinity. */
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "SocketIO Properties")
+	/** Optional parameter to limit reconnections by elapsed time. Default: infinity. */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "SocketIO Connection Properties")
 	float ReconnectionTimeout;
 
 	FDateTime TimeWhenConnectionProblemsStarted;
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "SocketIO Properties")
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "SocketIO Connection Properties")
 	bool bVerboseConnectionLog;
 
 	/** 
@@ -90,21 +93,21 @@ public:
 	* or close the app. The latest connection with the same PluginScopedId will use the same connection
 	* as the previous one and receive the same events.
 	*/
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "SocketIO Properties")
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "SocketIO Plugin Scope Properties")
 	bool bPluginScopedConnection;
 
 	/** If you leave this as is all plugin scoped connection components will share same connection*/
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "SocketIO Properties")
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "SocketIO Plugin Scope Properties")
 	FString PluginScopedId;
 
-	UPROPERTY(BlueprintReadOnly, Category = "SocketIO Properties")
+	UPROPERTY(BlueprintReadOnly, Category = "SocketIO Connection Properties")
 	bool bIsConnected;
 
 	/** When connected this session id will be valid and contain a unique Id. */
-	UPROPERTY(BlueprintReadOnly, Category = "SocketIO Properties")
+	UPROPERTY(BlueprintReadOnly, Category = "SocketIO Connection Properties")
 	FString SessionId;
 
-	UPROPERTY(BlueprintReadOnly, Category = "SocketIO Properties")
+	UPROPERTY(BlueprintReadOnly, Category = "SocketIO Connection Properties")
 	bool bIsHavingConnectionProblems;
 
 	/**
