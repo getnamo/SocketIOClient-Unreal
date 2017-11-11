@@ -13,9 +13,9 @@ FSocketIONative::FSocketIONative()
 	LastSessionId = TEXT("None");
 	bIsConnected = false;
 
-	ClearCallbacks();
-
 	PrivateClient = MakeShareable(new sio::client);
+
+	ClearCallbacks();
 }
 
 void FSocketIONative::Connect(const FString& InAddressAndPort, const TSharedPtr<FJsonObject>& Query /*= nullptr*/, const TSharedPtr<FJsonObject>& Headers /*= nullptr*/)
