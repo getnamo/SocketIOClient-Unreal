@@ -262,18 +262,37 @@ void FSocketIONative::OnEvent(const FString& EventName, TFunction< void(const FS
 
 void FSocketIONative::OnRawEvent(const FString& EventName, TFunction< void(const FString&, const sio::message::ptr&)> CallbackFunction, const FString& Namespace /*= FString(TEXT("/"))*/)
 {
-	const TFunction< void(const FString&, const sio::message::ptr&)> SafeFunction = CallbackFunction;	//copy the function so it remains in context
+	//const TFunction< void(const FString&, const sio::message::ptr&)> SafeFunction = CallbackFunction;	//copy the function so it remains in context
+	if (!EventFunctionMap.Contains(EventName))
+	{
+		TArray<TFunction< void(const FString&, const sio::message::ptr&)>> FunctionArray;
+		EventFunctionMap.Add(EventName, FunctionArray);
+	}
+
+	TArray<TFunction< void(const FString&, const sio::message::ptr&)>>& FunctionArray = EventFunctionMap[EventName];
+	FunctionArray.Add(CallbackFunction);
 
 	PrivateClient->socket(USIOMessageConvert::StdString(Namespace))->on(
 		USIOMessageConvert::StdString(EventName),
 		sio::socket::event_listener_aux(
-			[&, SafeFunction](std::string const& name, sio::message::ptr const& data, bool isAck, sio::message::list &ack_resp)
+			[&](std::string const& name, sio::message::ptr const& data, bool isAck, sio::message::list &ack_resp)
 	{
 		const FString SafeName = USIOMessageConvert::FStringFromStd(name);
 
-		FFunctionGraphTask::CreateAndDispatchWhenReady([&, SafeFunction, SafeName, data]
+		FFunctionGraphTask::CreateAndDispatchWhenReady([&, SafeName, data]
 		{
-			SafeFunction(SafeName, data);
+			auto& FunctionArray = EventFunctionMap[SafeName];
+
+			for (auto& Callback : FunctionArray)
+			{
+				Callback(SafeName, data);
+			}
+			/*for (auto& Pair : EventFunctionMap)
+			{
+				Pair.Value(SafeName, data);
+			}*/
+			//SafeFunction(SafeName, data);
+
 		}, TStatId(), nullptr, ENamedThreads::GameThread);
 	}));
 }

@@ -13,6 +13,7 @@ enum ESIOConnectionCloseReason
 	CLOSE_REASON_DROP
 };
 
+//Wrapper function for TFunctions which can be hashed based on pointers. I.e. no duplicate functions allowed
 template <typename T>
 struct TSetFunctionWrapper
 {
@@ -20,7 +21,7 @@ struct TSetFunctionWrapper
 
 	bool operator==(const TSetFunctionWrapper<T>& Other) const
 	{
-		return &Other == this;
+		return GetTypeHash(Other) == GetTypeHash(this);
 	}
 
 	friend FORCEINLINE uint32 GetTypeHash(const TSetFunctionWrapper<T>& Key)
@@ -46,8 +47,7 @@ public:
 	TSet<TSetFunctionWrapper<TFunction<void(const FString& Namespace)>>> OnNamespaceConnectedCallbacks;			//TFunction<void(const FString& Namespace)>
 	TSet<TSetFunctionWrapper<TFunction<void(const FString& Namespace)>>> OnNamespaceDisconnectedCallbacks;		//TFunction<void(const FString& Namespace)>
 	TSet<TSetFunctionWrapper<TFunction<void()>>> OnFailCallbacks;												//TFunction<void()>
-
-	//TODO: fix tset of functions, we may want to use a struct inbetween function binds e.g. struct -> function and return a hash.
+	TMap<FString, TArray<TFunction< void(const FString&, const sio::message::ptr&)>>> EventFunctionMap;
 
 	/** Default connection address string in form e.g. http://localhost:80. */
 	FString AddressAndPort;
