@@ -29,81 +29,6 @@ void FSocketIONative::Connect(const FString& InAddressAndPort, const TSharedPtr<
 	//Connect to the server on a background thread so it never blocks
 	ConnectionThread = FSIOLambdaRunnable::RunLambdaOnBackGroundThread([&, Query, Headers]
 	{
-		//Attach the specific connection status events events
-
-		PrivateClient->set_open_listener(sio::client::con_listener([&]() {
-			//too early to get session id here so we defer the connection event until we connect to a namespace
-		}));
-
-		PrivateClient->set_close_listener(sio::client::close_listener([&](sio::client::close_reason const& reason)
-		{
-			bIsConnected = false;
-			
-			ESIOConnectionCloseReason DisconnectReason = (ESIOConnectionCloseReason)reason;
-			FString DisconnectReasonString = USIOJConvert::EnumToString(TEXT("ESIOConnectionCloseReason"), DisconnectReason);
-			UE_LOG(SocketIOLog, Log, TEXT("SocketIO Disconnected %s reason: %s"), *SessionId, *DisconnectReasonString);
-			LastSessionId = SessionId;
-			SessionId = TEXT("Invalid");
-
-			if (OnDisconnectedCallback)
-			{
-				OnDisconnectedCallback(DisconnectReason);
-			}
-		}));
-
-		PrivateClient->set_socket_open_listener(sio::client::socket_listener([&](std::string const& nsp)
-		{
-			//Special case, we have a latent connection after already having been disconnected
-			if (!PrivateClient.IsValid())
-			{
-				return;
-			}
-			if (!bIsConnected)
-			{
-				bIsConnected = true;
-				SessionId = USIOMessageConvert::FStringFromStd(PrivateClient->get_sessionid());
-
-				UE_LOG(SocketIOLog, Log, TEXT("SocketIO Connected with session: %s"), *SessionId);
-
-				if (OnConnectedCallback)
-				{
-					OnConnectedCallback(SessionId);
-				}
-			}
-
-			FString Namespace = USIOMessageConvert::FStringFromStd(nsp);
-			UE_LOG(SocketIOLog, Log, TEXT("SocketIO %s connected to namespace: %s"), *SessionId, *Namespace);
-
-			if (OnNamespaceConnectedCallback)
-			{
-				OnNamespaceConnectedCallback(Namespace);
-			}
-		}));
-
-		PrivateClient->set_socket_close_listener(sio::client::socket_listener([&](std::string const& nsp)
-		{
-			FString Namespace = USIOMessageConvert::FStringFromStd(nsp);
-			FString NamespaceSession = SessionId;
-			if(NamespaceSession.Equals(TEXT("Invalid")))
-			{
-				NamespaceSession = LastSessionId;
-			}
-			UE_LOG(SocketIOLog, Log, TEXT("SocketIO %s disconnected from namespace: %s"), *NamespaceSession, *Namespace);
-			if (OnNamespaceDisconnectedCallback)
-			{
-				OnNamespaceDisconnectedCallback(USIOMessageConvert::FStringFromStd(nsp));
-			}
-		}));
-
-		PrivateClient->set_fail_listener(sio::client::con_listener([&]()
-		{
-			UE_LOG(SocketIOLog, Log, TEXT("SocketIO failed to connect."));
-			if (OnFailCallback)
-			{
-				OnFailCallback();
-			}
-		}));
-
 		std::map<std::string, std::string> QueryMap = {};
 		std::map<std::string, std::string> HeadersMap = {};
 
@@ -139,7 +64,10 @@ void FSocketIONative::SyncDisconnect()
 
 void FSocketIONative::ClearCallbacks()
 {
+	PrivateClient->clear_socket_listeners();
+	SetupInternalCallbacks();					//if clear socket listeners cleared our internal callbacks. reset them
 	EventFunctionMap.Empty();
+
 	OnConnectedCallback = nullptr;
 	OnDisconnectedCallback = nullptr;
 	OnNamespaceConnectedCallback = nullptr;
@@ -288,5 +216,81 @@ void FSocketIONative::OnBinaryEvent(const FString& EventName, TFunction< void(co
 void FSocketIONative::UnbindEvent(const FString& EventName, const FString& Namespace /*= TEXT("/")*/)
 {
 	OnRawEvent(EventName, nullptr, Namespace);
+}
+
+void FSocketIONative::SetupInternalCallbacks()
+{
+	PrivateClient->set_open_listener(sio::client::con_listener([&]() {
+		//too early to get session id here so we defer the connection event until we connect to a namespace
+	}));
+
+	PrivateClient->set_close_listener(sio::client::close_listener([&](sio::client::close_reason const& reason)
+	{
+		bIsConnected = false;
+
+		ESIOConnectionCloseReason DisconnectReason = (ESIOConnectionCloseReason)reason;
+		FString DisconnectReasonString = USIOJConvert::EnumToString(TEXT("ESIOConnectionCloseReason"), DisconnectReason);
+		UE_LOG(SocketIOLog, Log, TEXT("SocketIO Disconnected %s reason: %s"), *SessionId, *DisconnectReasonString);
+		LastSessionId = SessionId;
+		SessionId = TEXT("Invalid");
+
+		if (OnDisconnectedCallback)
+		{
+			OnDisconnectedCallback(DisconnectReason);
+		}
+	}));
+
+	PrivateClient->set_socket_open_listener(sio::client::socket_listener([&](std::string const& nsp)
+	{
+		//Special case, we have a latent connection after already having been disconnected
+		if (!PrivateClient.IsValid())
+		{
+			return;
+		}
+		if (!bIsConnected)
+		{
+			bIsConnected = true;
+			SessionId = USIOMessageConvert::FStringFromStd(PrivateClient->get_sessionid());
+
+			UE_LOG(SocketIOLog, Log, TEXT("SocketIO Connected with session: %s"), *SessionId);
+
+			if (OnConnectedCallback)
+			{
+				OnConnectedCallback(SessionId);
+			}
+		}
+
+		FString Namespace = USIOMessageConvert::FStringFromStd(nsp);
+		UE_LOG(SocketIOLog, Log, TEXT("SocketIO %s connected to namespace: %s"), *SessionId, *Namespace);
+
+		if (OnNamespaceConnectedCallback)
+		{
+			OnNamespaceConnectedCallback(Namespace);
+		}
+	}));
+
+	PrivateClient->set_socket_close_listener(sio::client::socket_listener([&](std::string const& nsp)
+	{
+		FString Namespace = USIOMessageConvert::FStringFromStd(nsp);
+		FString NamespaceSession = SessionId;
+		if (NamespaceSession.Equals(TEXT("Invalid")))
+		{
+			NamespaceSession = LastSessionId;
+		}
+		UE_LOG(SocketIOLog, Log, TEXT("SocketIO %s disconnected from namespace: %s"), *NamespaceSession, *Namespace);
+		if (OnNamespaceDisconnectedCallback)
+		{
+			OnNamespaceDisconnectedCallback(USIOMessageConvert::FStringFromStd(nsp));
+		}
+	}));
+
+	PrivateClient->set_fail_listener(sio::client::con_listener([&]()
+	{
+		UE_LOG(SocketIOLog, Log, TEXT("SocketIO failed to connect."));
+		if (OnFailCallback)
+		{
+			OnFailCallback();
+		}
+	}));
 }
 

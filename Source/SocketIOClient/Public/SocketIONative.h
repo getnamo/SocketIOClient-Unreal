@@ -277,6 +277,8 @@ public:
 	void UnbindEvent(const FString& EventName, const FString& Namespace = TEXT("/"));
 
 protected:
+	void SetupInternalCallbacks();
+
 	TSharedPtr<sio::client> PrivateClient;
 	class FSIOLambdaRunnable* ConnectionThread;
 };

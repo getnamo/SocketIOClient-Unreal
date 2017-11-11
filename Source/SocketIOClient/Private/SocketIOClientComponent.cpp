@@ -139,7 +139,10 @@ void USocketIOClientComponent::SetupCallbacks()
 
 void USocketIOClientComponent::ClearCallbacks()
 {
-	NativeClient->ClearCallbacks();
+	if (NativeClient.IsValid())
+	{
+		NativeClient->ClearCallbacks();
+	}
 }
 
 bool USocketIOClientComponent::CallBPFunctionWithResponse(UObject* Target, const FString& FunctionName, TArray<TSharedPtr<FJsonValue>> Response)
