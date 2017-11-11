@@ -163,6 +163,7 @@ void FSocketIONative::EmitRawBinary(const FString& EventName, uint8* Data, int32
 
 void FSocketIONative::OnEvent(const FString& EventName, TFunction< void(const FString&, const TSharedPtr<FJsonValue>&)> CallbackFunction, const FString& Namespace /*= FString(TEXT("/"))*/)
 {
+	//Keep track of all the bound functions
 	EventFunctionMap.Add(EventName, CallbackFunction);
 
 	OnRawEvent(EventName, [&, CallbackFunction](const FString& Event, const sio::message::ptr& RawMessage) {
@@ -183,7 +184,7 @@ void FSocketIONative::OnRawEvent(const FString& EventName, TFunction< void(const
 
 		FFunctionGraphTask::CreateAndDispatchWhenReady([&, SafeFunction, SafeName, data]
 		{
-				SafeFunction(SafeName, data);
+			SafeFunction(SafeName, data);
 		}, TStatId(), nullptr, ENamedThreads::GameThread);
 	}));
 }
@@ -315,6 +316,8 @@ void FSocketIONative::SetupInternalCallbacks()
 
 	PrivateClient->set_reconnect_listener(sio::client::reconnect_listener([&](unsigned num, unsigned delay)
 	{
+		bIsConnected = false;
+
 		if (VerboseLog)
 		{
 			UE_LOG(SocketIOLog, Log, TEXT("SocketIO %s appears to have lost connection, reconnecting attempt %d with delay %d"), *SessionId, num, delay);

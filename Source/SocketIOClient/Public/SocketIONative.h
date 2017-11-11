@@ -10,8 +10,7 @@ UENUM(BlueprintType)
 enum ESIOConnectionCloseReason
 {
 	CLOSE_REASON_NORMAL,
-	CLOSE_REASON_DROP,
-	CLOSE_REASON_STOPPED_TRYING
+	CLOSE_REASON_DROP
 };
 
 //Wrapper function for TFunctions which can be hashed based on pointers. I.e. no duplicate functions allowed
