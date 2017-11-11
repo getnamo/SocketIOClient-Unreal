@@ -159,7 +159,7 @@ void USocketIOClientComponent::SetupCallbacks()
 
 			if (this && OnConnectionProblems.IsBound())
 			{
-				OnConnectionProblems.Broadcast(AttemptCount, ElapsedInSec);
+				OnConnectionProblems.Broadcast(AttemptCount, DelayInMs, ElapsedInSec);
 			}
 		});
 	};
@@ -368,12 +368,7 @@ void USocketIOClientComponent::Connect(const FString& InAddressAndPort, USIOJson
 
 void USocketIOClientComponent::ConnectNative(const FString& InAddressAndPort, const TSharedPtr<FJsonObject>& Query /*= nullptr*/, const TSharedPtr<FJsonObject>& Headers /*= nullptr*/)
 {
-	//Set native callback functions
-	
-
-	{
-		NativeClient->Connect(InAddressAndPort, Query, Headers);
-	}
+	NativeClient->Connect(InAddressAndPort, Query, Headers);
 }
 
 void USocketIOClientComponent::Disconnect()
