@@ -326,8 +326,6 @@ bool USocketIOClientComponent::CallBPFunctionWithMessage(UObject* Target, const 
 
 void USocketIOClientComponent::Connect(const FString& InAddressAndPort, USIOJsonObject* Query /*= nullptr*/, USIOJsonObject* Headers /*= nullptr*/)
 {
-
-
 	//Check if we're limiting this component
 	if(bLimitConnectionToGameWorld)
 	{ 

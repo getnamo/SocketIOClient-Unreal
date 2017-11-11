@@ -64,9 +64,6 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "SocketIO Connection Properties")
 	bool bShouldAutoConnect;
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "SocketIO Connection Properties")
-	bool bLimitConnectionToGameWorld;
-
 	/** Delay between reconnection attempts */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "SocketIO Connection Properties")
 	int32 ReconnectionDelayInMs;
@@ -87,17 +84,21 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "SocketIO Connection Properties")
 	bool bVerboseConnectionLog;
 
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "SocketIO Connection Properties")
+	bool bLimitConnectionToGameWorld;
+
 	/** 
 	* Toggle which enables plugin scoped connections. 
 	* If you enable this the connection will remain until you manually call disconnect
 	* or close the app. The latest connection with the same PluginScopedId will use the same connection
 	* as the previous one and receive the same events.
 	*/
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "SocketIO Plugin Scope Properties")
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "SocketIO Scope Properties")
 	bool bPluginScopedConnection;
 
 	/** If you leave this as is all plugin scoped connection components will share same connection*/
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "SocketIO Plugin Scope Properties")
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "SocketIO Scope Properties")
 	FString PluginScopedId;
 
 	UPROPERTY(BlueprintReadOnly, Category = "SocketIO Connection Properties")
