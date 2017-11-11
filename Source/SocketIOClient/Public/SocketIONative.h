@@ -263,6 +263,17 @@ public:
 		TFunction< void(const FString&, const TArray<uint8>&)> CallbackFunction,
 		const FString& Namespace = FString(TEXT("/")));
 
+	//TSet functions
+	/*bool operator==(const FSocketIONative& Other) const
+	{
+		return GetTypeHash(Other) == GetTypeHash(this);
+	}
+
+	friend FORCEINLINE uint32 GetTypeHash(const FSocketIONative& Key)
+	{
+		return ::PointerHash(&Key);
+	}*/
+
 protected:
 	TSharedPtr<sio::client> PrivateClient;
 	class FSIOLambdaRunnable* ConnectionThread;

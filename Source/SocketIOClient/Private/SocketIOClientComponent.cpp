@@ -28,7 +28,15 @@ void USocketIOClientComponent::InitializeComponent()
 	{
 		//Because our connections can last longer than game world 
 		//end, we let plugin-scoped structures manage our memory
-		NativeClient = ISocketIOClientModule::Get().NewValidNativePointer();
+		if (bPluginScopedConnection)
+		{
+			NativeClient = ISocketIOClientModule::Get().ValidSharedNativePointer(PluginScopedId);
+		}
+		else
+		{
+			NativeClient = ISocketIOClientModule::Get().NewValidNativePointer();
+		}
+		
 		SetupCallbacks();
 	}
 
@@ -66,6 +74,9 @@ void USocketIOClientComponent::UninitializeComponent()
 
 void USocketIOClientComponent::SetupCallbacks()
 {
+	//Sync current connected state
+	bIsConnected = NativeClient->bIsConnected;
+
 	OnConnectedCallback.Function = [this](const FString& InSessionId)
 	{
 		FSIOLambdaRunnable::RunShortLambdaOnGameThread([this, InSessionId]
