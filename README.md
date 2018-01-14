@@ -465,6 +465,13 @@ NativeClient->OnRawEvent([&](const FString& Name, const sio::message::ptr& Messa
 			
 		}, FString(TEXT("myArbitraryReceiveEvent")));
 ```
+## Packaging
+
+### C++
+Works out of the box.
+
+### Blueprint
+If you're using this as a project plugin you will need to convert your blueprint only project to mixed (bp and C++). Follow these instructions to do that: https://allarsblog.com/2015/11/04/converting-bp-project-to-cpp/
 
 ## License
 
