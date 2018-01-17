@@ -1,7 +1,7 @@
 
 #include "SocketIOClientPrivatePCH.h"
 #include "SocketIOClientComponent.h"
-#include "SIOLambdaRunnable.h"
+#include "LambdaRunnable.h"
 #include "SIOJConvert.h"
 #include "SocketIOClient.h"
 
@@ -88,7 +88,7 @@ void USocketIOClientComponent::SetupCallbacks()
 
 	NativeClient->OnConnectedCallback = [this](const FString& InSessionId)
 	{
-		FSIOLambdaRunnable::RunShortLambdaOnGameThread([this, InSessionId]
+		FLambdaRunnable::RunShortLambdaOnGameThread([this, InSessionId]
 		{
 			if (this)
 			{
@@ -104,7 +104,7 @@ void USocketIOClientComponent::SetupCallbacks()
 
 	NativeClient->OnDisconnectedCallback = [OnDisconnectedSafe, this](const ESIOConnectionCloseReason Reason)
 	{
-		FSIOLambdaRunnable::RunShortLambdaOnGameThread([OnDisconnectedSafe, this, Reason]
+		FLambdaRunnable::RunShortLambdaOnGameThread([OnDisconnectedSafe, this, Reason]
 		{
 			if (this && OnDisconnectedSafe.IsBound())
 			{
@@ -116,7 +116,7 @@ void USocketIOClientComponent::SetupCallbacks()
 
 	NativeClient->OnNamespaceConnectedCallback = [this](const FString& Namespace)
 	{
-		FSIOLambdaRunnable::RunShortLambdaOnGameThread([this, Namespace]
+		FLambdaRunnable::RunShortLambdaOnGameThread([this, Namespace]
 		{
 			if (this && OnSocketNamespaceConnected.IsBound())
 			{
@@ -129,7 +129,7 @@ void USocketIOClientComponent::SetupCallbacks()
 
 	NativeClient->OnNamespaceDisconnectedCallback = [this, OnSocketNamespaceDisconnectedSafe](const FString& Namespace)
 	{
-		FSIOLambdaRunnable::RunShortLambdaOnGameThread([OnSocketNamespaceDisconnectedSafe, this, Namespace]
+		FLambdaRunnable::RunShortLambdaOnGameThread([OnSocketNamespaceDisconnectedSafe, this, Namespace]
 		{
 			if (this && OnSocketNamespaceDisconnectedSafe.IsBound())
 			{
@@ -139,7 +139,7 @@ void USocketIOClientComponent::SetupCallbacks()
 	};
 	NativeClient->OnReconnectionCallback = [this](const uint32 AttemptCount, const uint32 DelayInMs)
 	{
-		FSIOLambdaRunnable::RunShortLambdaOnGameThread([this, AttemptCount, DelayInMs]
+		FLambdaRunnable::RunShortLambdaOnGameThread([this, AttemptCount, DelayInMs]
 		{
 			//First time we know about this problem?
 			if (!bIsHavingConnectionProblems)
@@ -166,7 +166,7 @@ void USocketIOClientComponent::SetupCallbacks()
 
 	NativeClient->OnFailCallback = [this]()
 	{
-		FSIOLambdaRunnable::RunShortLambdaOnGameThread([this]
+		FLambdaRunnable::RunShortLambdaOnGameThread([this]
 		{
 			OnFail.Broadcast();
 		});

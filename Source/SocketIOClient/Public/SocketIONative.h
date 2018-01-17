@@ -290,5 +290,5 @@ protected:
 	void SetupInternalCallbacks();
 
 	TSharedPtr<sio::client> PrivateClient;
-	class FSIOLambdaRunnable* ConnectionThread;
+	class FLambdaRunnable* ConnectionThread;
 };

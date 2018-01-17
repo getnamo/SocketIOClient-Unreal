@@ -1,11 +1,9 @@
-#pragma once
+#include "CoreUtilityPrivatePCH.h"
+#include "LambdaRunnable.h"
 
-#include "SocketIOClientPrivatePCH.h"
-#include "SIOLambdaRunnable.h"
+uint64 FLambdaRunnable::ThreadNumber = 0;
 
-uint64 FSIOLambdaRunnable::ThreadNumber = 0;
-
-FSIOLambdaRunnable::FSIOLambdaRunnable(TFunction< void()> InFunction)
+FLambdaRunnable::FLambdaRunnable(TFunction< void()> InFunction)
 {
 	FunctionPointer = InFunction;
 	Finished = false;
@@ -19,7 +17,7 @@ FSIOLambdaRunnable::FSIOLambdaRunnable(TFunction< void()> InFunction)
 	//Runnables.Add(this);
 }
 
-FSIOLambdaRunnable::~FSIOLambdaRunnable()
+FLambdaRunnable::~FLambdaRunnable()
 {
 	if (Thread == NULL)
 	{
@@ -31,36 +29,37 @@ FSIOLambdaRunnable::~FSIOLambdaRunnable()
 }
 
 //Init
-bool FSIOLambdaRunnable::Init()
+bool FLambdaRunnable::Init()
 {
-	//UE_LOG(LogClass, Log, TEXT("FLambdaRunnable %d Init"), Number);
+	//UE_LOG(CoreUtilityLog, Log, TEXT("FLambdaRunnable %d Init"), Number);
 	return true;
 }
 
 //Run
-uint32 FSIOLambdaRunnable::Run()
+uint32 FLambdaRunnable::Run()
 {
 	if (FunctionPointer != nullptr)
 	{
 		FunctionPointer();
 	}
-	//UE_LOG(LogClass, Log, TEXT("FLambdaRunnable %d Run complete"), Number);
+	
+	//UE_LOG(CoreUtilityLog, Log, TEXT("FLambdaRunnable %d Run complete"), Number);
 	return 0;
 }
 
 //stop
-void FSIOLambdaRunnable::Stop()
+void FLambdaRunnable::Stop()
 {
 	Finished = true;
 }
 
-void FSIOLambdaRunnable::Kill()
+void FLambdaRunnable::Kill()
 {
 	Thread->Kill(false);
 	Finished = true;
 }
 
-void FSIOLambdaRunnable::Exit()
+void FLambdaRunnable::Exit()
 {
 	Finished = true;
 	//UE_LOG(LogClass, Log, TEXT("FLambdaRunnable %d Exit"), Number);
@@ -69,18 +68,18 @@ void FSIOLambdaRunnable::Exit()
 	delete this;
 }
 
-void FSIOLambdaRunnable::EnsureCompletion()
+void FLambdaRunnable::EnsureCompletion()
 {
 	Stop();
 	Thread->WaitForCompletion();
 }
 
-FSIOLambdaRunnable* FSIOLambdaRunnable::RunLambdaOnBackGroundThread(TFunction< void()> InFunction)
+FLambdaRunnable* FLambdaRunnable::RunLambdaOnBackGroundThread(TFunction< void()> InFunction)
 {
-	FSIOLambdaRunnable* Runnable;
+	FLambdaRunnable* Runnable;
 	if (FPlatformProcess::SupportsMultithreading())
 	{
-		Runnable = new FSIOLambdaRunnable(InFunction);
+		Runnable = new FLambdaRunnable(InFunction);
 		//UE_LOG(LogClass, Log, TEXT("FLambdaRunnable RunLambdaBackGroundThread"));
 		return Runnable;
 	}
@@ -90,12 +89,19 @@ FSIOLambdaRunnable* FSIOLambdaRunnable::RunLambdaOnBackGroundThread(TFunction< v
 	}
 }
 
-FGraphEventRef FSIOLambdaRunnable::RunShortLambdaOnGameThread(TFunction< void()> InFunction)
+FGraphEventRef FLambdaRunnable::RunShortLambdaOnGameThread(TFunction< void()> InFunction)
 {
 	return FFunctionGraphTask::CreateAndDispatchWhenReady(InFunction, TStatId(), nullptr, ENamedThreads::GameThread);
 }
 
-void FSIOLambdaRunnable::ShutdownThreads()
+void FLambdaRunnable::ShutdownThreads()
 {
-
+	/*for (auto Runnable : Runnables)
+	{
+	if (Runnable != nullptr)
+	{
+		Runnable.Stop();
+		delete Runnable;
+	}
+	Runnable = nullptr;*/
 }

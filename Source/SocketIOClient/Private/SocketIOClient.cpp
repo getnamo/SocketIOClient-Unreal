@@ -1,6 +1,6 @@
 #include "SocketIOClientPrivatePCH.h"
 #include "SocketIONative.h"
-#include "SIOLambdaRunnable.h"
+#include "LambdaRunnable.h"
 
 #define LOCTEXT_NAMESPACE "FSocketIOClientModule"
 
@@ -119,7 +119,7 @@ void FSocketIOClientModule::ReleaseNativePointer(TSharedPtr<FSocketIONative> Poi
 	}
 
 	//Release the pointer on the background thread
-	FSIOLambdaRunnable::RunLambdaOnBackGroundThread([PointerToRelease, this]
+	FLambdaRunnable::RunLambdaOnBackGroundThread([PointerToRelease, this]
 	{
 		if (PointerToRelease.IsValid())
 		{

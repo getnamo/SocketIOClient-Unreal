@@ -1,6 +1,6 @@
 
 #include "SocketIOClientPrivatePCH.h"
-#include "SIOLambdaRunnable.h"
+#include "LambdaRunnable.h"
 #include "SIOJConvert.h"
 #include "SocketIONative.h"
 
@@ -29,7 +29,7 @@ void FSocketIONative::Connect(const FString& InAddressAndPort, const TSharedPtr<
 	}
 
 	//Connect to the server on a background thread so it never blocks
-	ConnectionThread = FSIOLambdaRunnable::RunLambdaOnBackGroundThread([&, Query, Headers]
+	ConnectionThread = FLambdaRunnable::RunLambdaOnBackGroundThread([&, Query, Headers]
 	{
 		std::map<std::string, std::string> QueryMap = {};
 		std::map<std::string, std::string> HeadersMap = {};
