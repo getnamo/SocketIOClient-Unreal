@@ -160,6 +160,12 @@ Here's an example of constructing a single header  _X-Forwarded-Host: qnova.io_ 
 
 ![connectwithheader](https://cloud.githubusercontent.com/assets/542365/25309683/63bfe26e-27cb-11e7-877e-0590e40605f3.PNG)
 
+### Plugin Scoped Connection
+
+If you want your connection to survive level transitions, you can tick the class default option Plugin Scoped Connection. Then if another component has the same plugin scoped id, it will re-use the same connection. Note that if this option is enabled the connection will not auto-disconnect on *End Play* and you will need to either manually disconnect or the connection will finally disconnect when the program exits.
+
+![plugin scoped connection](https://i.imgur.com/lE8BHbN.png)
+
 ## How to use - C++
 
 ### Setup
