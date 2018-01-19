@@ -166,6 +166,8 @@ If you want your connection to survive level transitions, you can tick the class
 
 ![plugin scoped connection](https://i.imgur.com/lE8BHbN.png)
 
+This does mean that you may not receive events during times you do not have a world (such as a level transition without a transition world). If this doesn't work for you consider switching to C++ and using [FSocketIONative](https://github.com/getnamo/socketio-client-ue4#c-fsocketionative).
+
 ## How to use - C++
 
 ### Setup
