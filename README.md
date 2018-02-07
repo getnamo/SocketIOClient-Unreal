@@ -24,15 +24,15 @@ Missing static libraries and support for platforms:
 
 ## Quick Install & Setup ##
 
- 1.	[Download Latest Release](https://github.com/getnamo/socketio-client-ue4/releases)
- 2.	Create new or choose project.
- 3.	Browse to your project folder (typically found at Documents/Unreal Project/{Your Project Root})
- 4.	Copy *Plugins* folder into your Project root.
- 5. 	Plugin should be now ready to use.
+ 1. [Download Latest Release](https://github.com/getnamo/socketio-client-ue4/releases)
+ 2. Create new or choose project.
+ 3. Browse to your project folder (typically found at Documents/Unreal Project/{Your Project Root})
+ 4. Copy *Plugins* folder into your Project root.
+ 5. Plugin should be now ready to use.
  
  ### Optional Plugin Enabled Check
- 5.	If your plugin isn't enabled for whatever reason you can enable the plugin via Edit->Plugins. Scroll down to Project->Networking. Click Enabled.
- 6.	Restart the Editor and open your project again. Plugin is now ready to use.
+ 5. If your plugin isn't enabled for whatever reason you can enable the plugin via Edit->Plugins. Scroll down to Project->Networking. Click Enabled.
+ 6. Restart the Editor and open your project again. Plugin is now ready to use.
 
 
 ## Example Project - Chat
