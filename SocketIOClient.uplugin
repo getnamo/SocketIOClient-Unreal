@@ -23,7 +23,8 @@
 				"Win64",
 				"Win32",
 				"Linux",
-				"Mac"
+				"Mac",
+				"Android"
 			]
 		},
 		{
