@@ -52,8 +52,8 @@ public:
 
 				FBPTerminal **Target = Context.NetMap.Find(Pin);
 
-				const FString &FieldName = Pin->PinName;
-				const FString &FieldType = Pin->PinType.PinCategory;
+				const FName&FieldName = Pin->PinName;
+				const FName&FieldType = Pin->PinType.PinCategory;
 
 				FBPTerminal* FieldNameTerm = Context.CreateLocalTerminal(ETerminalSpecification::TS_Literal);
 				FieldNameTerm->Type.PinCategory = CompilerContext.GetSchema()->PC_String;
@@ -62,8 +62,8 @@ public:
 #else
 				FieldNameTerm->Source = Pin;
 #endif
-				FieldNameTerm->Name = FieldName;
-				FieldNameTerm->TextLiteral = FText::FromString(FieldName);
+				FieldNameTerm->Name = FieldName.ToString();
+				FieldNameTerm->TextLiteral = FText::FromName(FieldName);
 
  				FBlueprintCompiledStatement& Statement = Context.AppendStatementForNode(Node);
 				FName FunctionName;
@@ -249,7 +249,7 @@ void USIOJ_BreakJson::CreateProjectionPins(UEdGraphPin *Source)
 
 	for (TArray<FSIOJ_NamedType>::TIterator it(Outputs); it; ++it)
 	{
-		FString Type;
+		FName Type;
 		UObject *Subtype = nullptr;
 		FString FieldName = (*it).Name;
 
