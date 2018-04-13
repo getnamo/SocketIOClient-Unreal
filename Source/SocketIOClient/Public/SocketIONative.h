@@ -38,7 +38,7 @@ struct TSetFunctionWrapper
 };
 
 
-SOCKETIOCLIENT_API class FSocketIONative
+class SOCKETIOCLIENT_API FSocketIONative
 {
 public:
 
