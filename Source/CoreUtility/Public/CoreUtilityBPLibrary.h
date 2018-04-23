@@ -23,4 +23,12 @@ public:
 	UFUNCTION(BlueprintPure, meta = (DisplayName = "To Bytes (String)", BlueprintAutocast), Category = "CoreUtility|Conversion")
 	static TArray<uint8> Conv_StringToBytes(FString InString);
 
+	//Current UTC time in string format
+	UFUNCTION(BlueprintPure, Category = "CoreUtility|Conversion")
+	static FString NowUTCString();
+
+	//Hardware ID
+	UFUNCTION(BlueprintPure, Category = "CoreUtility|Conversion")
+	static FString GetLoginId();
+
 };

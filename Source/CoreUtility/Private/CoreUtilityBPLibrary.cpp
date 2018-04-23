@@ -15,3 +15,14 @@ TArray<uint8> UCoreUtilityBPLibrary::Conv_StringToBytes(FString InString)
 	ResultBytes.Append((uint8*)TCHAR_TO_UTF8(*InString), InString.Len());
 	return ResultBytes;
 }
+
+FString UCoreUtilityBPLibrary::NowUTCString()
+{
+	return FDateTime::UtcNow().ToString();
+}
+
+
+FString UCoreUtilityBPLibrary::GetLoginId()
+{
+	return FPlatformMisc::GetLoginId();
+}
