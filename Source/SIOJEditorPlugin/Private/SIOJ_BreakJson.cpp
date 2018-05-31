@@ -1,4 +1,4 @@
-// Modifications Copyright 2018-current Getnamo.
+// Modifications Copyright 2018-current Getnamo. All Rights Reserved
 // Available under MIT license at https://github.com/getnamo/socketio-client-ue4
 
 // Copyright 2015 Vladimir Alyamkin. All Rights Reserved.
