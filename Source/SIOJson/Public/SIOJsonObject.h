@@ -1,3 +1,6 @@
+// Modifications Copyright 2018-current Getnamo.
+// Available under MIT license at https://github.com/getnamo/socketio-client-ue4
+
 // Copyright 1998-2014 Epic Games, Inc. All Rights Reserved.
 // Copyright 2014 Vladimir Alyamkin. All Rights Reserved.
 

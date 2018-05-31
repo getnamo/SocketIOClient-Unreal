@@ -1,3 +1,6 @@
+// Copyright 2018-current Getnamo.
+// Available under MIT license at https://github.com/getnamo/socketio-client-ue4
+
 #include "SocketIOClientPrivatePCH.h"
 #include "SocketIONative.h"
 #include "LambdaRunnable.h"

@@ -2,14 +2,15 @@
 	"FileVersion": 3,
 	"Version": 1,
 	"VersionName": "0.8.0",
+	"EngineVersion" : "4.19.0",
 	"FriendlyName": "Socket.IO Client",
 	"Description": "Real-time networking library Socket.IO Client usable from blueprints and c++.",
 	"Category": "Networking",
 	"CreatedBy": "Getnamo",
 	"CreatedByURL": "http://getnamo.com",
 	"DocsURL": "https://github.com/getnamo/socketio-client-ue4",
-	"MarketplaceURL": "",
-	"SupportURL": "",
+	"MarketplaceURL": "com.epicgames.launcher://ue/marketplace/content/770c3db686a948e09ccb208705a8e736",
+	"SupportURL": "https://github.com/getnamo/socketio-client-ue4",
 	"EnabledByDefault": true,
 	"CanContainContent": false,
 	"IsBetaVersion": false,
@@ -29,17 +30,38 @@
 		{
 			"Name": "SIOJson",
 			"Type": "Runtime",
-			"LoadingPhase": "PreDefault"
+			"LoadingPhase": "PreDefault",
+			"WhitelistPlatforms": [
+				"Win64",
+				"Win32",
+				"Linux",
+				"Mac"
+			]
 		},
 		{
 			"Name": "CoreUtility",
 			"Type": "Runtime",
-			"LoadingPhase": "PreDefault"
+			"LoadingPhase": "PreDefault",
+			"WhitelistPlatforms": [
+				"Win64",
+				"Win32",
+				"Linux",
+				"Android",
+				"Mac",
+				"IOS",
+				"HTML5"
+			]
 		},
 		{
 			"Name": "SIOJEditorPlugin",
 			"Type": "Developer",
-			"LoadingPhase": "Default"
+			"LoadingPhase": "Default",
+			"WhitelistPlatforms": [
+				"Win64",
+				"Win32",
+				"Linux",
+				"Mac"
+			]
 		}
 	]
 }

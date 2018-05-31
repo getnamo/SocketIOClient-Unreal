@@ -1,3 +1,6 @@
+// Modifications Copyright 2018-current Getnamo.
+// Available under MIT license at https://github.com/getnamo/socketio-client-ue4
+
 // Copyright 2016 Vladimir Alyamkin. All Rights Reserved.
 
 #pragma once

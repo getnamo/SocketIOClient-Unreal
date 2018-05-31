@@ -1,3 +1,6 @@
+// Copyright 2018-current Getnamo.
+// Available under MIT license at https://github.com/getnamo/socketio-client-ue4
+
 #pragma once
 
 #include "Components/ActorComponent.h"
