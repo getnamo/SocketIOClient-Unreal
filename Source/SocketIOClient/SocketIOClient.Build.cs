@@ -1,4 +1,5 @@
-
+// Copyright 2018-current Getnamo. All Rights Reserved
+// Available under MIT license at https://github.com/getnamo/socketio-client-ue4
 
 using System.IO;
 
@@ -8,7 +9,7 @@ namespace UnrealBuildTool.Rules
     {
         private string ThirdPartyPath
         {
-            get { return Path.GetFullPath(Path.Combine(ModuleDirectory, "../../ThirdParty/")); }
+            get { return Path.GetFullPath(Path.Combine(ModuleDirectory, "../ThirdParty/")); }
         }
 
         private string SocketIOThirdParty
