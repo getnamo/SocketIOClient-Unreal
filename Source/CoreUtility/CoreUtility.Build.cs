@@ -7,8 +7,9 @@ public class CoreUtility : ModuleRules
 {
     public CoreUtility(ReadOnlyTargetRules Target) : base(Target)
     {
+		PCHUsage = PCHUsageMode.UseExplicitOrSharedPCHs;
 
-        PublicIncludePaths.AddRange(
+		PublicIncludePaths.AddRange(
             new string[] {
                 "CoreUtility/Public"
             }

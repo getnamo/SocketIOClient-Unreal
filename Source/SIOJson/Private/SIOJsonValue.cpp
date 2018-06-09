@@ -3,6 +3,7 @@
 
 // Copyright 2014 Vladimir Alyamkin. All Rights Reserved.
 
+#include "SIOJsonValue.h"
 #include "SIOJsonPrivatePCH.h"
 #include "SIOJConvert.h"
 

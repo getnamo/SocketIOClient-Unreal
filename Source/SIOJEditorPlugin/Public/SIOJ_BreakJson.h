@@ -8,6 +8,13 @@
 
 #include "Engine.h"
 #include "K2Node.h"
+#include "ISIOJson.h"
+#include "SIOJConvert.h"
+#include "SIOJsonObject.h"
+#include "SIOJsonValue.h"
+#include "SIOJLibrary.h"
+#include "SIOJRequestJSON.h"
+#include "SIOJTypes.h"
 
 #include "SIOJ_BreakJson.generated.h"
 

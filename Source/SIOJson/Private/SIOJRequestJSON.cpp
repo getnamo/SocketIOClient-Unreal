@@ -3,6 +3,7 @@
 
 // Copyright 2014 Vladimir Alyamkin. All Rights Reserved.
 
+#include "SIOJRequestJSON.h"
 #include "SIOJsonPrivatePCH.h"
 #include "CoreMisc.h"
 

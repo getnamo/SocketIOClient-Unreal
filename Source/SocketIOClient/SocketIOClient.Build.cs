@@ -7,6 +7,7 @@ namespace UnrealBuildTool.Rules
 {
     public class SocketIOClient : ModuleRules
     {
+
         private string ThirdPartyPath
         {
             get { return Path.GetFullPath(Path.Combine(ModuleDirectory, "../ThirdParty/")); }
@@ -107,7 +108,9 @@ namespace UnrealBuildTool.Rules
 
         public SocketIOClient(ReadOnlyTargetRules Target) : base(Target)
         {
-            PublicIncludePaths.AddRange(
+			PCHUsage = PCHUsageMode.UseExplicitOrSharedPCHs;
+
+			PublicIncludePaths.AddRange(
                 new string[] {
                 "SocketIOClient/Public",
                     Path.Combine(BoostThirdParty, "Include"),

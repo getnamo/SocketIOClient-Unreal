@@ -3,6 +3,7 @@
 
 // Copyright 2016 Vladimir Alyamkin. All Rights Reserved.
 
+#include "SIOJLibrary.h"
 #include "SIOJsonPrivatePCH.h"
 #include "Base64.h"
 

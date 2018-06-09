@@ -1,10 +1,10 @@
 // Copyright 2018-current Getnamo. All Rights Reserved
 // Available under MIT license at https://github.com/getnamo/socketio-client-ue4
 
+#include "SocketIONative.h"
 #include "SocketIOClientPrivatePCH.h"
 #include "LambdaRunnable.h"
 #include "SIOJConvert.h"
-#include "SocketIONative.h"
 
 FSocketIONative::FSocketIONative()
 {

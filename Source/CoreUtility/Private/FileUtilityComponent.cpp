@@ -1,8 +1,9 @@
 // Copyright 2018-current Getnamo. All Rights Reserved
 // Available under MIT license at https://github.com/getnamo/socketio-client-ue4
 
-#include "CoreUtilityPrivatePCH.h"
 #include "FileUtilityComponent.h"
+#include "CoreUtilityPrivatePCH.h"
+
 
 UFileUtilityComponent::UFileUtilityComponent(const FObjectInitializer &init) : UActorComponent(init)
 {

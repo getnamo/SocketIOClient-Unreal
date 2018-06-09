@@ -1,8 +1,8 @@
 // Copyright 2018-current Getnamo. All Rights Reserved
 // Available under MIT license at https://github.com/getnamo/socketio-client-ue4
 
-#include "CoreUtilityPrivatePCH.h"
 #include "CoreUtilityBPLibrary.h"
+#include "CoreUtilityPrivatePCH.h"
 #include "Runtime/Core/Public/Misc/FileHelper.h"
 
 FString UCoreUtilityBPLibrary::Conv_BytesToString(const TArray<uint8>& InArray)

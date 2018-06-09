@@ -4,8 +4,8 @@
 // Copyright 2015 Vladimir Alyamkin. All Rights Reserved.
 // Original code by https://github.com/unktomi
 
-#include "SIOJEditorPluginPrivatePCH.h"
 #include "SIOJ_BreakJson.h"
+#include "SIOJEditorPluginPrivatePCH.h"
 #include "EdGraphUtilities.h"
 #include "Runtime/Launch/Resources/Version.h"
 

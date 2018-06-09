@@ -1,6 +1,7 @@
 // Copyright 2018-current Getnamo. All Rights Reserved
 // Available under MIT license at https://github.com/getnamo/socketio-client-ue4
 
+#include "SIOMessageConvert.h"
 #include "SocketIOClientPrivatePCH.h"
 
 DEFINE_LOG_CATEGORY(SocketIOLog);

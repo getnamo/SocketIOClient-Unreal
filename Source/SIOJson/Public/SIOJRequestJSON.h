@@ -9,7 +9,7 @@
 #include "Http.h"
 #include "Map.h"
 #include "Json.h"
-
+#include "LatentActions.h"
 #include "SIOJTypes.h"
 #include "SIOJRequestJSON.generated.h"
 

@@ -9,7 +9,8 @@ public class SIOJEditorPlugin : ModuleRules
 {
 	public SIOJEditorPlugin(ReadOnlyTargetRules Target) : base(Target)
     {
-		
+		PCHUsage = PCHUsageMode.UseExplicitOrSharedPCHs;
+
 		PublicIncludePaths.AddRange(
 			new string[] {
 				"SIOJson",

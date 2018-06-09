@@ -1,8 +1,8 @@
 // Copyright 2018-current Getnamo. All Rights Reserved
 // Available under MIT license at https://github.com/getnamo/socketio-client-ue4
 
-#include "CoreUtilityPrivatePCH.h"
 #include "LambdaRunnable.h"
+#include "CoreUtilityPrivatePCH.h"
 
 uint64 FLambdaRunnable::ThreadNumber = 0;
 
