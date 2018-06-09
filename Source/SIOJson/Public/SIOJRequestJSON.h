@@ -10,6 +10,7 @@
 #include "Map.h"
 #include "Json.h"
 #include "LatentActions.h"
+#include "Engine/LatentActionManager.h"
 #include "SIOJTypes.h"
 #include "SIOJRequestJSON.generated.h"
 

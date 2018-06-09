@@ -4,6 +4,7 @@
 #pragma once
 
 #include "Object.h"
+#include "Json.h"
 #include "sio_client.h"
 #include "SIOMessageConvert.generated.h"
 

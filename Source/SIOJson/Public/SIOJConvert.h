@@ -4,6 +4,7 @@
 #pragma once
 
 #include "Object.h"
+#include "Json.h"
 #include "SIOJConvert.generated.h"
 
 struct FTrimmedKeyMap
