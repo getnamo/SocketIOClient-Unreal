@@ -127,22 +127,20 @@ void FSocketIOClientModule::ReleaseNativePointer(TSharedPtr<FSocketIONative> Poi
 	{
 		if (PointerToRelease.IsValid())
 		{
-			//Disconnect
+			//Ensure only one thread at a time removes from array 
+			{
+				FScopeLock Lock(&DeleteSection);
+				PluginNativePointers.Remove(PointerToRelease);
+			}
+
+			//Disconnect, this can happen simultaneously
 			if (PointerToRelease->bIsConnected)
 			{
 				PointerToRelease->SyncDisconnect();
 			}
 
-			//Last operation took a while, ensure it's still true
-			if (PointerToRelease.IsValid())
-			{
-				//Ensure only one thread at a time removes from array 
-				FScopeLock Lock(&DeleteSection);
-				PluginNativePointers.Remove(PointerToRelease);
-				
-				//Update our active status
-				bHasActiveNativePointers = PluginNativePointers.Num() > 0;
-			}
+			//Update our active status
+			bHasActiveNativePointers = PluginNativePointers.Num() > 0;
 		}
 	});
 }

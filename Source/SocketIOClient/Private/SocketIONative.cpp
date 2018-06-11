@@ -56,6 +56,12 @@ void FSocketIONative::Connect(const FString& InAddressAndPort, const TSharedPtr<
 
 void FSocketIONative::Disconnect()
 {	
+	if (OnDisconnectedCallback)
+	{
+		OnDisconnectedCallback(ESIOConnectionCloseReason::CLOSE_REASON_NORMAL);
+	}
+	bIsConnected = false;
+	ClearCallbacks();
 	PrivateClient->close();
 }
 
@@ -65,6 +71,7 @@ void FSocketIONative::SyncDisconnect()
 	{
 		OnDisconnectedCallback(ESIOConnectionCloseReason::CLOSE_REASON_NORMAL);
 	}
+	bIsConnected = false;
 	ClearCallbacks();
 	PrivateClient->sync_close();
 }
