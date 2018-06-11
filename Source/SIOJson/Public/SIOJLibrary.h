@@ -8,12 +8,10 @@
 #include "Kismet/BlueprintFunctionLibrary.h"
 
 #include "SIOJTypes.h"
+#include "SIOJConvert.h"
 #include "SIOJsonObject.h"
 #include "SIOJRequestJSON.h"
 #include "SIOJLibrary.generated.h"
-
-//class USIOJRequestJSON;
-//class USIOJsonObject;
 
 DECLARE_DYNAMIC_DELEGATE_OneParam(FSIOJCallDelegate, USIOJRequestJSON*, Request);
 
