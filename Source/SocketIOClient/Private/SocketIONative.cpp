@@ -8,7 +8,6 @@
 
 FSocketIONative::FSocketIONative()
 {
-	ConnectionThread = nullptr;
 	PrivateClient = nullptr;
 	AddressAndPort = TEXT("http://localhost:3000");	//default to 127.0.0.1
 	SessionId = TEXT("Invalid");
@@ -31,7 +30,7 @@ void FSocketIONative::Connect(const FString& InAddressAndPort, const TSharedPtr<
 	}
 
 	//Connect to the server on a background thread so it never blocks
-	ConnectionThread = FLambdaRunnable::RunLambdaOnBackGroundThread([&, Query, Headers]
+	FLambdaRunnable::RunLambdaOnBackGroundThread([&, Query, Headers]
 	{
 		std::map<std::string, std::string> QueryMap = {};
 		std::map<std::string, std::string> HeadersMap = {};
