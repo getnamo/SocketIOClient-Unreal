@@ -148,7 +148,7 @@ Supported Signatures:
 
 ### Binding Events to Functions
 
-Instead of using the event graph and comparing strings, you can bind an event directly to a function. The format to make the function is the same as callbacks.
+Instead of using the event graph and comparing strings, you can bind an event directly to a function. The format to make the function is the same as [callbacks](https://github.com/getnamo/socketio-client-ue4#emit-with-callback).
 
 ![IMG](http://i.imgur.com/7fA1qca.png)
 
