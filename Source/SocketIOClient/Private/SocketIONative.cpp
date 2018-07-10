@@ -99,7 +99,7 @@ void FSocketIONative::Emit(const FString& EventName, const TSharedPtr<FJsonValue
 	{
 		TArray<TSharedPtr<FJsonValue>> ValueArray;
 
-		for (int i = 0; i < MessageList.size(); i++)
+		for (uint32 i = 0; i < MessageList.size(); i++)
 		{
 			auto ItemMessagePtr = MessageList[i];
 			ValueArray.Add(USIOMessageConvert::ToJsonValue(ItemMessagePtr));
