@@ -5,6 +5,7 @@
 
 #include "Object.h"
 #include "Json.h"
+#include "EngineMinimal.h"
 #include "SIOJConvert.generated.h"
 
 struct FTrimmedKeyMap
