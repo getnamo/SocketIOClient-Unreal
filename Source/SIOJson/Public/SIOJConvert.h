@@ -1,10 +1,11 @@
 // Modifications Copyright 2018-current Getnamo. All Rights Reserved
-// Available under MIT license at https://github.com/getnamo/socketio-client-ue4
+
 
 #pragma once
 
 #include "Object.h"
 #include "Json.h"
+#include "EngineMinimal.h"
 #include "SIOJConvert.generated.h"
 
 struct FTrimmedKeyMap
