@@ -55,11 +55,11 @@ public:
 	UFUNCTION(BlueprintPure, meta = (DisplayName = "To Bytes (String)", BlueprintAutocast), Category = "CoreUtility|Conversion")
 	static TArray<uint8> Conv_StringToBytes(FString InString);
 
-	//Convert bytes to UTexture2D using auto-detection
+	//Convert bytes to UTexture2D using auto-detection - optimized, but can still have performance implication
 	UFUNCTION(BlueprintPure, meta = (DisplayName = "To Texture2D (Bytes)", BlueprintAutocast), Category = "CoreUtility|Conversion")
 	static UTexture2D* Conv_BytesToTexture(const TArray<uint8>& InBytes);
 
-	//Convert UTexture2D to bytes in given format
+	//Convert UTexture2D to bytes in given format - can have performance implication
 	UFUNCTION(BlueprintPure, meta = (DisplayName = "To Bytes (Texture2D)", BlueprintAutocast), Category = "CoreUtility|Conversion")
 	static bool Conv_TextureToBytes(UTexture2D* Texture, TArray<uint8>& OutBuffer, EImageFormatBPType Format = EImageFormatBPType::PNG);
 

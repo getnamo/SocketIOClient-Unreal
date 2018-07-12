@@ -66,23 +66,16 @@ UTexture2D* UCoreUtilityBPLibrary::Conv_BytesToTexture(const TArray<uint8>& InBy
 				ENQUEUE_UNIQUE_RENDER_COMMAND_ONEPARAMETER(
 					UpdateTextureData,
 					FUpdateTextureData*, UpdateData, UpdateData,
-					{
-
-						RHIUpdateTexture2D(
-							((FTexture2DResource*)UpdateData->Texture2D->Resource)->GetTexture2DRHI(),
-							0,
-							UpdateData->Region,
-							UpdateData->Pitch,
-							UpdateData->BufferArray->GetData()
-						);
-				delete UpdateData;
-					});//End Enqueue
-
-				//Game thread version - this impacts thread more
-				/*void* TextureDataPointer = Texture->PlatformData->Mips[0].BulkData.Lock(LOCK_READ_WRITE);
-				FMemory::Memcpy(TextureDataPointer, UncompressedBGRA->GetData(), UncompressedBGRA->Num());
-				Texture->PlatformData->Mips[0].BulkData.Unlock();
-				Texture->UpdateResource();*/
+				{
+					RHIUpdateTexture2D(
+						((FTexture2DResource*)UpdateData->Texture2D->Resource)->GetTexture2DRHI(),
+						0,
+						UpdateData->Region,
+						UpdateData->Pitch,
+						UpdateData->BufferArray->GetData()
+					);
+					delete UpdateData; //now that we've updated the texture data, we can finally release any data we're holding on to
+				});//End Enqueue
 			}
 		});
 	}
@@ -109,10 +102,11 @@ bool UCoreUtilityBPLibrary::Conv_TextureToBytes(UTexture2D* Texture, TArray<uint
 	int32 Height = Texture->PlatformData->Mips[0].SizeY;
 	int32 DataLength = Width * Height * 4;
 
-	void* TextureDataPointer = Texture->PlatformData->Mips[0].BulkData.Lock(LOCK_READ_WRITE);
+	void* TextureDataPointer = Texture->PlatformData->Mips[0].BulkData.Lock(LOCK_READ_ONLY);
 
 	ImageWrapper->SetRaw(TextureDataPointer, DataLength, Width, Height, ERGBFormat::BGRA, 8);
 
+	//This part can take a while, has performance implications
 	OutBuffer = ImageWrapper->GetCompressed();
 
 	Texture->PlatformData->Mips[0].BulkData.Unlock();
