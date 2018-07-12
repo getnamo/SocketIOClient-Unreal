@@ -6,8 +6,37 @@
 #include "Kismet/BlueprintFunctionLibrary.h"
 #include "CoreUtilityBPLibrary.generated.h"
 
+/* Wrapper for EImageFormat::Type for BP*/
+UENUM()
+enum class EImageFormatBPType : uint8
+{
+	/** Invalid or unrecognized format. */
+	Invalid = 254,
+
+	/** Portable Network Graphics. */
+	PNG = 0,
+
+	/** Joint Photographic Experts Group. */
+	JPEG,
+
+	/** Single channel JPEG. */
+	GrayscaleJPEG,
+
+	/** Windows Bitmap. */
+	BMP,
+
+	/** Windows Icon resource. */
+	ICO,
+
+	/** OpenEXR (HDR) image file format. */
+	EXR,
+
+	/** Mac icon. */
+	ICNS
+};
+
 /**
- * Useful generic blueprint functions
+ * Useful generic blueprint functions, mostly conversion
  */
 UCLASS()
 class UCoreUtilityBPLibrary : public UBlueprintFunctionLibrary
@@ -18,13 +47,21 @@ public:
 
 	//Conversion Nodes
 
-	//Converts any unicode bytes to string
+	//Convert any unicode bytes to string
 	UFUNCTION(BlueprintPure, meta = (DisplayName = "To String (Bytes)", BlueprintAutocast), Category = "CoreUtility|Conversion")
-	static FString Conv_BytesToString(const TArray<uint8>& InArray);
+	static FString Conv_BytesToString(const TArray<uint8>& InBytes);
 
-	//Converts string to UTF8 bytes
+	//Convert string to UTF8 bytes
 	UFUNCTION(BlueprintPure, meta = (DisplayName = "To Bytes (String)", BlueprintAutocast), Category = "CoreUtility|Conversion")
 	static TArray<uint8> Conv_StringToBytes(FString InString);
+
+	//Convert bytes to UTexture2D using auto-detection
+	UFUNCTION(BlueprintPure, meta = (DisplayName = "To Texture2D (Bytes)", BlueprintAutocast), Category = "CoreUtility|Conversion")
+	UTexture2D* Conv_BytesToTexture(const TArray<uint8>& InBytes);
+
+	//Convert UTexture2D to bytes in given format
+	UFUNCTION(BlueprintPure, meta = (DisplayName = "To Bytes (Texture2D)", BlueprintAutocast), Category = "CoreUtility|Conversion")
+	bool Conv_TextureToBytes(UTexture2D* Texture, TArray<uint8>& OutBuffer, EImageFormatBPType Format = EImageFormatBPType::PNG);
 
 	//Current UTC time in string format
 	UFUNCTION(BlueprintPure, Category = "CoreUtility|Conversion")
