@@ -57,11 +57,11 @@ public:
 
 	//Convert bytes to UTexture2D using auto-detection
 	UFUNCTION(BlueprintPure, meta = (DisplayName = "To Texture2D (Bytes)", BlueprintAutocast), Category = "CoreUtility|Conversion")
-	UTexture2D* Conv_BytesToTexture(const TArray<uint8>& InBytes);
+	static UTexture2D* Conv_BytesToTexture(const TArray<uint8>& InBytes);
 
 	//Convert UTexture2D to bytes in given format
 	UFUNCTION(BlueprintPure, meta = (DisplayName = "To Bytes (Texture2D)", BlueprintAutocast), Category = "CoreUtility|Conversion")
-	bool Conv_TextureToBytes(UTexture2D* Texture, TArray<uint8>& OutBuffer, EImageFormatBPType Format = EImageFormatBPType::PNG);
+	static bool Conv_TextureToBytes(UTexture2D* Texture, TArray<uint8>& OutBuffer, EImageFormatBPType Format = EImageFormatBPType::PNG);
 
 	//Current UTC time in string format
 	UFUNCTION(BlueprintPure, Category = "CoreUtility|Conversion")

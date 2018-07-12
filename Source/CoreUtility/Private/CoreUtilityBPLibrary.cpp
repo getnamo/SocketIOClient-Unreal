@@ -5,6 +5,8 @@
 #include "IImageWrapper.h"
 #include "IImageWrapperModule.h"
 #include "EngineMinimal.h"
+#include "LambdaRunnable.h"
+#include "Runtime/RHI/Public/RHI.h"
 #include "Runtime/Core/Public/Misc/FileHelper.h"
 
 FString UCoreUtilityBPLibrary::Conv_BytesToString(const TArray<uint8>& InArray)
@@ -31,20 +33,58 @@ UTexture2D* UCoreUtilityBPLibrary::Conv_BytesToTexture(const TArray<uint8>& InBy
 
 	TSharedPtr<IImageWrapper> ImageWrapper = ImageWrapperModule.CreateImageWrapper(DetectedFormat);
 
-	//FString to array of ptrs
+	//Set the compressed bytes - we need this information on game thread to be able to determine texture size, otherwise we'll need a complete async callback
 	if (ImageWrapper.IsValid() && ImageWrapper->SetCompressed(InBytes.GetData(), InBytes.Num()))
 	{
-		const TArray<uint8>* UncompressedBGRA = nullptr;
-		if (ImageWrapper->GetRaw(ERGBFormat::BGRA, 8, UncompressedBGRA))
-		{
-			Texture = UTexture2D::CreateTransient(ImageWrapper->GetWidth(), ImageWrapper->GetHeight(), PF_B8G8R8A8);
+		//Create image given sizes
+		Texture = UTexture2D::CreateTransient(ImageWrapper->GetWidth(), ImageWrapper->GetHeight(), PF_B8G8R8A8);
+		Texture->UpdateResource();
 
-			// Fill in the source data from the file
-			void* TextureDataPointer = Texture->PlatformData->Mips[0].BulkData.Lock(LOCK_READ_WRITE);
-			FMemory::Memcpy(TextureDataPointer, UncompressedBGRA->GetData(), UncompressedBGRA->Num());
-			Texture->PlatformData->Mips[0].BulkData.Unlock();
-			Texture->UpdateResource();
-		}
+		//Uncompress on a background thread pool
+		FLambdaRunnable::RunLambdaOnBackGroundThreadPool([ImageWrapper, Texture] {
+			const TArray<uint8>* UncompressedBGRA = nullptr;
+			if (ImageWrapper->GetRaw(ERGBFormat::BGRA, 8, UncompressedBGRA))
+			{
+
+				//Update on render thread, wrap up all required data
+				struct FUpdateTextureData
+				{
+					UTexture2D* Texture2D;
+					FUpdateTextureRegion2D Region;
+					uint32 Pitch;
+					const TArray<uint8>* BufferArray;
+					TSharedPtr<IImageWrapper> Wrapper;	//to keep the uncompressed data alive
+				};
+
+				FUpdateTextureData* UpdateData = new FUpdateTextureData;
+				UpdateData->Texture2D = Texture;
+				UpdateData->Region = FUpdateTextureRegion2D(0, 0, 0, 0, Texture->GetSizeX(), Texture->GetSizeY());
+				UpdateData->BufferArray = UncompressedBGRA;
+				UpdateData->Pitch = Texture->GetSizeX() * 4;
+				UpdateData->Wrapper = ImageWrapper;
+
+				ENQUEUE_UNIQUE_RENDER_COMMAND_ONEPARAMETER(
+					UpdateTextureData,
+					FUpdateTextureData*, UpdateData, UpdateData,
+					{
+
+						RHIUpdateTexture2D(
+							((FTexture2DResource*)UpdateData->Texture2D->Resource)->GetTexture2DRHI(),
+							0,
+							UpdateData->Region,
+							UpdateData->Pitch,
+							UpdateData->BufferArray->GetData()
+						);
+				delete UpdateData;
+					});//End Enqueue
+
+				//Game thread version - this impacts thread more
+				/*void* TextureDataPointer = Texture->PlatformData->Mips[0].BulkData.Lock(LOCK_READ_WRITE);
+				FMemory::Memcpy(TextureDataPointer, UncompressedBGRA->GetData(), UncompressedBGRA->Num());
+				Texture->PlatformData->Mips[0].BulkData.Unlock();
+				Texture->UpdateResource();*/
+			}
+		});
 	}
 	else
 	{
