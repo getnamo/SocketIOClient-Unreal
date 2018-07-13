@@ -81,6 +81,15 @@ public:
 
 	/**
 	* Connect to a socket.io server, optional method if auto-connect is set to true.
+	* Overloaded function where you don't care about query and headers
+	*
+	* @param AddressAndPort	the address in URL format with port
+	*
+	*/
+	void Connect(const FString& InAddressAndPort);
+
+	/**
+	* Connect to a socket.io server, optional method if auto-connect is set to true.
 	* Query and headers are defined by a {'stringKey':'stringValue'} SIOJson Object
 	*
 	* @param AddressAndPort	the address in URL format with port
@@ -90,8 +99,8 @@ public:
 	*/
 	void Connect(	
 		const FString& InAddressAndPort,
-		const TSharedPtr<FJsonObject>& Query /*= nullptr*/, 
-		const TSharedPtr<FJsonObject>& Headers /*= nullptr*/);
+		const TSharedPtr<FJsonObject>& Query, 
+		const TSharedPtr<FJsonObject>& Headers);
 
 	/**
 	* Disconnect from current socket.io server, optional method.
@@ -215,6 +224,20 @@ public:
 		const FString& EventName,
 		UStruct* Struct,
 		const void* StructPtr,
+		TFunction< void(const TArray<TSharedPtr<FJsonValue>>&)> CallbackFunction = nullptr,
+		const FString& Namespace = TEXT("/"));
+
+	/**
+	* (Overloaded) Emit an event without a message
+	*
+	* @param EventName				Event name
+	* @param Struct					UStruct type usually obtained via e.g. FMyStructType::StaticStruct()
+	* @param StructPtr				Pointer to the actual struct memory e.g. &MyStruct
+	* @param CallbackFunction		Optional callback TFunction
+	* @param Namespace				Optional Namespace within socket.io
+	*/
+	void Emit(
+		const FString& EventName,
 		TFunction< void(const TArray<TSharedPtr<FJsonValue>>&)> CallbackFunction = nullptr,
 		const FString& Namespace = TEXT("/"));
 

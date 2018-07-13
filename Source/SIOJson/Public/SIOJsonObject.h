@@ -6,6 +6,7 @@
 
 #pragma once
 
+#include "Runtime/Json/Public/Dom/JsonObject.h"
 #include "SIOJsonObject.generated.h"
 
 class USIOJsonValue;

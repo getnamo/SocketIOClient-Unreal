@@ -53,6 +53,14 @@ void FSocketIONative::Connect(const FString& InAddressAndPort, const TSharedPtr<
 	});
 }
 
+void FSocketIONative::Connect(const FString& InAddressAndPort)
+{
+	TSharedPtr<FJsonObject> Query = MakeShareable(new FJsonObject);
+	TSharedPtr<FJsonObject> Headers = MakeShareable(new FJsonObject);
+
+	Connect(AddressAndPort, Query, Headers);
+}
+
 void FSocketIONative::Disconnect()
 {	
 	if (OnDisconnectedCallback)
@@ -142,6 +150,12 @@ void FSocketIONative::Emit(const FString& EventName, const TArray<TSharedPtr<FJs
 void FSocketIONative::Emit(const FString& EventName, UStruct* Struct, const void* StructPtr, TFunction< void(const TArray<TSharedPtr<FJsonValue>>&)> CallbackFunction /*= nullptr*/, const FString& Namespace /*= FString(TEXT("/"))*/)
 {
 	Emit(EventName, USIOJConvert::ToJsonObject(Struct, (void*)StructPtr), CallbackFunction, Namespace);
+}
+
+void FSocketIONative::Emit(const FString& EventName, TFunction< void(const TArray<TSharedPtr<FJsonValue>>&)> CallbackFunction /*= nullptr*/, const FString& Namespace /*= TEXT("/")*/)
+{
+	TSharedPtr<FJsonValue> NoneValue;
+	Emit(EventName, NoneValue, CallbackFunction, Namespace);
 }
 
 void FSocketIONative::EmitRaw(const FString& EventName, const sio::message::list& MessageList /*= nullptr*/, TFunction<void(const sio::message::list&)> CallbackFunction /*= nullptr*/, const FString& Namespace /*= FString(TEXT("/"))*/)

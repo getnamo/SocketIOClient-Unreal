@@ -4,6 +4,7 @@
 #pragma once
 
 #include "Kismet/BlueprintFunctionLibrary.h"
+#include "Runtime/Core/Public/Async/Future.h"
 #include "CoreUtilityBPLibrary.generated.h"
 
 /* Wrapper for EImageFormat::Type for BP*/
@@ -39,7 +40,7 @@ enum class EImageFormatBPType : uint8
  * Useful generic blueprint functions, mostly conversion
  */
 UCLASS()
-class UCoreUtilityBPLibrary : public UBlueprintFunctionLibrary
+class COREUTILITY_API UCoreUtilityBPLibrary : public UBlueprintFunctionLibrary
 {
 	GENERATED_BODY()
 
@@ -58,6 +59,9 @@ public:
 	//Convert bytes to UTexture2D using auto-detection - optimized, but can still have performance implication
 	UFUNCTION(BlueprintPure, meta = (DisplayName = "To Texture2D (Bytes)", BlueprintAutocast), Category = "CoreUtility|Conversion")
 	static UTexture2D* Conv_BytesToTexture(const TArray<uint8>& InBytes);
+
+	//Fully Async texture conversion from bytes will auto-detect format, depends on TFuture, cannot be called in blueprint
+	static TFuture<UTexture2D*> Conv_BytesToTexture_Async(const TArray<uint8>& InBytes);
 
 	//Convert UTexture2D to bytes in given format - can have performance implication
 	UFUNCTION(BlueprintPure, meta = (DisplayName = "To Bytes (Texture2D)", BlueprintAutocast), Category = "CoreUtility|Conversion")

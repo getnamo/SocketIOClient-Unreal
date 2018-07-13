@@ -85,7 +85,11 @@ TSharedPtr<FJsonValue> USIOMessageConvert::ToJsonValue(const sio::message::ptr& 
 
 sio::message::ptr USIOMessageConvert::ToSIOMessage(const TSharedPtr<FJsonValue>& JsonValue)
 {
-	if (JsonValue->Type == EJson::None)
+	if (!JsonValue.IsValid())
+	{
+		return sio::null_message::create();
+	}
+	else if (JsonValue->Type == EJson::None)
 	{
 		return sio::null_message::create();
 	}
