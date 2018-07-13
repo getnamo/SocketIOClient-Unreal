@@ -58,7 +58,7 @@ void FSocketIONative::Connect(const FString& InAddressAndPort)
 	TSharedPtr<FJsonObject> Query = MakeShareable(new FJsonObject);
 	TSharedPtr<FJsonObject> Headers = MakeShareable(new FJsonObject);
 
-	Connect(AddressAndPort, Query, Headers);
+	Connect(InAddressAndPort, Query, Headers);
 }
 
 void FSocketIONative::Disconnect()
