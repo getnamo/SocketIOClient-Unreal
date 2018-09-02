@@ -24,7 +24,7 @@ Missing static libraries and support for platforms:
 
 ## Quick Install & Setup ##
 
- 1. [Download Latest Release](https://github.com/getnamo/socketio-client-ue4/releases)
+ 1. [Download Latest Release](https://github.com/getnamo/socketio-client-ue4/releases) or get it at the [Unreal Engine Marketplace](https://www.unrealengine.com/marketplace/socket-io-client)
  2. Create new or choose project.
  3. Browse to your project folder (typically found at Documents/Unreal Project/{Your Project Root})
  4. Copy *Plugins* folder into your Project root.
