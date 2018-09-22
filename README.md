@@ -64,6 +64,12 @@ If you want to send information to the server, emit events on the SocketIO Clien
 
 ![IMG](http://i.imgur.com/nihMSPz.png)
 
+### Note on Printing Json Value
+
+A very common mistake is to drag from a ```SIOJsonValue``` to the print string for basic debug. By default the engine will pick ```Get Display Name```, this is incorrect as it will only print out the container objects engine name and nothing about the actual value. Instead you want to use either ```Encode Json``` or ```As String(SIOJson Value)```, either of the two will re-encode the value as a json string. Encode Json is also available for ```SIOJsonObject``` types.
+
+![printing a value](https://i.imgur.com/1kwpBYS.png)
+
 ## Blueprint - Advanced
 
 ### Simple Json
