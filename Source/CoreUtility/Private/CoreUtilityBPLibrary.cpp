@@ -64,8 +64,9 @@ UTexture2D* UCoreUtilityBPLibrary::Conv_BytesToTexture(const TArray<uint8>& InBy
 				UpdateData->Pitch = Texture->GetSizeX() * 4;
 				UpdateData->Wrapper = ImageWrapper;
 
+				//enqueue texture copy
 				ENQUEUE_UNIQUE_RENDER_COMMAND_ONEPARAMETER(
-					UpdateTextureData,
+					FUpdateTextureData,
 					FUpdateTextureData*, UpdateData, UpdateData,
 				{
 					RHIUpdateTexture2D(
@@ -169,7 +170,7 @@ TFuture<UTexture2D*> UCoreUtilityBPLibrary::Conv_BytesToTexture_Async(const TArr
 
 		//This command sends it to the render thread
 		ENQUEUE_UNIQUE_RENDER_COMMAND_ONEPARAMETER(
-		UpdateTextureData,
+		FUpdateTextureData,
 		FUpdateTextureData*, UpdateData, UpdateData,
 		{
 			RHIUpdateTexture2D(
