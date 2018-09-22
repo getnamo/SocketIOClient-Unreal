@@ -3,10 +3,9 @@
 
 #include "SocketIOClient.h"
 
-#include "Core.h"
-#include "Engine.h"
-#include "Object.h"
-#include "Json.h"
+#include "CoreMinimal.h"
+#include "EngineMinimal.h"
+#include "JsonGlobals.h"
 #include "JsonUtilities.h"
 #include "SIOJsonValue.h"
 #include "sio_client.h"

@@ -5,7 +5,6 @@
 
 #include "SIOJRequestJSON.h"
 #include "SIOJsonPrivatePCH.h"
-#include "CoreMisc.h"
 
 template <class T> void FSIOJLatentAction<T>::Cancel()
 {

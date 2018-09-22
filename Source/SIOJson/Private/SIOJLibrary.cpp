@@ -5,7 +5,7 @@
 
 #include "SIOJLibrary.h"
 #include "SIOJsonPrivatePCH.h"
-#include "Base64.h"
+#include "Runtime/Core/Public/Misc/Base64.h"
 
 //////////////////////////////////////////////////////////////////////////
 // Helpers

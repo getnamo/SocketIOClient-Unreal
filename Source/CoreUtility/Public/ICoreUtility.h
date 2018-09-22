@@ -3,7 +3,7 @@
 
 #pragma once
 
-#include "ModuleManager.h"
+#include "Runtime/Core/Public/Modules/ModuleManager.h"
 
 
 /**

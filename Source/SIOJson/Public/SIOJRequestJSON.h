@@ -5,10 +5,10 @@
 
 #pragma once
 
-#include "Delegate.h"
+#include "Delegates/Delegate.h"
 #include "Http.h"
-#include "Map.h"
-#include "Json.h"
+#include "Runtime/Core/Public/Containers/Map.h"
+#include "JsonGlobals.h"
 #include "LatentActions.h"
 #include "Engine/LatentActionManager.h"
 #include "SIOJTypes.h"

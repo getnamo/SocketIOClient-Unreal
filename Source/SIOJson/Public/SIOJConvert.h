@@ -3,8 +3,7 @@
 
 #pragma once
 
-#include "Object.h"
-#include "Json.h"
+#include "JsonGlobals.h"
 #include "EngineMinimal.h"
 #include "SIOJConvert.generated.h"
 
