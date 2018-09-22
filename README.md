@@ -118,11 +118,11 @@ Most primitive types have auto-conversion nodes to simplify your workflow. E.g. 
 
 Supported auto-conversion
 
-<li>Float</li>
-<li>Int</li>
-<li>Bool</li>
-<li>String</li>
-<li>SIOJsonObject</li>
+* Float
+* Int
+* Bool
+* SIOJsonObject
+* String *-technically supported but it will by default pick **Get Display Name** instead, use **As String** to get desired result*
 
 ### Emit with Callback
 
