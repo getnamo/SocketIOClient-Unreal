@@ -2,7 +2,10 @@
 
 
 #include "SIOJConvert.h"
-#include "SIOJsonPrivatePCH.h"
+#include "Runtime/Json/Public/Json.h"
+#include "Runtime/JsonUtilities/Public/JsonObjectConverter.h"
+#include "SIOJsonValue.h"
+#include "SIOJsonObject.h"
 
 typedef TJsonWriterFactory< TCHAR, TCondensedJsonPrintPolicy<TCHAR> > FCondensedJsonStringWriterFactory;
 typedef TJsonWriter< TCHAR, TCondensedJsonPrintPolicy<TCHAR> > FCondensedJsonStringWriter;

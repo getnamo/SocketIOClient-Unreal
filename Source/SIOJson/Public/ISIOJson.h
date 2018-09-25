@@ -7,6 +7,8 @@
 
 #include "Runtime/Core/Public/Modules/ModuleManager.h"
 
+DECLARE_LOG_CATEGORY_EXTERN(LogSIOJ, Log, All);
+
 
 /**
  * The public interface to this module.  In most cases, this interface is only public to sibling modules 

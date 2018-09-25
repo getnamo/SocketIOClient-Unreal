@@ -4,7 +4,10 @@
 // Copyright 2016 Vladimir Alyamkin. All Rights Reserved.
 
 #include "SIOJLibrary.h"
-#include "SIOJsonPrivatePCH.h"
+#include "ISIOJson.h"
+#include "Runtime/Json/Public/Json.h"
+#include "SIOJsonValue.h"
+#include "SIOJsonObject.h"
 #include "Runtime/Core/Public/Misc/Base64.h"
 
 //////////////////////////////////////////////////////////////////////////

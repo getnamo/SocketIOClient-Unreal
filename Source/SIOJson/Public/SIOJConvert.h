@@ -3,8 +3,9 @@
 
 #pragma once
 
-#include "JsonGlobals.h"
-#include "EngineMinimal.h"
+#include "CoreMinimal.h"
+#include "Runtime/Json/Public/Dom/JsonObject.h"
+#include "Runtime/Json/Public/Dom/JsonValue.h"
 #include "SIOJConvert.generated.h"
 
 struct FTrimmedKeyMap

@@ -4,7 +4,7 @@
 // Copyright 2014 Vladimir Alyamkin. All Rights Reserved.
 
 #include "SIOJsonValue.h"
-#include "SIOJsonPrivatePCH.h"
+#include "Runtime/Json/Public/Json.h"
 #include "SIOJConvert.h"
 
 #if PLATFORM_WINDOWS

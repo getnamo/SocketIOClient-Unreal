@@ -3,7 +3,10 @@
 
 // Copyright 2014 Vladimir Alyamkin. All Rights Reserved.
 
-#include "SIOJsonPrivatePCH.h"
+#include "ISIOJson.h"
+#include "SIOJsonObject.h"
+#include "SIOJsonValue.h"
+#include "SIOJRequestJSON.h"
 
 class FSIOJson : public ISIOJson
 {

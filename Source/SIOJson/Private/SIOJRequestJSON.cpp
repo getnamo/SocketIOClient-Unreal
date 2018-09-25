@@ -4,7 +4,8 @@
 // Copyright 2014 Vladimir Alyamkin. All Rights Reserved.
 
 #include "SIOJRequestJSON.h"
-#include "SIOJsonPrivatePCH.h"
+#include "SIOJsonValue.h"
+#include "SIOJsonObject.h"
 
 template <class T> void FSIOJLatentAction<T>::Cancel()
 {

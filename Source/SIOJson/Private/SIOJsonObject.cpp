@@ -4,7 +4,7 @@
 // Copyright 2014 Vladimir Alyamkin. All Rights Reserved.
 
 #include "SIOJsonObject.h"
-#include "SIOJsonPrivatePCH.h"
+#include "Runtime/Json/Public/Json.h"
 
 typedef TJsonWriterFactory< TCHAR, TCondensedJsonPrintPolicy<TCHAR> > FCondensedJsonStringWriterFactory;
 typedef TJsonWriter< TCHAR, TCondensedJsonPrintPolicy<TCHAR> > FCondensedJsonStringWriter;
