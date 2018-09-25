@@ -9,6 +9,7 @@
 #include "SIOJsonValue.h"
 #include "SIOJsonObject.h"
 #include "Runtime/Core/Public/Misc/Base64.h"
+#include "Engine.h"
 
 //////////////////////////////////////////////////////////////////////////
 // Helpers

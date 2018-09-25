@@ -6,6 +6,7 @@
 #include "LambdaRunnable.h"
 #include "SIOJConvert.h"
 #include "SocketIOClient.h"
+#include "Engine.h"
 
 USocketIOClientComponent::USocketIOClientComponent(const FObjectInitializer &init) : UActorComponent(init)
 {

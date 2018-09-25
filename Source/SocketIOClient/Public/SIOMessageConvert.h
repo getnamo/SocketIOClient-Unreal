@@ -3,7 +3,7 @@
 
 #pragma once
 
-#include "JsonGlobals.h"
+#include "Runtime/Json/Public/Json.h"
 #include "sio_client.h"
 #include "SIOMessageConvert.generated.h"
 
