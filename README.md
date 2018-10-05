@@ -13,7 +13,7 @@ Based on [Socket.io prebuild libraries for VS2015](https://github.com/getnamo/so
 
 Recommended socket.io server version: 1.4+.
 
-### Contribute! Current Issues:
+### Contribute! Current Main Issues:
 
 Missing static libraries and support for platforms:
 
@@ -21,6 +21,8 @@ Missing static libraries and support for platforms:
 * iOS - see [issue 19](https://github.com/getnamo/socketio-client-ue4/issues/19)
 * MacOS - see [issue 15](https://github.com/getnamo/socketio-client-ue4/issues/15) 
 
+HTTPS currently not yet supported
+* OpenSSL Support - [issue39](https://github.com/getnamo/socketio-client-ue4/issues/39), temporary [workaround available](https://github.com/getnamo/socketio-client-ue4/issues/72#issuecomment-371956821).
 
 ## Quick Install & Setup ##
 
