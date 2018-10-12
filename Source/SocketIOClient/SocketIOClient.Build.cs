@@ -94,7 +94,8 @@ namespace UnrealBuildTool.Rules
                 isLibrarySupported = true;
 
                 string PlatformString = "Android";
-				string AndroidPlatform = "arm64-v8a";   //change to armeabi-v7a if using 32bit
+				//string AndroidPlatform = "arm64-v8a";   
+				string AndroidPlatform = "armeabi-v7a"; //change to armeabi-v7a if using 32bit
 				string BoostLibPath = Path.Combine(BoostThirdParty, "Lib");
                 string SocketLibPath = Path.Combine(SocketIOThirdParty, "Lib");
 

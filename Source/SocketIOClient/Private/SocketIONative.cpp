@@ -49,7 +49,13 @@ void FSocketIONative::Connect(const FString& InAddressAndPort, const TSharedPtr<
 		PrivateClient->set_reconnect_attempts(MaxReconnectionAttempts);
 		PrivateClient->set_reconnect_delay(ReconnectionDelay);
 
+		//Add  temporary workaround for android build of socket.io (doesn't have my fork changes so it won't have the 3 param connect function)
+#if PLATFORM_ANDROID
+		PrivateClient->connect(StdAddressString, QueryMap);// , HeadersMap);
+#else
 		PrivateClient->connect(StdAddressString, QueryMap, HeadersMap);
+#endif
+
 	});
 }
 
