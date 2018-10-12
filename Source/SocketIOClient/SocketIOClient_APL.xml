@@ -13,25 +13,25 @@
 	<resourceCopies>
     <log text="Copying SocketIO Client runtime files to staging"/>
     <isArch arch="armeabi-v7a">
-    	<copyFile 	src="$S(PluginDir)/../../ThirdParty/SocketIO/Lib/Android/armeabi-v7a/libsioclient.a"
+    	<copyFile 	src="$S(PluginDir)/Source/ThirdParty/SocketIO/Lib/Android/armeabi-v7a/libsioclient.a"
 			    	dst="$S(BuildDir)/libs/armeabi-v7a/libsioclient.a" />
-		<copyFile 	src="$S(PluginDir)/../../ThirdParty/Boost/Lib/Android/armeabi-v7a/libboost_date_time-mt-1_60.a"
-			    	dst="$S(BuildDir)/libs/armeabi-v7a/libboost_date_time-mt-1_60.a" />
-		<copyFile 	src="$S(PluginDir)/../../ThirdParty/Boost/Lib/Android/armeabi-v7a/libboost_random-mt-1_60.a"
-			    	dst="$S(BuildDir)/libs/armeabi-v7a/libboost_random-mt-1_60.a" />
-		<copyFile 	src="$S(PluginDir)/../../ThirdParty/Boost/Lib/Android/armeabi-v7a/libboost_system-mt-1_60.a"
-			    	dst="$S(BuildDir)/libs/armeabi-v7a/libboost_system-mt-1_60.a" />
+		<copyFile 	src="$S(PluginDir)/Source/ThirdParty/Boost/Lib/Android/armeabi-v7a/libboost_date_time.a"
+			    	dst="$S(BuildDir)/libs/armeabi-v7a/libboost_date_time.a" />
+		<copyFile 	src="$S(PluginDir)/Source/ThirdParty/Boost/Lib/Android/armeabi-v7a/libboost_random.a"
+			    	dst="$S(BuildDir)/libs/armeabi-v7a/libboost_random.a" />
+		<copyFile 	src="$S(PluginDir)/Source/ThirdParty/Boost/Lib/Android/armeabi-v7a/libboost_system.a"
+			    	dst="$S(BuildDir)/libs/armeabi-v7a/libboost_system.a" />
       	<log text="armeabi-v7a SocketIO Client runtime files copied"/>
     </isArch>
     <isArch arch="arm64-v8a">
-    	<copyFile 	src="$S(PluginDir)/../../ThirdParty/SocketIO/Lib/Android/arm64-v8a/libsioclient.a"
+    	<copyFile 	src="$S(PluginDir)/Source/ThirdParty/SocketIO/Lib/Android/arm64-v8a/libsioclient.a"
 			    	dst="$S(BuildDir)/libs/armeabi-v7a/libsioclient.a" />
-		<copyFile 	src="$S(PluginDir)/../../ThirdParty/Boost/Lib/Android/arm64-v8a/libboost_date_time-mt-1_60.a"
-			    	dst="$S(BuildDir)/libs/armeabi-v7a/libboost_date_time-mt-1_60.a" />
-		<copyFile 	src="$S(PluginDir)/../../ThirdParty/Boost/Lib/Android/arm64-v8a/libboost_random-mt-1_60.a"
-			    	dst="$S(BuildDir)/libs/armeabi-v7a/libboost_random-mt-1_60.a" />
-		<copyFile 	src="$S(PluginDir)/../../ThirdParty/Boost/Lib/Android/arm64-v8a/libboost_system-mt-1_60.a"
-			    	dst="$S(BuildDir)/libs/armeabi-v7a/libboost_system-mt-1_60.a" />
+		<copyFile 	src="$S(PluginDir)/Source/ThirdParty/Boost/Lib/Android/arm64-v8a/libboost_date_time.a"
+			    	dst="$S(BuildDir)/libs/armeabi-v7a/libboost_date_time.a" />
+		<copyFile 	src="$S(PluginDir)/Source/ThirdParty/Boost/Lib/Android/arm64-v8a/libboost_random.a"
+			    	dst="$S(BuildDir)/libs/armeabi-v7a/libboost_random.a" />
+		<copyFile 	src="$S(PluginDir)/Source/ThirdParty/Boost/Lib/Android/arm64-v8a/libboost_system.a"
+			    	dst="$S(BuildDir)/libs/armeabi-v7a/libboost_system.a" />
 		<log text="arm64-v8a SocketIO Client runtime files copied"/>
     </isArch>
     <isArch arch="x86">
