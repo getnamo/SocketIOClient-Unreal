@@ -118,8 +118,10 @@ void FSocketIONative::Emit(const FString& EventName, const TSharedPtr<FJsonValue
 			auto ItemMessagePtr = MessageList[i];
 			ValueArray.Add(USIOMessageConvert::ToJsonValue(ItemMessagePtr));
 		}
-
-		SafeCallback(ValueArray);
+		if (SafeCallback)
+		{
+			SafeCallback(ValueArray);
+		}
 	}, Namespace);
 }
 
