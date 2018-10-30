@@ -94,13 +94,15 @@ namespace UnrealBuildTool.Rules
                 isLibrarySupported = true;
 
                 string PlatformString = "Android";
-                string BoostLibPath = Path.Combine(BoostThirdParty, "Lib");
+				//string AndroidPlatform = "arm64-v8a";   
+				string AndroidPlatform = "armeabi-v7a"; //change to armeabi-v7a if using 32bit
+				string BoostLibPath = Path.Combine(BoostThirdParty, "Lib");
                 string SocketLibPath = Path.Combine(SocketIOThirdParty, "Lib");
 
-                PublicAdditionalLibraries.Add(Path.Combine(BoostLibPath, PlatformString, "libboost_date_time.a"));
-                PublicAdditionalLibraries.Add(Path.Combine(BoostLibPath, PlatformString, "libboost_random.a"));
-                PublicAdditionalLibraries.Add(Path.Combine(BoostLibPath, PlatformString, "libboost_system.a"));
-                PublicAdditionalLibraries.Add(Path.Combine(SocketLibPath, PlatformString, "libsioclient.a"));
+                PublicAdditionalLibraries.Add(Path.Combine(BoostLibPath, PlatformString, AndroidPlatform, "libboost_date_time.a"));
+                PublicAdditionalLibraries.Add(Path.Combine(BoostLibPath, PlatformString, AndroidPlatform, "libboost_random.a"));
+                PublicAdditionalLibraries.Add(Path.Combine(BoostLibPath, PlatformString, AndroidPlatform, "libboost_system.a"));
+                PublicAdditionalLibraries.Add(Path.Combine(SocketLibPath, PlatformString, AndroidPlatform, "libsioclient.a"));
             }
 
             return isLibrarySupported;

@@ -49,7 +49,13 @@ void FSocketIONative::Connect(const FString& InAddressAndPort, const TSharedPtr<
 		PrivateClient->set_reconnect_attempts(MaxReconnectionAttempts);
 		PrivateClient->set_reconnect_delay(ReconnectionDelay);
 
+		//Add  temporary workaround for android build of socket.io (doesn't have my fork changes so it won't have the 3 param connect function)
+#if PLATFORM_ANDROID
+		PrivateClient->connect(StdAddressString, QueryMap);// , HeadersMap);
+#else
 		PrivateClient->connect(StdAddressString, QueryMap, HeadersMap);
+#endif
+
 	});
 }
 
@@ -112,8 +118,10 @@ void FSocketIONative::Emit(const FString& EventName, const TSharedPtr<FJsonValue
 			auto ItemMessagePtr = MessageList[i];
 			ValueArray.Add(USIOMessageConvert::ToJsonValue(ItemMessagePtr));
 		}
-
-		SafeCallback(ValueArray);
+		if (SafeCallback)
+		{
+			SafeCallback(ValueArray);
+		}
 	}, Namespace);
 }
 
