@@ -114,8 +114,7 @@ namespace UnrealBuildTool.Rules
 
 			PublicIncludePaths.AddRange(
                 new string[] {
-                "SocketIOClient/Public",
-                    Path.Combine(BoostThirdParty, "Include"),
+					Path.Combine(ModuleDirectory, "Public"),
                     Path.Combine(SocketIOThirdParty, "Include"),
                     // ... add public include paths required here ...
                 }
@@ -124,8 +123,7 @@ namespace UnrealBuildTool.Rules
 
             PrivateIncludePaths.AddRange(
                 new string[] {
-                "SocketIOClient/Private",
-                
+					Path.Combine(ModuleDirectory, "Private"),
                     // ... add other private include paths required here ...
                 }
                 );

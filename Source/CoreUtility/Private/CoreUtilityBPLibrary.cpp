@@ -10,6 +10,19 @@
 #include "Runtime/Core/Public/Misc/FileHelper.h"
 #include "CoreMinimal.h"
 
+#pragma warning( push )
+#pragma warning( disable : 5046)
+
+//Render thread wrapper struct
+struct FUpdateTextureData
+{
+	UTexture2D* Texture2D;
+	FUpdateTextureRegion2D Region;
+	uint32 Pitch;
+	const TArray<uint8>* BufferArray;
+	TSharedPtr<IImageWrapper> Wrapper;	//to keep the uncompressed data alive
+};
+
 FString UCoreUtilityBPLibrary::Conv_BytesToString(const TArray<uint8>& InArray)
 {
 	FString ResultString;
@@ -47,16 +60,6 @@ UTexture2D* UCoreUtilityBPLibrary::Conv_BytesToTexture(const TArray<uint8>& InBy
 			if (ImageWrapper->GetRaw(ERGBFormat::BGRA, 8, UncompressedBGRA))
 			{
 
-				//Update on render thread, wrap up all required data
-				struct FUpdateTextureData
-				{
-					UTexture2D* Texture2D;
-					FUpdateTextureRegion2D Region;
-					uint32 Pitch;
-					const TArray<uint8>* BufferArray;
-					TSharedPtr<IImageWrapper> Wrapper;	//to keep the uncompressed data alive
-				};
-
 				FUpdateTextureData* UpdateData = new FUpdateTextureData;
 				UpdateData->Texture2D = Texture;
 				UpdateData->Region = FUpdateTextureRegion2D(0, 0, 0, 0, Texture->GetSizeX(), Texture->GetSizeY());
@@ -66,7 +69,7 @@ UTexture2D* UCoreUtilityBPLibrary::Conv_BytesToTexture(const TArray<uint8>& InBy
 
 				//enqueue texture copy
 				ENQUEUE_UNIQUE_RENDER_COMMAND_ONEPARAMETER(
-					FUpdateTextureData,
+					FUpdateTextureDataCommand,
 					FUpdateTextureData*, UpdateData, UpdateData,
 				{
 					RHIUpdateTexture2D(
@@ -151,16 +154,6 @@ TFuture<UTexture2D*> UCoreUtilityBPLibrary::Conv_BytesToTexture_Async(const TArr
 			return (UTexture2D*)nullptr;
 		}
 
-		//Update actual bytes on render thread, wrap up all required data
-		struct FUpdateTextureData
-		{
-			UTexture2D* Texture2D;
-			FUpdateTextureRegion2D Region;
-			uint32 Pitch;
-			const TArray<uint8>* BufferArray;
-			TSharedPtr<IImageWrapper> Wrapper;	//to keep the uncompressed data alive
-		};
-
 		FUpdateTextureData* UpdateData = new FUpdateTextureData;
 		UpdateData->Texture2D = Holder->Texture;
 		UpdateData->Region = FUpdateTextureRegion2D(0, 0, 0, 0, Size.X, Size.Y);
@@ -170,7 +163,7 @@ TFuture<UTexture2D*> UCoreUtilityBPLibrary::Conv_BytesToTexture_Async(const TArr
 
 		//This command sends it to the render thread
 		ENQUEUE_UNIQUE_RENDER_COMMAND_ONEPARAMETER(
-		FUpdateTextureData,
+		FUpdateTextureDataCommand,
 		FUpdateTextureData*, UpdateData, UpdateData,
 		{
 			RHIUpdateTexture2D(
@@ -224,3 +217,5 @@ FString UCoreUtilityBPLibrary::GetLoginId()
 {
 	return FPlatformMisc::GetLoginId();
 }
+
+#pragma warning( pop )

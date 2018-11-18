@@ -4,6 +4,7 @@
 // Copyright 2015 Vladimir Alyamkin. All Rights Reserved.
 
 using UnrealBuildTool;
+using System.IO;
 
 public class SIOJEditorPlugin : ModuleRules
 {
@@ -13,8 +14,8 @@ public class SIOJEditorPlugin : ModuleRules
 
 		PublicIncludePaths.AddRange(
 			new string[] {
-				"SIOJson",
-                "SIOJson/Public"
+				Path.Combine(ModuleDirectory, "Public"),
+				Path.Combine(ModuleDirectory, "../SIOJson", "Public"),
 				
 				// ... add public include paths required here ...
 			});

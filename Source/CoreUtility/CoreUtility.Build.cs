@@ -2,6 +2,7 @@
 
 
 using UnrealBuildTool;
+using System.IO;
 
 public class CoreUtility : ModuleRules
 {
@@ -11,14 +12,14 @@ public class CoreUtility : ModuleRules
 
 		PublicIncludePaths.AddRange(
             new string[] {
-                "CoreUtility/Public"
-            }
+				Path.Combine(ModuleDirectory, "Public"),
+			}
             );
 
 
         PrivateIncludePaths.AddRange(
             new string[] {
-                "CoreUtility/Private",
+				Path.Combine(ModuleDirectory, "Private"),
             }
             );
 
