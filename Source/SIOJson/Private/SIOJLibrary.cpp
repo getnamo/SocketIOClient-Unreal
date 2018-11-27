@@ -80,7 +80,9 @@ TMap<USIOJRequestJSON*, FSIOJCallResponse> USIOJLibrary::RequestMap;
 FString USIOJLibrary::Conv_JsonObjectToString(USIOJsonObject* InObject)
 {
 	if(InObject)
-	return InObject->EncodeJson();
+	{
+		return InObject->EncodeJson();
+	}
 
 	return "";
 }
@@ -89,7 +91,9 @@ FString USIOJLibrary::Conv_JsonObjectToString(USIOJsonObject* InObject)
 USIOJsonObject* USIOJLibrary::Conv_JsonValueToJsonObject(class USIOJsonValue* InValue)
 {
 	if(InValue)
-	return InValue->AsObject();
+	{
+		return InValue->AsObject();
+	}
 
 	return nullptr;
 }
@@ -143,7 +147,9 @@ USIOJsonValue* USIOJLibrary::Conv_BoolToJsonValue(bool InBool)
 int32 USIOJLibrary::Conv_JsonValueToInt(USIOJsonValue* InValue)
 {
 	if(InValue)
-	return (int32)InValue->AsNumber();
+	{
+		return (int32)InValue->AsNumber();
+	}
 
 	return 0;
 }
@@ -152,7 +158,9 @@ int32 USIOJLibrary::Conv_JsonValueToInt(USIOJsonValue* InValue)
 float USIOJLibrary::Conv_JsonValueToFloat(USIOJsonValue* InValue)
 {
 	if (InValue)
-	return InValue->AsNumber();
+	{
+		return InValue->AsNumber();
+	}
 
 	return 0.f;
 }
@@ -161,7 +169,9 @@ float USIOJLibrary::Conv_JsonValueToFloat(USIOJsonValue* InValue)
 bool USIOJLibrary::Conv_JsonValueToBool(USIOJsonValue* InValue)
 {
 	if (InValue)
-	return InValue->AsBool();
+	{
+		return InValue->AsBool();
+	}
 
 	return false;
 }
@@ -170,7 +180,9 @@ bool USIOJLibrary::Conv_JsonValueToBool(USIOJsonValue* InValue)
 TArray<uint8> USIOJLibrary::Conv_JsonValueToBytes(USIOJsonValue* InValue)
 {
 	if (InValue)
-	return InValue->AsBinary();
+	{
+		return InValue->AsBinary();
+	}
 
 	return TArray<uint8>();
 }
