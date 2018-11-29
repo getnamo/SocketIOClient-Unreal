@@ -79,13 +79,23 @@ TMap<USIOJRequestJSON*, FSIOJCallResponse> USIOJLibrary::RequestMap;
 
 FString USIOJLibrary::Conv_JsonObjectToString(USIOJsonObject* InObject)
 {
-	return InObject->EncodeJson();
+	if(InObject)
+	{
+		return InObject->EncodeJson();
+	}
+
+	return "";
 }
 
 
 USIOJsonObject* USIOJLibrary::Conv_JsonValueToJsonObject(class USIOJsonValue* InValue)
 {
-	return InValue->AsObject();
+	if(InValue)
+	{
+		return InValue->AsObject();
+	}
+
+	return nullptr;
 }
 
 USIOJsonValue* USIOJLibrary::Conv_ArrayToJsonValue(const TArray<USIOJsonValue*>& InArray)
@@ -136,25 +146,45 @@ USIOJsonValue* USIOJLibrary::Conv_BoolToJsonValue(bool InBool)
 
 int32 USIOJLibrary::Conv_JsonValueToInt(USIOJsonValue* InValue)
 {
-	return (int32)InValue->AsNumber();
+	if(InValue)
+	{
+		return (int32)InValue->AsNumber();
+	}
+
+	return 0;
 }
 
 
 float USIOJLibrary::Conv_JsonValueToFloat(USIOJsonValue* InValue)
 {
-	return InValue->AsNumber();
+	if (InValue)
+	{
+		return InValue->AsNumber();
+	}
+
+	return 0.f;
 }
 
 
 bool USIOJLibrary::Conv_JsonValueToBool(USIOJsonValue* InValue)
 {
-	return InValue->AsBool();
+	if (InValue)
+	{
+		return InValue->AsBool();
+	}
+
+	return false;
 }
 
 
 TArray<uint8> USIOJLibrary::Conv_JsonValueToBytes(USIOJsonValue* InValue)
 {
-	return InValue->AsBinary();
+	if (InValue)
+	{
+		return InValue->AsBinary();
+	}
+
+	return TArray<uint8>();
 }
 
 void USIOJLibrary::CallURL(UObject* WorldContextObject, const FString& URL, ESIORequestVerb Verb, ESIORequestContentType ContentType, USIOJsonObject* SIOJJson, const FSIOJCallDelegate& Callback)
