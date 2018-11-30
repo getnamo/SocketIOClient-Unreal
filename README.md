@@ -245,7 +245,7 @@ SIOClientComponent->Connect(FString("http://127.0.0.1:3000"));
 
 ### Receiving Events
 
-To receive events call _OnNativeEvent_ and pass in your expected event name and callback lambda or function with ```void(const FString&, const TSharedPtr<FJsonValue>&)``` signature. Optionally pass in another FString to specify namespace, omit if not using a namespace.
+To receive events call _OnNativeEvent_ and pass in your expected event name and callback lambda or function with ```void(const FString&, const TSharedPtr<FJsonValue>&)``` signature. Optionally pass in another FString to specify namespace, omit if not using a namespace. 
 
 ```c++
 SIOClientComponent->OnNativeEvent(FString("MyEvent"), [](const FString& Event, const TSharedPtr<FJsonValue>& Message)
@@ -253,6 +253,8 @@ SIOClientComponent->OnNativeEvent(FString("MyEvent"), [](const FString& Event, c
 	//Called when the event is received
 }, FString("Optional Namespace"));
 ```
+
+Message parameter is a [FJsonValue](http://api.unrealengine.com/INT/API/Runtime/Json/Dom/FJsonValue/), if you have a complex message you'll most commonly want to decode it into a [FJsonObject](http://api.unrealengine.com/INT/API/Runtime/Json/Dom/FJsonObject/) via ```AsObject()```.
 
 ### Emitting Events
 
