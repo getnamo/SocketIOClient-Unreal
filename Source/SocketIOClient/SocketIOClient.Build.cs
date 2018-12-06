@@ -99,9 +99,9 @@ namespace UnrealBuildTool.Rules
 				string BoostLibPath = Path.Combine(BoostThirdParty, "Lib");
                 string SocketLibPath = Path.Combine(SocketIOThirdParty, "Lib");
 
-                PublicAdditionalLibraries.Add(Path.Combine(BoostLibPath, PlatformString, AndroidPlatform, "libboost_date_time-clang-mt-a32-1_66"));
-                PublicAdditionalLibraries.Add(Path.Combine(BoostLibPath, PlatformString, AndroidPlatform, "libboost_random-clang-mt-a32-1_66"));
-                PublicAdditionalLibraries.Add(Path.Combine(BoostLibPath, PlatformString, AndroidPlatform, "libboost_system-clang-mt-a32-1_66"));
+                PublicAdditionalLibraries.Add(Path.Combine(BoostLibPath, PlatformString, AndroidPlatform, "libboost_date_time-clang-mt-a32-1_66.a"));
+                PublicAdditionalLibraries.Add(Path.Combine(BoostLibPath, PlatformString, AndroidPlatform, "libboost_random-clang-mt-a32-1_66.a"));
+                PublicAdditionalLibraries.Add(Path.Combine(BoostLibPath, PlatformString, AndroidPlatform, "libboost_system-clang-mt-a32-1_66.a"));
                 PublicAdditionalLibraries.Add(Path.Combine(SocketLibPath, PlatformString, AndroidPlatform, "libsioclient.a"));
             }
 
