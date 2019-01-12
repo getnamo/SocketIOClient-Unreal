@@ -33,7 +33,7 @@ namespace UnrealBuildTool.Rules
                 string PlatformString = (Target.Platform == UnrealTargetPlatform.Win64) ? "Win64" : "Win32";
                 string BoostLibPath = Path.Combine(BoostThirdParty, "Lib");
                 string SocketLibPath = Path.Combine(SocketIOThirdParty, "Lib");
-				if (Target.Platform == UnrealTargetPlatform.Win32)
+				/*if (Target.Platform == UnrealTargetPlatform.Win32)
 				{
 					PublicAdditionalLibraries.Add(Path.Combine(BoostLibPath, PlatformString, "libboost_date_time-vc141-mt-x32-1_66.lib"));
 					PublicAdditionalLibraries.Add(Path.Combine(BoostLibPath, PlatformString, "libboost_random-vc141-mt-x32-1_66.lib"));
@@ -44,7 +44,7 @@ namespace UnrealBuildTool.Rules
 					PublicAdditionalLibraries.Add(Path.Combine(BoostLibPath, PlatformString, "libboost_date_time-vc141-mt-x64-1_66.lib"));
 					PublicAdditionalLibraries.Add(Path.Combine(BoostLibPath, PlatformString, "libboost_random-vc141-mt-x64-1_66.lib"));
 					PublicAdditionalLibraries.Add(Path.Combine(BoostLibPath, PlatformString, "libboost_system-vc141-mt-x64-1_66.lib"));
-				}
+				}*/
 
 					
                 PublicAdditionalLibraries.Add(Path.Combine(SocketLibPath, PlatformString, "sioclient.lib"));
