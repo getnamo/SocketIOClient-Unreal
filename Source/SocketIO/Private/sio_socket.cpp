@@ -23,7 +23,7 @@
 #include <queue>
 #include <cstdarg>
 
-#if DEBUG || _DEBUG
+#if defined(DEBUG)
 #define LOG(x) std::cout << x
 #else
 #define LOG(x)

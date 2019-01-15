@@ -40,6 +40,18 @@
 			]
 		},
 		{
+			"Name": "SocketIO",
+			"Type": "Runtime",
+			"LoadingPhase": "PreDefault",
+			"WhitelistPlatforms": [
+				"Win64",
+				"Win32",
+				"Linux",
+				"Android",
+				"Mac"
+			]
+		},
+		{
 			"Name": "CoreUtility",
 			"Type": "Runtime",
 			"LoadingPhase": "PreDefault",

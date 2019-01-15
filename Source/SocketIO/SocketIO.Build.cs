@@ -118,6 +118,10 @@ namespace UnrealBuildTool.Rules
                 new string[] {
 					Path.Combine(ModuleDirectory, "Public"),
                     Path.Combine(SocketIOThirdParty, "Include"),
+					Path.Combine(SocketIOThirdParty, "Include/internal"),
+					Path.Combine(SocketIOThirdParty, "Include/lib/websocketpp"),
+					Path.Combine(SocketIOThirdParty, "Include/lib/asio/asio/include"),
+					Path.Combine(SocketIOThirdParty, "Include/lib/rapidjson/include"),
                     // ... add public include paths required here ...
                 }
                 );
@@ -138,8 +142,7 @@ namespace UnrealBuildTool.Rules
                 "Json",
                 "JsonUtilities",
                 "SIOJson",
-				"CoreUtility",
-				"SocketIO",
+				"CoreUtility"
                     // ... add other public dependencies that you statically link with here ...
                 }
                 );
