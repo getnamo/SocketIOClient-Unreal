@@ -2,6 +2,7 @@
 
 
 using System.IO;
+using UnrealBuildTool;
 
 namespace UnrealBuildTool.Rules
 {
@@ -58,9 +59,9 @@ namespace UnrealBuildTool.Rules
                 string BoostLibPath = Path.Combine(BoostThirdParty, "Lib");
                 string SocketLibPath = Path.Combine(SocketIOThirdParty, "Lib");
 
-                PublicAdditionalLibraries.Add(Path.Combine(BoostLibPath, PlatformString, "libboost_date_time-clang39-mt-1_60.a"));
+                /*PublicAdditionalLibraries.Add(Path.Combine(BoostLibPath, PlatformString, "libboost_date_time-clang39-mt-1_60.a"));
                 PublicAdditionalLibraries.Add(Path.Combine(BoostLibPath, PlatformString, "libboost_random-clang39-mt-1_60.a"));
-                PublicAdditionalLibraries.Add(Path.Combine(BoostLibPath, PlatformString, "libboost_system-clang39-mt-1_60.a"));
+                PublicAdditionalLibraries.Add(Path.Combine(BoostLibPath, PlatformString, "libboost_system-clang39-mt-1_60.a"));*/
                 PublicAdditionalLibraries.Add(Path.Combine(SocketLibPath, PlatformString, "libsioclient.a"));
             }
             else if (Target.Platform == UnrealTargetPlatform.IOS)
@@ -71,9 +72,9 @@ namespace UnrealBuildTool.Rules
                 string BoostLibPath = Path.Combine(BoostThirdParty, "Lib");
                 string SocketLibPath = Path.Combine(SocketIOThirdParty, "Lib");
 
-                PublicAdditionalLibraries.Add(Path.Combine(BoostLibPath, PlatformString, "libboost_date_time.a"));
+                /*PublicAdditionalLibraries.Add(Path.Combine(BoostLibPath, PlatformString, "libboost_date_time.a"));
                 PublicAdditionalLibraries.Add(Path.Combine(BoostLibPath, PlatformString, "libboost_random.a"));
-                PublicAdditionalLibraries.Add(Path.Combine(BoostLibPath, PlatformString, "libboost_system.a"));
+                PublicAdditionalLibraries.Add(Path.Combine(BoostLibPath, PlatformString, "libboost_system.a"));*/
                 PublicAdditionalLibraries.Add(Path.Combine(SocketLibPath, PlatformString, "libsioclient.a"));
             }
             else if (Target.Platform == UnrealTargetPlatform.Mac)
@@ -99,10 +100,10 @@ namespace UnrealBuildTool.Rules
 				string BoostLibPath = Path.Combine(BoostThirdParty, "Lib");
                 string SocketLibPath = Path.Combine(SocketIOThirdParty, "Lib");
 
-                PublicAdditionalLibraries.Add(Path.Combine(BoostLibPath, PlatformString, AndroidPlatform, "libboost_date_time-clang-mt-a32-1_66.a"));
+                /*PublicAdditionalLibraries.Add(Path.Combine(BoostLibPath, PlatformString, AndroidPlatform, "libboost_date_time-clang-mt-a32-1_66.a"));
                 PublicAdditionalLibraries.Add(Path.Combine(BoostLibPath, PlatformString, AndroidPlatform, "libboost_random-clang-mt-a32-1_66.a"));
-                PublicAdditionalLibraries.Add(Path.Combine(BoostLibPath, PlatformString, AndroidPlatform, "libboost_system-clang-mt-a32-1_66.a"));
-                PublicAdditionalLibraries.Add(Path.Combine(SocketLibPath, PlatformString, AndroidPlatform, "libsioclient.a"));
+                PublicAdditionalLibraries.Add(Path.Combine(BoostLibPath, PlatformString, AndroidPlatform, "libboost_system-clang-mt-a32-1_66.a"));*/
+                //PublicAdditionalLibraries.Add(Path.Combine(SocketLibPath, PlatformString, AndroidPlatform, "libsioclient.a"));
             }
 
             return isLibrarySupported;
@@ -111,11 +112,16 @@ namespace UnrealBuildTool.Rules
         public SocketIOClient(ReadOnlyTargetRules Target) : base(Target)
         {
 			PCHUsage = PCHUsageMode.UseExplicitOrSharedPCHs;
+			bUseRTTI = true;
 
 			PublicIncludePaths.AddRange(
                 new string[] {
 					Path.Combine(ModuleDirectory, "Public"),
                     Path.Combine(SocketIOThirdParty, "Include"),
+					Path.Combine(SocketIOThirdParty, "Include/internal"),
+					Path.Combine(SocketIOThirdParty, "Include/lib/websocketpp"),
+					Path.Combine(SocketIOThirdParty, "Include/lib/asio/asio/include"),
+					Path.Combine(SocketIOThirdParty, "Include/lib/rapidjson"),
                     // ... add public include paths required here ...
                 }
                 );

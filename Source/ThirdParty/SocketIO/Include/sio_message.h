@@ -6,6 +6,7 @@
 
 #ifndef __SIO_MESSAGE_H__
 #define __SIO_MESSAGE_H__
+
 #include <string>
 #include <memory>
 #include <vector>
