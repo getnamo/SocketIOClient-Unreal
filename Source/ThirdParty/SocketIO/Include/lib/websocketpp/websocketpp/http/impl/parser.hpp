@@ -156,7 +156,8 @@ inline size_t parser::process_body(char const * buf, size_t len) {
         //throw exception("Unexpected body encoding",
         //    status_code::internal_server_error);
     }
-}return
+	return 0;
+}
 
 inline void parser::process_header(std::string::iterator begin,
     std::string::iterator end)

@@ -121,7 +121,7 @@ namespace UnrealBuildTool.Rules
 					Path.Combine(SocketIOThirdParty, "Include/internal"),
 					Path.Combine(SocketIOThirdParty, "Include/lib/websocketpp"),
 					Path.Combine(SocketIOThirdParty, "Include/lib/asio/asio/include"),
-					Path.Combine(SocketIOThirdParty, "Include/lib/rapidjson"),
+					Path.Combine(SocketIOThirdParty, "Include/lib/rapidjson/include"),
                     // ... add public include paths required here ...
                 }
                 );

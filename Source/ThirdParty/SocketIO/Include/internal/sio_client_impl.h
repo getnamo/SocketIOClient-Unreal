@@ -22,8 +22,11 @@
 #include <cstdint>
 #define INTIALIZER(__TYPE__)
 
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wexpansion-to-defined"
 #include <websocketpp/client.hpp>
 #include <asio/system_timer.hpp>
+#pragma clang diagnostic pop
 
 #if defined(DEBUG)
   #if SIO_TLS

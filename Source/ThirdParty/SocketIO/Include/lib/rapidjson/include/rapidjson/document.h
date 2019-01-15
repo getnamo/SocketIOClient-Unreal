@@ -62,7 +62,7 @@ RAPIDJSON_DIAG_OFF(effc++)
 #include <iterator> // std::iterator, std::random_access_iterator_tag
 #endif
 
-#if RAPIDJSON_HAS_CXX11_RVALUE_REFS
+#if defined(RAPIDJSON_HAS_CXX11_RVALUE_REFS)
 #include <utility> // std::move
 #endif
 
@@ -437,7 +437,7 @@ public:
     //! Default constructor creates a null value.
     GenericValue() RAPIDJSON_NOEXCEPT : data_(), flags_(kNullFlag) {}
 
-#if RAPIDJSON_HAS_CXX11_RVALUE_REFS
+#if defined(RAPIDJSON_HAS_CXX11_RVALUE_REFS)
     //! Move constructor in C++11
     GenericValue(GenericValue&& rhs) RAPIDJSON_NOEXCEPT : data_(rhs.data_), flags_(rhs.flags_) {
         rhs.flags_ = kNullFlag; // give up contents
@@ -599,7 +599,7 @@ public:
         return *this;
     }
 
-#if RAPIDJSON_HAS_CXX11_RVALUE_REFS
+#if defined(RAPIDJSON_HAS_CXX11_RVALUE_REFS)
     //! Move assignment in C++11
     GenericValue& operator=(GenericValue&& rhs) RAPIDJSON_NOEXCEPT {
         return *this = rhs.Move();
@@ -992,7 +992,7 @@ public:
         return AddMember(name, v, allocator);
     }
 
-#if RAPIDJSON_HAS_CXX11_RVALUE_REFS
+#if defined(RAPIDJSON_HAS_CXX11_RVALUE_REFS)
     GenericValue& AddMember(GenericValue&& name, GenericValue&& value, Allocator& allocator) {
         return AddMember(name, value, allocator);
     }
@@ -1006,7 +1006,7 @@ public:
         GenericValue n(name);
         return AddMember(n, value, allocator);
     }
-#endif // RAPIDJSON_HAS_CXX11_RVALUE_REFS
+#endif // defined(RAPIDJSON_HAS_CXX11_RVALUE_REFS)
 
 
     //! Add a member (name-value pair) to the object.
@@ -1249,11 +1249,11 @@ public:
         return *this;
     }
 
-#if RAPIDJSON_HAS_CXX11_RVALUE_REFS
+#if defined(RAPIDJSON_HAS_CXX11_RVALUE_REFS)
     GenericValue& PushBack(GenericValue&& value, Allocator& allocator) {
         return PushBack(value, allocator);
     }
-#endif // RAPIDJSON_HAS_CXX11_RVALUE_REFS
+#endif // defined(RAPIDJSON_HAS_CXX11_RVALUE_REFS)
 
     //! Append a constant string reference at the end of the array.
     /*! \param value        Constant string reference to be appended.
@@ -1679,7 +1679,7 @@ public:
             ownAllocator_ = allocator_ = RAPIDJSON_NEW(Allocator());
     }
 
-#if RAPIDJSON_HAS_CXX11_RVALUE_REFS
+#if defined(RAPIDJSON_HAS_CXX11_RVALUE_REFS)
     //! Move constructor in C++11
     GenericDocument(GenericDocument&& rhs) RAPIDJSON_NOEXCEPT
         : ValueType(std::move(rhs)),
@@ -1698,7 +1698,7 @@ public:
         Destroy();
     }
 
-#if RAPIDJSON_HAS_CXX11_RVALUE_REFS
+#if defined(RAPIDJSON_HAS_CXX11_RVALUE_REFS)
     //! Move assignment in C++11
     GenericDocument& operator=(GenericDocument&& rhs) RAPIDJSON_NOEXCEPT
     {
