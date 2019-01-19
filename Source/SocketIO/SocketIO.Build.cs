@@ -6,168 +6,94 @@ using UnrealBuildTool;
 
 namespace UnrealBuildTool.Rules
 {
-    public class SocketIOClient : ModuleRules
-    {
+	public class SocketIO : ModuleRules
+	{
 
-        private string ThirdPartyPath
-        {
-            get { return Path.GetFullPath(Path.Combine(ModuleDirectory, "../ThirdParty/")); }
-        }
+	    private string ThirdPartyPath
+	    {
+	        get { return Path.GetFullPath(Path.Combine(ModuleDirectory, "../ThirdParty/")); }
+	    }
 
-        private string SocketIOThirdParty
-        {
-            get { return Path.GetFullPath(Path.Combine(ThirdPartyPath, "SocketIO")); }
-        }
-        private string BoostThirdParty
-        {
-            get { return Path.GetFullPath(Path.Combine(ThirdPartyPath, "Boost")); }
-        }
+	    private string SocketIOThirdParty
+	    {
+	        get { return Path.GetFullPath(Path.Combine(ThirdPartyPath, "SocketIO")); }
+	    }
 
-        public bool LoadLib(ReadOnlyTargetRules Target)
-        {
-            bool isLibrarySupported = false;
+	    public bool LoadLib(ReadOnlyTargetRules Target)
+	    {
+	        bool isLibrarySupported = false;
 
-            if ((Target.Platform == UnrealTargetPlatform.Win64) || (Target.Platform == UnrealTargetPlatform.Win32))
-            {
-                isLibrarySupported = true;
+	        if ((Target.Platform == UnrealTargetPlatform.Win64) || (Target.Platform == UnrealTargetPlatform.Win32))
+	        {
+	            isLibrarySupported = true;
 
-                string PlatformString = (Target.Platform == UnrealTargetPlatform.Win64) ? "Win64" : "Win32";
-                string BoostLibPath = Path.Combine(BoostThirdParty, "Lib");
-                string SocketLibPath = Path.Combine(SocketIOThirdParty, "Lib");
-				/*if (Target.Platform == UnrealTargetPlatform.Win32)
-				{
-					PublicAdditionalLibraries.Add(Path.Combine(BoostLibPath, PlatformString, "libboost_date_time-vc141-mt-x32-1_66.lib"));
-					PublicAdditionalLibraries.Add(Path.Combine(BoostLibPath, PlatformString, "libboost_random-vc141-mt-x32-1_66.lib"));
-					PublicAdditionalLibraries.Add(Path.Combine(BoostLibPath, PlatformString, "libboost_system-vc141-mt-x32-1_66.lib"));
-				}
-				else
-				{
-					PublicAdditionalLibraries.Add(Path.Combine(BoostLibPath, PlatformString, "libboost_date_time-vc141-mt-x64-1_66.lib"));
-					PublicAdditionalLibraries.Add(Path.Combine(BoostLibPath, PlatformString, "libboost_random-vc141-mt-x64-1_66.lib"));
-					PublicAdditionalLibraries.Add(Path.Combine(BoostLibPath, PlatformString, "libboost_system-vc141-mt-x64-1_66.lib"));
-				}*/
+	            /*string PlatformString = (Target.Platform == UnrealTargetPlatform.Win64) ? "Win64" : "Win32";
+	            string BoostLibPath = Path.Combine(BoostThirdParty, "Lib");
+	            string SocketLibPath = Path.Combine(SocketIOThirdParty, "Lib");
 
 					
-                PublicAdditionalLibraries.Add(Path.Combine(SocketLibPath, PlatformString, "sioclient.lib"));
+	            PublicAdditionalLibraries.Add(Path.Combine(SocketLibPath, PlatformString, "sioclient.lib"));
+	            */
+	        }
 
-            }
-            else if (Target.Platform == UnrealTargetPlatform.Linux)
-            {
-                isLibrarySupported = true;
+	        return isLibrarySupported;
+	    }
 
-                string PlatformString = "Linux";
-                string BoostLibPath = Path.Combine(BoostThirdParty, "Lib");
-                string SocketLibPath = Path.Combine(SocketIOThirdParty, "Lib");
-
-                /*PublicAdditionalLibraries.Add(Path.Combine(BoostLibPath, PlatformString, "libboost_date_time-clang39-mt-1_60.a"));
-                PublicAdditionalLibraries.Add(Path.Combine(BoostLibPath, PlatformString, "libboost_random-clang39-mt-1_60.a"));
-                PublicAdditionalLibraries.Add(Path.Combine(BoostLibPath, PlatformString, "libboost_system-clang39-mt-1_60.a"));*/
-                PublicAdditionalLibraries.Add(Path.Combine(SocketLibPath, PlatformString, "libsioclient.a"));
-            }
-            else if (Target.Platform == UnrealTargetPlatform.IOS)
-            {
-                isLibrarySupported = true;
-
-                string PlatformString = "IOS";
-                string BoostLibPath = Path.Combine(BoostThirdParty, "Lib");
-                string SocketLibPath = Path.Combine(SocketIOThirdParty, "Lib");
-
-                /*PublicAdditionalLibraries.Add(Path.Combine(BoostLibPath, PlatformString, "libboost_date_time.a"));
-                PublicAdditionalLibraries.Add(Path.Combine(BoostLibPath, PlatformString, "libboost_random.a"));
-                PublicAdditionalLibraries.Add(Path.Combine(BoostLibPath, PlatformString, "libboost_system.a"));*/
-                PublicAdditionalLibraries.Add(Path.Combine(SocketLibPath, PlatformString, "libsioclient.a"));
-            }
-            else if (Target.Platform == UnrealTargetPlatform.Mac)
-            {
-                isLibrarySupported = true;
-
-                string PlatformString = "Mac";
-                string BoostLibPath = Path.Combine(BoostThirdParty, "Lib");
-                string SocketLibPath = Path.Combine(SocketIOThirdParty, "Lib");
-
-                PublicAdditionalLibraries.Add(Path.Combine(BoostLibPath, PlatformString, "libboost_date_time.a"));
-                PublicAdditionalLibraries.Add(Path.Combine(BoostLibPath, PlatformString, "libboost_random.a"));
-                PublicAdditionalLibraries.Add(Path.Combine(BoostLibPath, PlatformString, "libboost_system.a"));
-                PublicAdditionalLibraries.Add(Path.Combine(SocketLibPath, PlatformString, "libsioclient.a"));
-            }
-            else if (Target.Platform == UnrealTargetPlatform.Android)
-            {
-                isLibrarySupported = true;
-
-                string PlatformString = "Android";
-				//string AndroidPlatform = "arm64-v8a";   
-				string AndroidPlatform = "armeabi-v7a"; //change to armeabi-v7a if using 32bit
-				string BoostLibPath = Path.Combine(BoostThirdParty, "Lib");
-                string SocketLibPath = Path.Combine(SocketIOThirdParty, "Lib");
-
-                /*PublicAdditionalLibraries.Add(Path.Combine(BoostLibPath, PlatformString, AndroidPlatform, "libboost_date_time-clang-mt-a32-1_66.a"));
-                PublicAdditionalLibraries.Add(Path.Combine(BoostLibPath, PlatformString, AndroidPlatform, "libboost_random-clang-mt-a32-1_66.a"));
-                PublicAdditionalLibraries.Add(Path.Combine(BoostLibPath, PlatformString, AndroidPlatform, "libboost_system-clang-mt-a32-1_66.a"));*/
-                //PublicAdditionalLibraries.Add(Path.Combine(SocketLibPath, PlatformString, AndroidPlatform, "libsioclient.a"));
-            }
-
-            return isLibrarySupported;
-        }
-
-        public SocketIOClient(ReadOnlyTargetRules Target) : base(Target)
-        {
+	    public SocketIO(ReadOnlyTargetRules Target) : base(Target)
+	    {
 			PCHUsage = PCHUsageMode.UseExplicitOrSharedPCHs;
 			bUseRTTI = true;
+			bEnableExceptions = true;
 
 			PublicIncludePaths.AddRange(
-                new string[] {
+	            new string[] {
 					Path.Combine(ModuleDirectory, "Public"),
-                    Path.Combine(SocketIOThirdParty, "Include"),
-					Path.Combine(SocketIOThirdParty, "Include/internal"),
-					Path.Combine(SocketIOThirdParty, "Include/lib/websocketpp"),
-					Path.Combine(SocketIOThirdParty, "Include/lib/asio/asio/include"),
-					Path.Combine(SocketIOThirdParty, "Include/lib/rapidjson/include"),
-                    // ... add public include paths required here ...
-                }
-                );
+	                // ... add public include paths required here ...
+	            }
+	            );
 
 
-            PrivateIncludePaths.AddRange(
-                new string[] {
+	        PrivateIncludePaths.AddRange(
+	            new string[] {
 					Path.Combine(ModuleDirectory, "Private"),
-                    // ... add other private include paths required here ...
-                }
-                );
+					Path.Combine(ModuleDirectory, "Private/lib/websocketpp"),
+					Path.Combine(ModuleDirectory, "Private/lib/asio/asio/include"),
+					Path.Combine(SocketIOThirdParty, "Include/lib/rapidjson/include"),
+	                // ... add other private include paths required here ...
+	            }
+	            );
 
 
-            PublicDependencyModuleNames.AddRange(
-                new string[]
-                {
-                "Core",
-                "Json",
-                "JsonUtilities",
-                "SIOJson",
+	        PublicDependencyModuleNames.AddRange(
+	            new string[]
+	            {
+	            "Core",
 				"CoreUtility"
-                    // ... add other public dependencies that you statically link with here ...
-                }
-                );
+	                // ... add other public dependencies that you statically link with here ...
+	            }
+	            );
 
 
-            PrivateDependencyModuleNames.AddRange(
-                new string[]
-                {
-                "CoreUObject",
-                "Engine",
-                "Slate",
-                "SlateCore",
-                    // ... add private dependencies that you statically link with here ...	
-                }
-                );
+	        PrivateDependencyModuleNames.AddRange(
+	            new string[]
+	            {
+	            "CoreUObject",
+	            "Engine",
+	            "Slate",
+	            "SlateCore",
+	                // ... add private dependencies that you statically link with here ...	
+	            }
+	            );
 
 
-            DynamicallyLoadedModuleNames.AddRange(
-                new string[]
-                {
-                    // ... add any modules that your module loads dynamically here ...
-                }
-                );
+	        DynamicallyLoadedModuleNames.AddRange(
+	            new string[]
+	            {
+	                // ... add any modules that your module loads dynamically here ...
+	            }
+	            );
 
-            LoadLib(Target);
-        }
-    }
+	        LoadLib(Target);
+	    }
+	}
 }
