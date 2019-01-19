@@ -112,7 +112,6 @@ namespace UnrealBuildTool.Rules
         public SocketIOClient(ReadOnlyTargetRules Target) : base(Target)
         {
 			PCHUsage = PCHUsageMode.UseExplicitOrSharedPCHs;
-			bUseRTTI = true;
 
 			PublicIncludePaths.AddRange(
                 new string[] {

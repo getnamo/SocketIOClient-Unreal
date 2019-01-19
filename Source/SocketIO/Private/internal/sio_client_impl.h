@@ -22,10 +22,15 @@
 #include <cstdint>
 #define INTIALIZER(__TYPE__)
 
+#if PLATFORM_WINDOWS
 #include "PreWindowsApi.h"
+#endif
 #include <websocketpp/client.hpp>
 #include <asio/system_timer.hpp>
+
+#if PLATFORM_WINDOWS
 #include "PostWindowsApi.h"
+#endif
 
 #if defined(DEBUG)
   #if SIO_TLS

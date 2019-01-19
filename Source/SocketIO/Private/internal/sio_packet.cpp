@@ -304,7 +304,7 @@ namespace sio
             pos++;
             if (_type == type_binary_event || _type == type_binary_ack) {
                 size_t score_pos = payload_ptr.find('-');
-                _pending_buffers = std::stoul(payload_ptr.substr(pos,score_pos - pos));
+                _pending_buffers = FCString::Atoi64(*FString(payload_ptr.substr(pos,score_pos - pos).c_str()));
                 pos = score_pos+1;
             }
         }
@@ -344,7 +344,7 @@ namespace sio
 
         if(pos<json_pos)//we've got pack id.
         {
-            _pack_id = std::stoi(payload_ptr.substr(pos,json_pos - pos));
+            _pack_id = FCString::Atoi(*FString(payload_ptr.substr(pos,json_pos - pos).c_str()));
         }
         if (_frame == frame_message && (_type == type_binary_event || _type == type_binary_ack)) {
             //parse later when all buffers are arrived.

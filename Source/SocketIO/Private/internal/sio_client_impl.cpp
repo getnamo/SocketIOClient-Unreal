@@ -296,8 +296,8 @@ namespace sio
         m_packet_mgr.encode(p,
                             [&](bool isBin,shared_ptr<const string> payload)
         {
-            lib::error_code ec;
-            this->m_client.send(this->m_con, *payload, frame::opcode::text, ec);
+            lib::error_code ecl;
+            this->m_client.send(this->m_con, *payload, frame::opcode::text, ecl);
         });
         if(m_ping_timer)
         {
@@ -439,8 +439,8 @@ namespace sio
                 unsigned delay = this->next_delay();
                 if(m_reconnect_listener) m_reconnect_listener(m_reconn_made,delay);
                 m_reconn_timer.reset(new asio::system_timer(m_client.get_io_service()));
-                lib::error_code ec;
-                m_reconn_timer->expires_from_now(std::chrono::milliseconds(delay), ec);
+                lib::error_code ecl;
+                m_reconn_timer->expires_from_now(std::chrono::milliseconds(delay), ecl);
                 m_reconn_timer->async_wait(lib::bind(&client_impl::timeout_reconnect,this,lib::placeholders::_1));
                 return;
             }
