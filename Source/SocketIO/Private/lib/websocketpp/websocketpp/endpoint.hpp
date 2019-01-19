@@ -654,7 +654,7 @@ public:
         lib::error_code ec;
         connection_ptr con = this->get_con_from_hdl(hdl,ec);
         if (ec) {
-            //throw exception(ec);
+            throw exception(ec);
         }
         return con;
     }

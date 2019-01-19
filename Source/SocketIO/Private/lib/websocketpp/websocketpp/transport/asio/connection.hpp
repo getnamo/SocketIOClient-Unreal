@@ -198,7 +198,7 @@ public:
     void set_proxy(std::string const & uri) {
         lib::error_code ec;
         set_proxy(uri,ec);
-        if (ec) { /*throw exception(ec);*/ }
+        if (ec) { throw exception(ec); }
     }
 
     /// Set the basic auth credentials to use (exception free)
@@ -234,7 +234,7 @@ public:
     {
         lib::error_code ec;
         set_proxy_basic_auth(username,password,ec);
-        if (ec) { /*throw exception(ec);*/ }
+        if (ec) { throw exception(ec); }
     }
 
     /// Set the proxy timeout duration (exception free)
@@ -261,7 +261,7 @@ public:
     void set_proxy_timeout(long duration) {
         lib::error_code ec;
         set_proxy_timeout(duration,ec);
-        if (ec) { /*throw exception(ec);*/ }
+        if (ec) { throw exception(ec); }
     }
 
     std::string const & get_proxy() const {

@@ -225,7 +225,7 @@ void connection<config>::ping(std::string const & payload) {
     lib::error_code ec;
     ping(payload,ec);
     if (ec) {
-        //throw exception(ec);
+        throw exception(ec);
     }
 }
 
@@ -296,7 +296,7 @@ void connection<config>::pong(std::string const & payload) {
     lib::error_code ec;
     pong(payload,ec);
     if (ec) {
-        //throw exception(ec);
+        throw exception(ec);
     }
 }
 
@@ -329,7 +329,7 @@ void connection<config>::close(close::status::value const code,
     lib::error_code ec;
     close(code,reason,ec);
     if (ec) {
-        //throw exception(ec);
+        throw exception(ec);
     }
 }
 
@@ -479,7 +479,7 @@ void connection<config>::add_subprotocol(std::string const & value) {
     lib::error_code ec;
     this->add_subprotocol(value,ec);
     if (ec) {
-        //throw exception(ec);
+        throw exception(ec);
     }
 }
 
@@ -517,7 +517,7 @@ void connection<config>::select_subprotocol(std::string const & value) {
     lib::error_code ec;
     this->select_subprotocol(value,ec);
     if (ec) {
-        //throw exception(ec);
+        throw exception(ec);
     }
 }
 
@@ -545,8 +545,8 @@ template <typename config>
 void connection<config>::set_status(http::status_code::value code)
 {
     if (m_internal_state != istate::PROCESS_HTTP_REQUEST) {
-        /*throw exception("Call to set_status from invalid state",
-                      error::make_error_code(error::invalid_state));*/
+        throw exception("Call to set_status from invalid state",
+                      error::make_error_code(error::invalid_state));
     }
     m_response.set_status(code);
 }
@@ -557,8 +557,8 @@ void connection<config>::set_status(http::status_code::value code,
     std::string const & msg)
 {
     if (m_internal_state != istate::PROCESS_HTTP_REQUEST) {
-        /*throw exception("Call to set_status from invalid state",
-                      error::make_error_code(error::invalid_state));*/
+        throw exception("Call to set_status from invalid state",
+                      error::make_error_code(error::invalid_state));
     }
 
     m_response.set_status(code,msg);
@@ -568,8 +568,8 @@ void connection<config>::set_status(http::status_code::value code,
 template <typename config>
 void connection<config>::set_body(std::string const & value) {
     if (m_internal_state != istate::PROCESS_HTTP_REQUEST) {
-        /*throw exception("Call to set_status from invalid state",
-                      error::make_error_code(error::invalid_state));*/
+        throw exception("Call to set_status from invalid state",
+                      error::make_error_code(error::invalid_state));
     }
 
     m_response.set_body(value);
@@ -585,16 +585,16 @@ void connection<config>::append_header(std::string const & key,
             // we are setting response headers for an incoming server connection
             m_response.append_header(key,val);
         } else {
-            /*throw exception("Call to append_header from invalid state",
-                      error::make_error_code(error::invalid_state));*/
+            throw exception("Call to append_header from invalid state",
+                      error::make_error_code(error::invalid_state));
         }
     } else {
         if (m_internal_state == istate::USER_INIT) {
             // we are setting initial headers for an outgoing client connection
             m_request.append_header(key,val);
         } else {
-            /*throw exception("Call to append_header from invalid state",
-                      error::make_error_code(error::invalid_state));*/
+            throw exception("Call to append_header from invalid state",
+                      error::make_error_code(error::invalid_state));
         }
     }
 }
@@ -609,16 +609,16 @@ void connection<config>::replace_header(std::string const & key,
             // we are setting response headers for an incoming server connection
             m_response.replace_header(key,val);
         } else {
-            /*throw exception("Call to replace_header from invalid state",
-                        error::make_error_code(error::invalid_state));*/
+            throw exception("Call to replace_header from invalid state",
+                        error::make_error_code(error::invalid_state));
         }
     } else {
         if (m_internal_state == istate::USER_INIT) {
             // we are setting initial headers for an outgoing client connection
             m_request.replace_header(key,val);
         } else {
-            /*throw exception("Call to replace_header from invalid state",
-                        error::make_error_code(error::invalid_state));*/
+            throw exception("Call to replace_header from invalid state",
+                        error::make_error_code(error::invalid_state));
         }
     }
 }
@@ -632,16 +632,16 @@ void connection<config>::remove_header(std::string const & key)
             // we are setting response headers for an incoming server connection
             m_response.remove_header(key);
         } else {
-            /*throw exception("Call to remove_header from invalid state",
-                        error::make_error_code(error::invalid_state));*/
+            throw exception("Call to remove_header from invalid state",
+                        error::make_error_code(error::invalid_state));
         }
     } else {
         if (m_internal_state == istate::USER_INIT) {
             // we are setting initial headers for an outgoing client connection
             m_request.remove_header(key);
         } else {
-            /*throw exception("Call to remove_header from invalid state",
-                        error::make_error_code(error::invalid_state));*/
+            throw exception("Call to remove_header from invalid state",
+                        error::make_error_code(error::invalid_state));
         }
     }
 }
@@ -703,7 +703,7 @@ void connection<config>::send_http_response() {
     lib::error_code ec;
     this->send_http_response(ec);
     if (ec) {
-        //throw exception(ec);
+        throw exception(ec);
     }
 }
 
@@ -848,8 +848,7 @@ void connection<config>::handle_read_handshake(lib::error_code const & ec,
     }
 
     size_t bytes_processed = 0;
-	bytes_processed = m_request.consume(m_buf, bytes_transferred);
-    /*try {
+    try {
         bytes_processed = m_request.consume(m_buf,bytes_transferred);
     } catch (http::exception &e) {
         // All HTTP exceptions will result in this request failing and an error
@@ -857,7 +856,7 @@ void connection<config>::handle_read_handshake(lib::error_code const & ec,
         m_response.set_status(e.m_error_code,e.m_error_msg);
         this->write_http_response_error(error::make_error_code(error::http_parse_error));
         return;
-    }*/
+    }
 
     // More paranoid boundaries checking.
     // TODO: Is this overkill?
@@ -1582,15 +1581,14 @@ void connection<config>::handle_read_http_response(lib::error_code const & ec,
     
     size_t bytes_processed = 0;
     // TODO: refactor this to use error codes rather than exceptions
-	bytes_processed = m_response.consume(m_buf, bytes_transferred);
-    /*try {
-        
+    try {
+        bytes_processed = m_response.consume(m_buf,bytes_transferred);
     } catch (http::exception & e) {
         m_elog.write(log::elevel::rerror,
             std::string("error in handle_read_http_response: ")+e.what());
         this->terminate(make_error_code(error::general));
         return;
-    }*/
+    }
 
     m_alog.write(log::alevel::devel,std::string("Raw response: ")+m_response.raw());
 
@@ -1778,15 +1776,14 @@ void connection<config>::handle_terminate(terminate_status tstat,
     // call the termination handler if it exists
     // if it exists it might (but shouldn't) refer to a bad memory location.
     // If it does, we don't care and should catch and ignore it.
-	m_termination_handler(type::get_shared());
-    /*if (m_termination_handler) {
+    if (m_termination_handler) {
         try {
-           
+            m_termination_handler(type::get_shared());
         } catch (std::exception const & e) {
             m_elog.write(log::elevel::warn,
                 std::string("termination_handler call failed. Reason was: ")+e.what());
         }
-    }*/
+    }
 }
 
 template <typename config>

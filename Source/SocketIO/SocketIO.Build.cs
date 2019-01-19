@@ -56,9 +56,10 @@ namespace UnrealBuildTool.Rules
 	        PrivateIncludePaths.AddRange(
 	            new string[] {
 					Path.Combine(ModuleDirectory, "Private"),
+					Path.Combine(ModuleDirectory, "Private/internal"),
 					Path.Combine(ModuleDirectory, "Private/lib/websocketpp"),
-					Path.Combine(ModuleDirectory, "Private/lib/asio/asio/include"),
-					Path.Combine(SocketIOThirdParty, "Include/lib/rapidjson/include"),
+					Path.Combine(ModuleDirectory, "Private/lib/asio"),
+					Path.Combine(ModuleDirectory, "Private/lib/rapidjson"),
 	                // ... add other private include paths required here ...
 	            }
 	            );

@@ -31,9 +31,9 @@ namespace UnrealBuildTool.Rules
             {
                 isLibrarySupported = true;
 
-                string PlatformString = (Target.Platform == UnrealTargetPlatform.Win64) ? "Win64" : "Win32";
-                string BoostLibPath = Path.Combine(BoostThirdParty, "Lib");
-                string SocketLibPath = Path.Combine(SocketIOThirdParty, "Lib");
+                //string PlatformString = (Target.Platform == UnrealTargetPlatform.Win64) ? "Win64" : "Win32";
+                //string BoostLibPath = Path.Combine(BoostThirdParty, "Lib");
+                //string SocketLibPath = Path.Combine(SocketIOThirdParty, "Lib");
 				/*if (Target.Platform == UnrealTargetPlatform.Win32)
 				{
 					PublicAdditionalLibraries.Add(Path.Combine(BoostLibPath, PlatformString, "libboost_date_time-vc141-mt-x32-1_66.lib"));
@@ -48,21 +48,21 @@ namespace UnrealBuildTool.Rules
 				}*/
 
 					
-                PublicAdditionalLibraries.Add(Path.Combine(SocketLibPath, PlatformString, "sioclient.lib"));
+                //PublicAdditionalLibraries.Add(Path.Combine(SocketLibPath, PlatformString, "sioclient.lib"));
 
             }
             else if (Target.Platform == UnrealTargetPlatform.Linux)
             {
                 isLibrarySupported = true;
 
-                string PlatformString = "Linux";
-                string BoostLibPath = Path.Combine(BoostThirdParty, "Lib");
-                string SocketLibPath = Path.Combine(SocketIOThirdParty, "Lib");
+                //string PlatformString = "Linux";
+                //string BoostLibPath = Path.Combine(BoostThirdParty, "Lib");
+                //string SocketLibPath = Path.Combine(SocketIOThirdParty, "Lib");
 
                 /*PublicAdditionalLibraries.Add(Path.Combine(BoostLibPath, PlatformString, "libboost_date_time-clang39-mt-1_60.a"));
                 PublicAdditionalLibraries.Add(Path.Combine(BoostLibPath, PlatformString, "libboost_random-clang39-mt-1_60.a"));
                 PublicAdditionalLibraries.Add(Path.Combine(BoostLibPath, PlatformString, "libboost_system-clang39-mt-1_60.a"));*/
-                PublicAdditionalLibraries.Add(Path.Combine(SocketLibPath, PlatformString, "libsioclient.a"));
+                //PublicAdditionalLibraries.Add(Path.Combine(SocketLibPath, PlatformString, "libsioclient.a"));
             }
             else if (Target.Platform == UnrealTargetPlatform.IOS)
             {

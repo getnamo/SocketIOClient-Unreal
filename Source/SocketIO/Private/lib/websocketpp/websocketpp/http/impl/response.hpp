@@ -67,8 +67,8 @@ inline size_t response::consume(char const * buf, size_t len) {
         
         if (m_header_bytes > max_header_size) {
             // exceeded max header size
-            //throw exception("Maximum header size exceeded.",
-            //    status_code::request_header_fields_too_large);
+            throw exception("Maximum header size exceeded.",
+                status_code::request_header_fields_too_large);
         }
 
         if (end == m_buf->end()) {
@@ -88,7 +88,7 @@ inline size_t response::consume(char const * buf, size_t len) {
         if (end-begin == 0) {
             // we got a blank line
             if (m_state == RESPONSE_LINE) {
-                //throw exception("Incomplete Request",status_code::bad_request);
+                throw exception("Incomplete Request",status_code::bad_request);
             }
 
             // TODO: grab content-length
@@ -101,8 +101,8 @@ inline size_t response::consume(char const * buf, size_t len) {
                 std::istringstream ss(length);
 
                 if ((ss >> m_read).fail()) {
-                    /*throw exception("Unable to parse Content-Length header",
-                                    status_code::bad_request);*/
+                    throw exception("Unable to parse Content-Length header",
+                                    status_code::bad_request);
                 }
             }
 
@@ -209,7 +209,7 @@ inline void response::process(std::string::iterator begin,
     std::string::iterator cursor_end = std::find(begin,end,' ');
 
     if (cursor_end == end) {
-        //throw exception("Invalid response line",status_code::bad_request);
+        throw exception("Invalid response line",status_code::bad_request);
     }
 
     set_version(std::string(cursor_start,cursor_end));
@@ -218,7 +218,7 @@ inline void response::process(std::string::iterator begin,
     cursor_end = std::find(cursor_start,end,' ');
 
     if (cursor_end == end) {
-        //throw exception("Invalid request line",status_code::bad_request);
+        throw exception("Invalid request line",status_code::bad_request);
     }
 
     int code;
@@ -226,7 +226,7 @@ inline void response::process(std::string::iterator begin,
     std::istringstream ss(std::string(cursor_start,cursor_end));
 
     if ((ss >> code).fail()) {
-        //throw exception("Unable to parse response code",status_code::bad_request);
+        throw exception("Unable to parse response code",status_code::bad_request);
     }
 
     set_status(status_code::value(code),std::string(cursor_end+1,end));

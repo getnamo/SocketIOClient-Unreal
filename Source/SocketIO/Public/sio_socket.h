@@ -44,7 +44,7 @@ namespace sio
     class packet;
 
     //The name 'socket' is taken from concept of official socket.io.
-    class socket
+    class SOCKETIO_API socket
     {
     public:
         typedef std::function<void(const std::string& name,message::ptr const& message,bool need_ack, message::list& ack_message)> event_listener_aux;

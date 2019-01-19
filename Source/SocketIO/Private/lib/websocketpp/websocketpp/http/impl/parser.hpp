@@ -68,7 +68,7 @@ inline void parser::append_header(std::string const & key, std::string const &
     val)
 {
     if (std::find_if(key.begin(),key.end(),is_not_token_char) != key.end()) {
-        //throw exception("Invalid header name",status_code::bad_request);
+        throw exception("Invalid header name",status_code::bad_request);
     }
 
     if (this->get_header(key).empty()) {
@@ -127,8 +127,8 @@ inline bool parser::prepare_body() {
         m_body_bytes_needed = std::strtoul(cl_header.c_str(),&end,10);
         
         if (m_body_bytes_needed > m_body_bytes_max) {
-            //throw exception("HTTP message body too large",
-            //    status_code::request_entity_too_large);
+            throw exception("HTTP message body too large",
+                status_code::request_entity_too_large);
         }
         
         m_body_encoding = body_encoding::plain;
@@ -150,13 +150,12 @@ inline size_t parser::process_body(char const * buf, size_t len) {
         return processed;
     } else if (m_body_encoding == body_encoding::chunked) {
         // TODO: 
-        //throw exception("Unexpected body encoding",
-        //    status_code::internal_server_error);
+        throw exception("Unexpected body encoding",
+            status_code::internal_server_error);
     } else {
-        //throw exception("Unexpected body encoding",
-        //    status_code::internal_server_error);
+        throw exception("Unexpected body encoding",
+            status_code::internal_server_error);
     }
-	return 0;
 }
 
 inline void parser::process_header(std::string::iterator begin,
@@ -170,7 +169,7 @@ inline void parser::process_header(std::string::iterator begin,
     );
 
     if (cursor == end) {
-        //throw exception("Invalid header line",status_code::bad_request);
+        throw exception("Invalid header line",status_code::bad_request);
     }
 
     append_header(strip_lws(std::string(begin,cursor)),

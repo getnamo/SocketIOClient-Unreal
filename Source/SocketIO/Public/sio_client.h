@@ -16,7 +16,7 @@ namespace sio
 {
     class client_impl;
 
-    class client {
+    class SOCKETIO_API client {
     public:
         enum close_reason
         {

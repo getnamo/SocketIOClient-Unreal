@@ -5,11 +5,9 @@
 #include "SocketIOClientPrivatePCH.h"
 #include "LambdaRunnable.h"
 #include "SIOJConvert.h"
-#include "ThirdParty/SocketIO/Include/sio_client.h"
-#include "ThirdParty/SocketIO/Include/sio_message.h"
-#include "ThirdParty/SocketIO/Include/sio_socket.h"
-#include "ThirdParty/SocketIO/Include/internal/sio_client_impl.h"
-#include "ThirdParty/SocketIO/Include/internal/sio_packet.h"
+#include "sio_client.h"
+#include "sio_message.h"
+#include "sio_socket.h"
 
 FSocketIONative::FSocketIONative()
 {
