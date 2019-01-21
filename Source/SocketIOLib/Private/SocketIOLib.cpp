@@ -11,4 +11,4 @@ class FSocketIOLibModule : public ISocketIOLibModule
 };
 
 
-IMPLEMENT_MODULE(FSocketIOLibModule, SocketIO)
+IMPLEMENT_MODULE(FSocketIOLibModule, SocketIOLib)

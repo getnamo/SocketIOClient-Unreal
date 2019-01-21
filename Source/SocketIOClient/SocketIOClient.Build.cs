@@ -38,28 +38,10 @@ namespace UnrealBuildTool.Rules
             else if (Target.Platform == UnrealTargetPlatform.IOS)
             {
                 isLibrarySupported = true;
-
-                string PlatformString = "IOS";
-                string BoostLibPath = Path.Combine(BoostThirdParty, "Lib");
-                string SocketLibPath = Path.Combine(SocketIOThirdParty, "Lib");
-
-                /*PublicAdditionalLibraries.Add(Path.Combine(BoostLibPath, PlatformString, "libboost_date_time.a"));
-                PublicAdditionalLibraries.Add(Path.Combine(BoostLibPath, PlatformString, "libboost_random.a"));
-                PublicAdditionalLibraries.Add(Path.Combine(BoostLibPath, PlatformString, "libboost_system.a"));*/
-                PublicAdditionalLibraries.Add(Path.Combine(SocketLibPath, PlatformString, "libsioclient.a"));
             }
             else if (Target.Platform == UnrealTargetPlatform.Mac)
             {
                 isLibrarySupported = true;
-
-                string PlatformString = "Mac";
-                string BoostLibPath = Path.Combine(BoostThirdParty, "Lib");
-                string SocketLibPath = Path.Combine(SocketIOThirdParty, "Lib");
-
-                PublicAdditionalLibraries.Add(Path.Combine(BoostLibPath, PlatformString, "libboost_date_time.a"));
-                PublicAdditionalLibraries.Add(Path.Combine(BoostLibPath, PlatformString, "libboost_random.a"));
-                PublicAdditionalLibraries.Add(Path.Combine(BoostLibPath, PlatformString, "libboost_system.a"));
-                PublicAdditionalLibraries.Add(Path.Combine(SocketLibPath, PlatformString, "libsioclient.a"));
             }
             else if (Target.Platform == UnrealTargetPlatform.Android)
             {
@@ -97,7 +79,6 @@ namespace UnrealBuildTool.Rules
                 "JsonUtilities",
                 "SIOJson",
 				"CoreUtility",
-				"SocketIOLib",
                     // ... add other public dependencies that you statically link with here ...
                 }
                 );
@@ -110,6 +91,7 @@ namespace UnrealBuildTool.Rules
                 "Engine",
                 "Slate",
                 "SlateCore",
+				"SocketIOLib",
                     // ... add private dependencies that you statically link with here ...	
                 }
                 );
