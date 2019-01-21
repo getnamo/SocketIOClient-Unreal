@@ -245,8 +245,8 @@ namespace sio
 
     socket::impl::impl(client_impl *client,std::string const& nsp):
         m_client(client),
-        m_nsp(nsp),
-        m_connected(false)
+		m_connected(false),
+		m_nsp(nsp)
     {
         NULL_GUARD(client);
         if(m_client->opened())

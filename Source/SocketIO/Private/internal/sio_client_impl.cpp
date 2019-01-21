@@ -40,14 +40,14 @@ namespace sio
 {
     /*************************public:*************************/
     client_impl::client_impl() :
-        m_con_state(con_closed),
-        m_ping_interval(0),
+		m_ping_interval(0),
         m_ping_timeout(0),
-        m_network_thread(),
-        m_reconn_attempts(0xFFFFFFFF),
-        m_reconn_made(0),
-        m_reconn_delay(5000),
-        m_reconn_delay_max(25000)
+		m_network_thread(),
+		m_con_state(con_closed),
+		m_reconn_delay(5000),
+		m_reconn_delay_max(25000),
+		m_reconn_attempts(0xFFFFFFFF),
+		m_reconn_made(0)
     {
         using websocketpp::log::alevel;
 #ifndef DEBUG
