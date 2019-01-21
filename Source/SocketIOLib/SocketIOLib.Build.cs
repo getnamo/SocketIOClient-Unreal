@@ -8,6 +8,11 @@ namespace UnrealBuildTool.Rules
 {
 	public class SocketIOLib : ModuleRules
 	{
+		private string ThirdPartyPath
+        {
+            get { return Path.GetFullPath(Path.Combine(ModuleDirectory, "../ThirdParty/")); }
+        }
+
 	    public SocketIOLib(ReadOnlyTargetRules Target) : base(Target)
 	    {
 			PCHUsage = PCHUsageMode.UseExplicitOrSharedPCHs;
@@ -26,9 +31,9 @@ namespace UnrealBuildTool.Rules
 	            new string[] {
 					Path.Combine(ModuleDirectory, "Private"),
 					Path.Combine(ModuleDirectory, "Private/internal"),
-					Path.Combine(ModuleDirectory, "Private/lib/websocketpp"),
-					Path.Combine(ModuleDirectory, "Private/lib/asio"),
-					Path.Combine(ModuleDirectory, "Private/lib/rapidjson"),
+					Path.Combine(ThirdPartyPath, "websocketpp"),
+					Path.Combine(ThirdPartyPath, "asio"),
+					Path.Combine(ThirdPartyPath, "rapidjson"),
 	                // ... add other private include paths required here ...
 	            }
 	            );

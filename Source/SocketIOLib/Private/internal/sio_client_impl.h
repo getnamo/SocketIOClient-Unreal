@@ -1,3 +1,4 @@
+// Modifications Copyright 2018-current Getnamo. All Rights Reserved
 
 #ifndef SIO_CLIENT_IMPL_H
 #define SIO_CLIENT_IMPL_H

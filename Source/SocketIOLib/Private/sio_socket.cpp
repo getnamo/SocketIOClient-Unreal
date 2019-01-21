@@ -1,3 +1,5 @@
+// Modifications Copyright 2018-current Getnamo. All Rights Reserved
+
 /* This disables two things:
    1) error 4503 where MSVC complains about
       decorated names being too long. There's no way around

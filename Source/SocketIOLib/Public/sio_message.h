@@ -1,3 +1,4 @@
+// Modifications Copyright 2018-current Getnamo. All Rights Reserved
 //
 //  sio_message.h
 //

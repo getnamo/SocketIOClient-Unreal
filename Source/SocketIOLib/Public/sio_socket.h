@@ -1,3 +1,5 @@
+// Modifications Copyright 2018-current Getnamo. All Rights Reserved
+
 #ifndef SIO_SOCKET_H
 #define SIO_SOCKET_H
 
