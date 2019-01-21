@@ -40,7 +40,7 @@
 			]
 		},
 		{
-			"Name": "SocketIO",
+			"Name": "SocketIOLib",
 			"Type": "Runtime",
 			"LoadingPhase": "PreDefault",
 			"WhitelistPlatforms": [
@@ -48,7 +48,8 @@
 				"Win32",
 				"Linux",
 				"Android",
-				"Mac"
+				"Mac",
+				"IOS"
 			]
 		},
 		{

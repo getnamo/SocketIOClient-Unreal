@@ -6,40 +6,9 @@ using UnrealBuildTool;
 
 namespace UnrealBuildTool.Rules
 {
-	public class SocketIO : ModuleRules
+	public class SocketIOLib : ModuleRules
 	{
-
-	    private string ThirdPartyPath
-	    {
-	        get { return Path.GetFullPath(Path.Combine(ModuleDirectory, "../ThirdParty/")); }
-	    }
-
-	    private string SocketIOThirdParty
-	    {
-	        get { return Path.GetFullPath(Path.Combine(ThirdPartyPath, "SocketIO")); }
-	    }
-
-	    public bool LoadLib(ReadOnlyTargetRules Target)
-	    {
-	        bool isLibrarySupported = false;
-
-	        if ((Target.Platform == UnrealTargetPlatform.Win64) || (Target.Platform == UnrealTargetPlatform.Win32))
-	        {
-	            isLibrarySupported = true;
-
-	            /*string PlatformString = (Target.Platform == UnrealTargetPlatform.Win64) ? "Win64" : "Win32";
-	            string BoostLibPath = Path.Combine(BoostThirdParty, "Lib");
-	            string SocketLibPath = Path.Combine(SocketIOThirdParty, "Lib");
-
-					
-	            PublicAdditionalLibraries.Add(Path.Combine(SocketLibPath, PlatformString, "sioclient.lib"));
-	            */
-	        }
-
-	        return isLibrarySupported;
-	    }
-
-	    public SocketIO(ReadOnlyTargetRules Target) : base(Target)
+	    public SocketIOLib(ReadOnlyTargetRules Target) : base(Target)
 	    {
 			PCHUsage = PCHUsageMode.UseExplicitOrSharedPCHs;
 			bUseRTTI = true;
@@ -93,8 +62,6 @@ namespace UnrealBuildTool.Rules
 	                // ... add any modules that your module loads dynamically here ...
 	            }
 	            );
-
-	        LoadLib(Target);
 	    }
 	}
 }

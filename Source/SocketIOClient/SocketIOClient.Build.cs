@@ -97,7 +97,7 @@ namespace UnrealBuildTool.Rules
                 "JsonUtilities",
                 "SIOJson",
 				"CoreUtility",
-				"SocketIO",
+				"SocketIOLib",
                     // ... add other public dependencies that you statically link with here ...
                 }
                 );

@@ -6,9 +6,9 @@
 
 //struct 
 
-class FSocketIOModule : public ISocketIOModule
+class FSocketIOLibModule : public ISocketIOLibModule
 {
 };
 
 
-IMPLEMENT_MODULE(FSocketIOModule, SocketIO)
+IMPLEMENT_MODULE(FSocketIOLibModule, SocketIO)

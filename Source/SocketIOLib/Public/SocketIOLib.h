@@ -6,7 +6,7 @@
 #include "Runtime/Core/Public/Modules/ModuleManager.h"
 
 
-class SOCKETIO_API ISocketIOModule : public IModuleInterface
+class SOCKETIOLIB_API ISocketIOLibModule : public IModuleInterface
 {
 public:
 
@@ -16,9 +16,9 @@ public:
 	*
 	* @return Returns singleton instance, loading the module on demand if needed
 	*/
-	static inline ISocketIOModule& Get()
+	static inline ISocketIOLibModule& Get()
 	{
-		return FModuleManager::LoadModuleChecked< ISocketIOModule >("SocketIO");
+		return FModuleManager::LoadModuleChecked< ISocketIOLibModule >("SocketIOLib");
 	}
 
 	/**
@@ -28,6 +28,6 @@ public:
 	*/
 	static inline bool IsAvailable()
 	{
-		return FModuleManager::Get().IsModuleLoaded("SocketIO");
+		return FModuleManager::Get().IsModuleLoaded("SocketIOLib");
 	}
 };
