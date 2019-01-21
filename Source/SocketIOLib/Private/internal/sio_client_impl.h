@@ -202,6 +202,7 @@ namespace sio
 		std::string m_sid;
 		std::string m_base_url;
 		std::string m_query_string;
+		std::map<std::string, std::string> m_http_headers;
 
 		unsigned int m_ping_interval;
 		unsigned int m_ping_timeout;
