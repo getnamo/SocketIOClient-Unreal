@@ -43,7 +43,7 @@ public:
 	static bool JsonObjectToUStruct(TSharedPtr<FJsonObject> JsonObject, UStruct* Struct, void* StructPtr, bool IsBlueprintStruct = false);
 	
 	//Files - convenience read/write files
-	static bool JsonFileToUStuct(const FString& FilePath, UStruct* Struct, void* StructPtr, bool IsBlueprintStruct = false);
+	static bool JsonFileToUStruct(const FString& FilePath, UStruct* Struct, void* StructPtr, bool IsBlueprintStruct = false);
 	static bool ToJsonFile(const FString& FilePath, UStruct* Struct, void* StructPtr, bool IsBlueprintStruct = false);
 		
 

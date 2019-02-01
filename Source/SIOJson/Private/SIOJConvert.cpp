@@ -253,7 +253,7 @@ bool USIOJConvert::JsonObjectToUStruct(TSharedPtr<FJsonObject> JsonObject, UStru
 	}
 }
 
-bool USIOJConvert::JsonFileToUStuct(const FString& FilePath, UStruct* Struct, void* StructPtr, bool IsBlueprintStruct /*= false*/)
+bool USIOJConvert::JsonFileToUStruct(const FString& FilePath, UStruct* Struct, void* StructPtr, bool IsBlueprintStruct /*= false*/)
 {
 	//Read bytes from file
 	TArray<uint8> OutBytes;
