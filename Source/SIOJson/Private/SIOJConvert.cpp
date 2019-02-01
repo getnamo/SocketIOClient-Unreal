@@ -263,7 +263,8 @@ bool USIOJConvert::JsonFileToUStruct(const FString& FilePath, UStruct* Struct, v
 	}
 
 	//Convert to json string
-	FString JsonString = FString(UTF8_TO_TCHAR(OutBytes.GetData()));
+	FString JsonString;
+	FFileHelper::BufferToString(JsonString, OutBytes.GetData(), OutBytes.Num());
 
 	//Read into struct
 	return JsonObjectToUStruct(ToJsonObject(JsonString), Struct, StructPtr, IsBlueprintStruct);
@@ -272,11 +273,13 @@ bool USIOJConvert::JsonFileToUStruct(const FString& FilePath, UStruct* Struct, v
 
 bool USIOJConvert::ToJsonFile(const FString& FilePath, UStruct* Struct, void* StructPtr, bool IsBlueprintStruct /*= false*/)
 {
-	//Get json object
+	//Get json object with trimmed values
 	TSharedPtr<FJsonObject> JsonObject = ToJsonObject(Struct, StructPtr, IsBlueprintStruct);
+	TSharedPtr<FJsonValue> TrimmedValue = MakeShareable(new FJsonValueObject(JsonObject));
+	TrimValueKeyNames(TrimmedValue);
 
 	//Convert to string
-	FString JsonString = ToJsonString(JsonObject);
+	FString JsonString = ToJsonString(TrimmedValue);
 	FTCHARToUTF8 Utf8String(*JsonString);
 
 	TArray<uint8> Bytes;
