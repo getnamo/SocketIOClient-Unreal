@@ -143,6 +143,47 @@ public:
 		*(bool*)RESULT_PARAM = Success;
 	}
 
+	//Convenience - Saving/Loading structs from files
+	UFUNCTION(BlueprintCallable, Category = "SocketIOFunctions", CustomThunk, meta = (CustomStructureParam = "AnyStruct"))
+	static bool SaveStructToJsonFile(UProperty* AnyStruct, const FString& FilePath);
+
+	UFUNCTION(BlueprintCallable, Category = "SocketIOFunctions", CustomThunk, meta = (CustomStructureParam = "AnyStruct"))
+	static bool LoadJsonFileToStruct(const FString& FilePath, UProperty* AnyStruct);
+
+	//custom thunk needed to handle wildcard structs
+	DECLARE_FUNCTION(execSaveStructToJsonFile)
+	{
+		//Get properties and pointers from stack (nb, it's reverse order, right to left!)
+		Stack.StepCompiledIn<UStructProperty>(NULL);
+		UStructProperty* StructProp = ExactCast<UStructProperty>(Stack.MostRecentProperty);
+		void* StructPtr = Stack.MostRecentPropertyAddress;
+		Stack.StepCompiledIn<UStrProperty>(NULL);
+		UStrProperty* FilePathProp = ExactCast<UStrProperty>(Stack.MostRecentProperty);
+		FString FilePath = FilePathProp->GetPropertyValue(Stack.MostRecentPropertyAddress);
+		P_FINISH;
+
+		P_NATIVE_BEGIN;
+		*(bool*)RESULT_PARAM = USIOJConvert::ToJsonFile(FilePath, StructProp->Struct, StructPtr);
+		P_NATIVE_END;
+	}
+
+	//custom thunk needed to handle wildcard structs
+	DECLARE_FUNCTION(execLoadJsonFileToStruct)
+	{
+		//Get properties and pointers from stack (nb, it's reverse order, right to left!)
+		Stack.StepCompiledIn<UStrProperty>(NULL);
+		UStrProperty* FilePathProp = ExactCast<UStrProperty>(Stack.MostRecentProperty);
+		FString FilePath = FilePathProp->GetPropertyValue(Stack.MostRecentPropertyAddress);
+		Stack.StepCompiledIn<UStructProperty>(NULL);
+		UStructProperty* StructProp = ExactCast<UStructProperty>(Stack.MostRecentProperty);
+		void* StructPtr = Stack.MostRecentPropertyAddress;
+		P_FINISH;
+
+		P_NATIVE_BEGIN;
+		*(bool*)RESULT_PARAM = USIOJConvert::JsonFileToUStruct(FilePath, StructProp->Struct, StructPtr, true);
+		P_NATIVE_END;
+	}
+
 	//Conversion Nodes
 
 	//ToJsonValue
