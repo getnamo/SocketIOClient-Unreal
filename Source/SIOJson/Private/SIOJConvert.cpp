@@ -253,6 +253,39 @@ bool USIOJConvert::JsonObjectToUStruct(TSharedPtr<FJsonObject> JsonObject, UStru
 	}
 }
 
+bool USIOJConvert::JsonFileToUStuct(const FString& FilePath, UStruct* Struct, void* StructPtr, bool IsBlueprintStruct /*= false*/)
+{
+	//Read bytes from file
+	TArray<uint8> OutBytes;
+	if (!FFileHelper::LoadFileToArray(OutBytes, *FilePath)) 
+	{
+		return false;
+	}
+
+	//Convert to json string
+	FString JsonString = FString(UTF8_TO_TCHAR(OutBytes.GetData()));
+
+	//Read into struct
+	return JsonObjectToUStruct(ToJsonObject(JsonString), Struct, StructPtr, IsBlueprintStruct);
+}
+	
+
+bool USIOJConvert::ToJsonFile(const FString& FilePath, UStruct* Struct, void* StructPtr, bool IsBlueprintStruct /*= false*/)
+{
+	//Get json object
+	TSharedPtr<FJsonObject> JsonObject = ToJsonObject(Struct, StructPtr, IsBlueprintStruct);
+
+	//Convert to string
+	FString JsonString = ToJsonString(JsonObject);
+	FTCHARToUTF8 Utf8String(*JsonString);
+
+	TArray<uint8> Bytes;
+	Bytes.Append((uint8*)Utf8String.Get(), Utf8String.Length());
+
+	//flush to disk
+	return FFileHelper::SaveArrayToFile(Bytes, *FilePath);
+}
+
 void USIOJConvert::TrimValueKeyNames(const TSharedPtr<FJsonValue>& JsonValue)
 {
 	//Array?

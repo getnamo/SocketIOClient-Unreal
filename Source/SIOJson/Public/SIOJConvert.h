@@ -41,6 +41,10 @@ public:
 
 	//Expects a JsonObject, if blueprint struct it will lengthen the names to fill properly
 	static bool JsonObjectToUStruct(TSharedPtr<FJsonObject> JsonObject, UStruct* Struct, void* StructPtr, bool IsBlueprintStruct = false);
+	
+	//Files - convenience read/write files
+	static bool JsonFileToUStuct(const FString& FilePath, UStruct* Struct, void* StructPtr, bool IsBlueprintStruct = false);
+	static bool ToJsonFile(const FString& FilePath, UStruct* Struct, void* StructPtr, bool IsBlueprintStruct = false);
 		
 
 	//typically from callbacks
