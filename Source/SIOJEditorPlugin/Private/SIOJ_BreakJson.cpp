@@ -5,8 +5,17 @@
 // Original code by https://github.com/unktomi
 
 #include "SIOJ_BreakJson.h"
-#include "SIOJEditorPluginPrivatePCH.h"
 #include "EdGraphUtilities.h"
+#include "KismetCompiler.h"
+#include "EditorCategoryUtils.h"
+#include "EdGraph/EdGraph.h"
+#include "EdGraph/EdGraphNodeUtils.h" // for FNodeTextCache
+#include "EdGraphSchema_K2.h"
+#include "BlueprintNodeSpawner.h"
+#include "BlueprintActionDatabaseRegistrar.h"
+#include "BlueprintFieldNodeSpawner.h"
+#include "EditorCategoryUtils.h"
+#include "BlueprintActionFilter.h"
 #include "Runtime/Launch/Resources/Version.h"
 
 #define LOCTEXT_NAMESPACE "SIOJ_BreakJson"

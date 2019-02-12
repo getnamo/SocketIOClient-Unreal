@@ -2,6 +2,7 @@
 
 
 #pragma once
+#include "Runtime/Core/Public/Async/TaskGraphInterfaces.h"
 
 /*
 *	Convenience wrappers for common thread/task work flow. Run background task on thread, callback via task graph on game thread

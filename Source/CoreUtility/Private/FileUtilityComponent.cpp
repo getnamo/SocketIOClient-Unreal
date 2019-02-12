@@ -2,8 +2,7 @@
 
 
 #include "FileUtilityComponent.h"
-#include "CoreUtilityPrivatePCH.h"
-
+#include "Runtime/Core/Public/HAL/PlatformFilemanager.h"
 
 UFileUtilityComponent::UFileUtilityComponent(const FObjectInitializer &init) : UActorComponent(init)
 {

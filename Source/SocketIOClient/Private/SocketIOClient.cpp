@@ -2,9 +2,9 @@
 
 
 #include "SocketIOClient.h"
-#include "SocketIOClientPrivatePCH.h"
 #include "SocketIONative.h"
 #include "LambdaRunnable.h"
+#include "Runtime/Core/Public/HAL/ThreadSafeBool.h"
 
 #define LOCTEXT_NAMESPACE "FSocketIOClientModule"
 

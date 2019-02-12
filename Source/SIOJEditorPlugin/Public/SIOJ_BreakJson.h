@@ -6,7 +6,6 @@
 
 #pragma once
 
-#include "Engine.h"
 #include "K2Node.h"
 #include "ISIOJson.h"
 #include "SIOJConvert.h"

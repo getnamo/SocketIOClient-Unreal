@@ -4,6 +4,8 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "UObject/Package.h"
+#include "UObject/ObjectMacros.h"
 #include "Runtime/Json/Public/Dom/JsonObject.h"
 #include "Runtime/Json/Public/Dom/JsonValue.h"
 #include "SIOJConvert.generated.h"

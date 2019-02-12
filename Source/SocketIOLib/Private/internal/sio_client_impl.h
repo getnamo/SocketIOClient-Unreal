@@ -24,14 +24,13 @@
 #define INTIALIZER(__TYPE__)
 
 #if PLATFORM_WINDOWS
-#include "PreWindowsApi.h"
+//#define WIN32_LEAN_AND_MEAN
+#include "Windows/WindowsHWrapper.h"
+#include "Windows/AllowWindowsPlatformAtomics.h"
 #endif
+
 #include <websocketpp/client.hpp>
 #include <asio/system_timer.hpp>
-
-#if PLATFORM_WINDOWS
-#include "PostWindowsApi.h"
-#endif
 
 #if defined(DEBUG)
   #if SIO_TLS
@@ -52,9 +51,14 @@
 #endif //DEBUG
 #include <asio/deadline_timer.hpp>
 
+#if PLATFORM_WINDOWS
+#include "Windows/HideWindowsPlatformAtomics.h"
+#endif
+
 #include <memory>
 #include <map>
 #include <thread>
+
 #include "sio_client.h"
 #include "sio_packet.h"
 

@@ -2,7 +2,9 @@
 
 
 #include "SIOMessageConvert.h"
-#include "SocketIOClientPrivatePCH.h"
+#include "Runtime/Json/Public/Serialization/JsonWriter.h"
+#include "Runtime/Json/Public/Policies/CondensedJsonPrintPolicy.h"
+#include "SIOJsonValue.h"
 
 DEFINE_LOG_CATEGORY(SocketIOLog);
 

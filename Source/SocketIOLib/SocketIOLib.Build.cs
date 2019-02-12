@@ -22,7 +22,6 @@ namespace UnrealBuildTool.Rules
 			PublicIncludePaths.AddRange(
 	            new string[] {
 					Path.Combine(ModuleDirectory, "Public"),
-	                // ... add public include paths required here ...
 	            }
 	            );
 
@@ -34,7 +33,6 @@ namespace UnrealBuildTool.Rules
 					Path.Combine(ThirdPartyPath, "websocketpp"),
 					Path.Combine(ThirdPartyPath, "asio"),
 					Path.Combine(ThirdPartyPath, "rapidjson"),
-	                // ... add other private include paths required here ...
 	            }
 	            );
 
@@ -43,7 +41,6 @@ namespace UnrealBuildTool.Rules
 	            new string[]
 	            {
 	            "Core",
-	                // ... add other public dependencies that you statically link with here ...
 	            }
 	            );
 
@@ -53,7 +50,6 @@ namespace UnrealBuildTool.Rules
 	            {
 	            "CoreUObject",
 	            "Engine",
-	                // ... add private dependencies that you statically link with here ...	
 	            }
 	            );
 
@@ -61,7 +57,6 @@ namespace UnrealBuildTool.Rules
 	        DynamicallyLoadedModuleNames.AddRange(
 	            new string[]
 	            {
-	                // ... add any modules that your module loads dynamically here ...
 	            }
 	            );
 	    }

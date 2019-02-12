@@ -2,7 +2,7 @@
 
 
 #include "SocketIONative.h"
-#include "SocketIOClientPrivatePCH.h"
+#include "SIOMessageConvert.h"
 #include "LambdaRunnable.h"
 #include "SIOJConvert.h"
 #include "sio_client.h"

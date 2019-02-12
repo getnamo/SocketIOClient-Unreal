@@ -31,6 +31,9 @@
 
 #define kBIN_PLACE_HOLDER "_placeholder"
 
+#include "Runtime/Core/Public/Misc/CString.h"
+#include "Runtime/Core/Public/Containers/UnrealString.h"
+
 namespace sio
 {
     using namespace rapidjson;

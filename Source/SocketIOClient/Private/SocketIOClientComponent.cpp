@@ -2,11 +2,10 @@
 
 
 #include "SocketIOClientComponent.h"
-#include "SocketIOClientPrivatePCH.h"
 #include "LambdaRunnable.h"
 #include "SIOJConvert.h"
 #include "SocketIOClient.h"
-#include "Engine.h"
+#include "Engine/Engine.h"
 
 USocketIOClientComponent::USocketIOClientComponent(const FObjectInitializer &init) : UActorComponent(init)
 {
