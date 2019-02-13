@@ -23,6 +23,8 @@
 #include <cstdint>
 #define INTIALIZER(__TYPE__)
 
+#include "CoreMinimal.h" 
+
 #if PLATFORM_WINDOWS
 //#define WIN32_LEAN_AND_MEAN
 #include "Windows/WindowsHWrapper.h"
