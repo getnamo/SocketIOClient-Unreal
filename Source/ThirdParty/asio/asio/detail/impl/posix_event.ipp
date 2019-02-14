@@ -36,9 +36,15 @@ posix_event::posix_event()
 #else // (defined(__MACH__) && defined(__APPLE__))
   ::pthread_condattr_t attr;
   ::pthread_condattr_init(&attr);
+
+#if defined(ASIO_THREAD_INTERNAL_CLOCK_IS_MONO)
   int error = ::pthread_condattr_setclock(&attr, CLOCK_MONOTONIC);
+#else
+  int error = 0;
+#endif //defined(ASIO_THREAD_INTERNAL_CLOCK_IS_MONO)
   if (error == 0)
     error = ::pthread_cond_init(&cond_, &attr);
+
 #endif // (defined(__MACH__) && defined(__APPLE__))
 
   asio::error_code ec(error,

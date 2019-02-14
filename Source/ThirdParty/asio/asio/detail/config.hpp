@@ -862,6 +862,13 @@
 # endif // !defined(ASIO_HAS_TIMERFD)
 #endif // defined(__linux__)
 
+#if defined(__ANDROID__)
+# define ASIO_THREAD_HAS_MONO_CLOCK
+#  if defined(__ANDROID_API__) && __ANDROID_API__ >= 21
+#   define ASIO_THREAD_INTERNAL_CLOCK_IS_MONO
+#  endif
+#endif
+
 // Mac OS X, FreeBSD, NetBSD, OpenBSD: kqueue.
 #if (defined(__MACH__) && defined(__APPLE__)) \
   || defined(__FreeBSD__) \

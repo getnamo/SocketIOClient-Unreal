@@ -533,7 +533,11 @@ void epoll_reactor::interrupt()
 int epoll_reactor::do_epoll_create()
 {
 #if defined(EPOLL_CLOEXEC)
+#ifdef HAVE_EPOLL_CREATE1
   int fd = epoll_create1(EPOLL_CLOEXEC);
+#else
+  int fd = epoll_create(EPOLL_CLOEXEC);
+#endif
 #else // defined(EPOLL_CLOEXEC)
   int fd = -1;
   errno = EINVAL;
