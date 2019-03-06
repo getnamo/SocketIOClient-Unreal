@@ -117,6 +117,43 @@ There are many ways to decode your *SIOJsonValue* message, it all depends on you
 
 ![IMG](http://i.imgur.com/urAh2TH.png)
 
+Make sure your server is sending the correct type of data, you should not be encoding your data into json strings on the server side if you want to decode them directly into objects in the Unreal side, send the objects as is and the socket.io protocol will handle serialization on both ends.
+
+#### Json Object to Struct Example
+
+Keep in mind that you need to match your json object names (case doesn't matter) and if you are using objects of objects, the sub-objects will need their own structs to build the full main struct. For example if we have the following json object:
+
+```json
+{
+	"Title":
+	{
+		"Text":"Example",
+		"Caption":"Used to guide developers"
+	}
+}
+```
+
+##### Defined Struct
+
+Make a substruct for the _Title_ object with two string variables, _Text_ and _Caption_ matching your json object format.
+
+![title substruct](https://i.imgur.com/1L8T4Tl.png)
+
+and then make the main struct with the substruct and a member variable with the _Title_ property name to match your json.
+
+![main struct](https://i.imgur.com/gcyDK1l.png)
+
+##### Alternative Struct
+
+If you know that you will have a set of properties of the same type (blueprints only support maps of same type), then you can use a Map property. In this example our title sub-object only has String:String type properties so we could use a String:String map named _Title_ instead of the sub-struct.
+
+![alt struct](https://i.imgur.com/w6tttIh.png)
+
+If you wish to mix types in an object, you will need to use defined structs as before.
+
+##### Arrays of array
+An Array of arrays is not supported in Unreal structs, a workaround is to use an array of structs that contains an array of the data type you want. The server side will need to adapt what it sends or you can decode using json fields.
+
 ### Conversion
 
 Most primitive types have auto-conversion nodes to simplify your workflow. E.g. if you wanted to emit a float literal you can get a reference to your float and simply drag to the *message* parameter to auto-convert into a *SIOJsonValue*.
