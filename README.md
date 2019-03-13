@@ -225,7 +225,7 @@ This does mean that you may not receive events during times your actor does not 
 
 ### Setup
 
-To use the C++ code from the plugin add _SocketIOClient_ and _SocketIOLib_ as a dependency modules in your project build.cs
+To use the C++ code from the plugin add _SocketIOClient_ and _SocketIOLib_ as dependency modules in your project build.cs
 
 ```c#
 PublicDependencyModuleNames.AddRange(new string[] { "Core", "CoreUObject", "Engine", "InputCore", "SocketIOClient", "SocketIOLib" });
