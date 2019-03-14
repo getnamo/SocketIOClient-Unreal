@@ -225,10 +225,10 @@ This does mean that you may not receive events during times your actor does not 
 
 ### Setup
 
-To use the C++ code from the plugin add _SocketIOClient_ and _SocketIOLib_ as dependency modules in your project build.cs
+To use the C++ code from the plugin add _SocketIOClient_, _SocketIOLib_, and _Json_ as dependency modules in your project build.cs. If you're using conversion methods you will also have to add _SIOJson_.
 
 ```c#
-PublicDependencyModuleNames.AddRange(new string[] { "Core", "CoreUObject", "Engine", "InputCore", "SocketIOClient", "SocketIOLib" });
+PublicDependencyModuleNames.AddRange(new string[] { "Core", "CoreUObject", "Engine", "InputCore", "SocketIOClient", "SocketIOLib", "SIOJson", "Json" });
 ```
 
 This guide assumes you want to use the client component method. See the [_FSocketIONative_](https://github.com/getnamo/socketio-client-ue4#c-fsocketionative) section for non-actor based C++ details.
