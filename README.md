@@ -288,8 +288,10 @@ To receive events call _OnNativeEvent_ and pass in your expected event name and 
 SIOClientComponent->OnNativeEvent(FString("MyEvent"), [](const FString& Event, const TSharedPtr<FJsonValue>& Message)
 {
 	//Called when the event is received
-}, FString("Optional Namespace"));
+});
 ```
+
+Note that there is an optional namespace (default TEXT("/")) as a last parameter.
 
 Message parameter is a [FJsonValue](http://api.unrealengine.com/INT/API/Runtime/Json/Dom/FJsonValue/), if you have a complex message you'll most commonly want to decode it into a [FJsonObject](http://api.unrealengine.com/INT/API/Runtime/Json/Dom/FJsonObject/) via ```AsObject()```.
 
