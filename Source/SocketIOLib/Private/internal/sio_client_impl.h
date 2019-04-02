@@ -53,16 +53,16 @@
 #endif //DEBUG
 #include <asio/deadline_timer.hpp>
 
-#if PLATFORM_WINDOWS
-#include "Windows/HideWindowsPlatformAtomics.h"
-#endif
-
 #include <memory>
 #include <map>
 #include <thread>
 
 #include "sio_client.h"
 #include "sio_packet.h"
+
+#if PLATFORM_WINDOWS
+#include "Windows/HideWindowsPlatformAtomics.h"
+#endif
 
 namespace sio
 {

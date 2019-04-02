@@ -13,6 +13,10 @@
 
 #if defined(_MSC_VER) && (_MSC_VER >= 1200)
 # pragma once
+	#if !defined(TRUE)
+		#define TRUE 1
+		#define FALSE 0
+	#endif
 #endif // defined(_MSC_VER) && (_MSC_VER >= 1200)
 
 #include "asio/detail/config.hpp"
