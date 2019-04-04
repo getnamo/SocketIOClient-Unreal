@@ -18,7 +18,6 @@ Recommended socket.io server version: 1.4+.
 Missing static libraries and support for platforms:
 
 * iOS untested - see [issue 19](https://github.com/getnamo/socketio-client-ue4/issues/19)
-* MacOS untested - see [issue 15](https://github.com/getnamo/socketio-client-ue4/issues/15) 
 
 HTTPS currently not yet supported
 * OpenSSL Support - [issue39](https://github.com/getnamo/socketio-client-ue4/issues/39), temporary [workaround available](https://github.com/getnamo/socketio-client-ue4/issues/72#issuecomment-371956821).
