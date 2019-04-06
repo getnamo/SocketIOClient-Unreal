@@ -536,6 +536,17 @@ Works out of the box.
 ### Blueprint
 If you're using this as a project plugin you will need to convert your blueprint only project to mixed (bp and C++). Follow these instructions to do that: https://allarsblog.com/2015/11/04/converting-bp-project-to-cpp/
 
+### iOS
+
+If you're using non-ssl connections (which as of 1.0 is all that is supported), then you need to enable ```Allow web connections to non-HTTPS websites```
+
+![IOS platform setting](https://i.imgur.com/J7Xzy2j.png)
+
+### Android
+
+Minimum/Target SDK 21 is recommended, but not required.
+
+
 ## License
 
 [![license](https://img.shields.io/github/license/getnamo/socketio-client-ue4.svg)](https://github.com/getnamo/socketio-client-ue4/blob/master/LICENSE)
