@@ -545,7 +545,7 @@ If you're using non-ssl connections (which as of 1.0 is all that is supported), 
 
 ### Android
 
-Minimum/Target SDK 21 is recommended, but not required.
+Minimum/Target SDK 21 or higher is recommended, but not required.
 
 
 ## License
