@@ -15,9 +15,10 @@ Recommended socket.io server version: 1.4+.
 
 ### Contribute! Current Main Issues:
 
-Missing static libraries and support for platforms:
+Current platform issues:
 
-* iOS untested - see [issue 19](https://github.com/getnamo/socketio-client-ue4/issues/19)
+* Xbox/PS4 platform untested - see [issue 117](https://github.com/getnamo/socketio-client-ue4/issues/117)
+* Lumin platform untested - see [issue 117](https://github.com/getnamo/socketio-client-ue4/issues/117)
 
 HTTPS currently not yet supported
 * OpenSSL Support - [issue39](https://github.com/getnamo/socketio-client-ue4/issues/39), temporary [workaround available](https://github.com/getnamo/socketio-client-ue4/issues/72#issuecomment-371956821).
