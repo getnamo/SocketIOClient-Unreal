@@ -32,7 +32,7 @@ HTTPS currently not yet supported
  4. Copy *Plugins* folder into your Project root.
  5. Plugin should be now ready to use.
  
- ### Via Unreal Engine Marketplace
+ ### Via Unreal Engine Marketplace (helps support plugin development and maintenance)
  
  Available at this link: [Socket.IO Client - Marketplace](https://www.unrealengine.com/marketplace/socket-io-client)
  
