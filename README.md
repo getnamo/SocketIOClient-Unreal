@@ -211,7 +211,7 @@ io.on('connection', (socket) => {
 	
 		/* do something here to get your data */
 		
-		//callback with the results, this will call your 'OnGetMsg' inside your blueprint
+		//callback with the results, this will call your bound function inside your blueprint
 		callback(result);
 	});
 };
