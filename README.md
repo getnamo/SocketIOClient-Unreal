@@ -194,6 +194,30 @@ Supported Signatures:
 - Bool
 - Byte Array
 
+#### Emit with Callback node.js server example
+
+If you're unsure how the callbacks look like on the server side, here is a basic example:
+
+```javascript
+const io = require('socket.io')(http);
+
+io.on('connection', (socket) => {
+	
+	//...
+
+	socket.on('getData', (msg, callback) => {
+		//let's say your data is an object
+		let result = {};
+	
+		/* do something here to get your data */
+		
+		//callback with the results, this will call your 'OnGetMsg' inside your blueprint
+		callback(result);
+	});
+};
+```
+
+See https://socket.io/docs/server-api/#socket-on-eventName-callback for detailed API.
 
 ### Binding Events to Functions
 
