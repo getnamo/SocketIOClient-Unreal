@@ -9,7 +9,7 @@
 	"CreatedBy": "Getnamo",
 	"CreatedByURL": "http://getnamo.com",
 	"DocsURL": "https://github.com/getnamo/socketio-client-ue4",
-	"MarketplaceURL": "com.epicgames.launcher://ue/marketplace/content/770c3db686a948e09ccb208705a8e736",
+	"MarketplaceURL": "com.epicgames.launcher://ue/marketplace/slug/socket-io-client",
 	"SupportURL": "https://github.com/getnamo/socketio-client-ue4",
 	"EnabledByDefault": true,
 	"CanContainContent": false,
