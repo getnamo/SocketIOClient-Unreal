@@ -559,6 +559,11 @@ NativeClient->OnRawEvent([&](const FString& Name, const sio::message::ptr& Messa
 Works out of the box.
 
 ### Blueprint
+
+#### Marketplace
+Works out of the box.
+
+#### Github
 If you're using this as a project plugin you will need to convert your blueprint only project to mixed (bp and C++). Follow these instructions to do that: https://allarsblog.com/2015/11/04/converting-bp-project-to-cpp/
 
 ### iOS
