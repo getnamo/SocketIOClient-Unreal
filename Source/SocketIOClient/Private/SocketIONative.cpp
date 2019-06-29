@@ -52,6 +52,10 @@ void FSocketIONative::Connect(const FString& InAddressAndPort, const TSharedPtr<
 		PrivateClient->set_reconnect_attempts(MaxReconnectionAttempts);
 		PrivateClient->set_reconnect_delay(ReconnectionDelay);
 
+		if(PrivateClient->opened())
+		{
+		}
+
 		PrivateClient->connect(StdAddressString, QueryMap, HeadersMap);
 
 	});
