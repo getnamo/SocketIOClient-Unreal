@@ -310,7 +310,8 @@ To receive events call _OnNativeEvent_ and pass in your expected event name and 
 ```c++
 SIOClientComponent->OnNativeEvent(FString("MyEvent"), [](const FString& Event, const TSharedPtr<FJsonValue>& Message)
 {
-	//Called when the event is received
+	//Called when the event is received. We can e.g. log what we got
+	UE_LOG(LogTemp, Log, TEXT("Received: %s"), *USIOJConvert::ToJsonString(Message));
 });
 ```
 
