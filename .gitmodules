@@ -1,0 +1,3 @@
+[submodule "Source/ThirdParty/websocketpp"]
+	path = Source/ThirdParty/websocketpp
+	url = https://github.com/getnamo/websocketpp
