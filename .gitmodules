@@ -4,3 +4,6 @@
 [submodule "Source/ThirdParty/rapidjson"]
 	path = Source/ThirdParty/rapidjson
 	url = https://github.com/getnamo/rapidjson
+[submodule "Source/ThirdParty/asio"]
+	path = Source/ThirdParty/asio
+	url = https://github.com/getnamo/asio
