@@ -31,7 +31,7 @@ namespace UnrealBuildTool.Rules
 					Path.Combine(ModuleDirectory, "Private"),
 					Path.Combine(ModuleDirectory, "Private/internal"),
 					Path.Combine(ThirdPartyPath, "websocketpp"),
-					Path.Combine(ThirdPartyPath, "asio"),
+					Path.Combine(ThirdPartyPath, "asio/asio/include"),
 					Path.Combine(ThirdPartyPath, "rapidjson/include"),
 	            }
 	            );
