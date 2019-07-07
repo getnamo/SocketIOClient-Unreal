@@ -76,17 +76,7 @@ namespace sio
 
 	client_impl::~client_impl()
 	{
-		this->sockets_invoke_void(&sio::socket::on_close);
-
-		//clear reconnection attempts and close
-		this->set_reconnect_attempts(0);
-		close();
-
-		//when we join on close, don't 
-		if (m_network_thread)
-		{
-			m_network_thread->join();
-		}
+		sync_close();
 	}
 
 	void client_impl::connect(const string& uri, const map<string,string>& query, const map<string, string>& headers)
@@ -174,7 +164,7 @@ namespace sio
 
 		m_con_state = con_closing;
 		this->sockets_invoke_void(&sio::socket::close);
-		m_client.get_io_service().dispatch(lib::bind(&client_impl::close_impl, this,close::status::normal,"End by user"));
+		m_client.get_io_service().dispatch(lib::bind(&client_impl::close_impl, this, close::status::normal,"End by user"));
 	}
 
 	void client_impl::sync_close()
@@ -184,7 +174,7 @@ namespace sio
 
 		m_con_state = con_closing;
 		this->sockets_invoke_void(&sio::socket::close);
-		m_client.get_io_service().dispatch(lib::bind(&client_impl::close_impl, this,close::status::normal,"End by user"));
+		m_client.get_io_service().dispatch(lib::bind(&client_impl::close_impl, this, close::status::normal,"End by user"));
 		if(m_network_thread)
 		{
 			m_network_thread->join();
