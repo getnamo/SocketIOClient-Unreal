@@ -76,16 +76,17 @@ namespace sio
 
 	client_impl::~client_impl()
 	{
-		//this->sockets_invoke_void(&sio::socket::on_close);
-		/*close();
+		this->sockets_invoke_void(&sio::socket::on_close);
 
-		//when we join on close, don't reset
+		//clear reconnection attempts and close
+		this->set_reconnect_attempts(0);
+		close();
+
+		//when we join on close, don't 
 		if (m_network_thread)
 		{
 			m_network_thread->join();
-			m_network_thread.reset();
-		}*/
-		sync_close();
+		}
 	}
 
 	void client_impl::connect(const string& uri, const map<string,string>& query, const map<string, string>& headers)
