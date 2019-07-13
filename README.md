@@ -554,6 +554,17 @@ NativeClient->OnRawEvent([&](const FString& Name, const sio::message::ptr& Messa
 			
 		}, FString(TEXT("myArbitraryReceiveEvent")));
 ```
+
+## Http JSON requests
+
+Using e.g. https://gist.github.com/getnamo/ced1e6fbee122b640169f5fb867ed540 server
+
+You can post simple JSON requests using the SIOJRequest (this is the same architecture as [VARest](https://github.com/ufna/VaRest)). 
+
+![Sending a JSON post request](https://i.imgur.com/UOJHcP0.png)
+
+These request functions are available globally.
+
 ## Packaging
 
 ### C++
