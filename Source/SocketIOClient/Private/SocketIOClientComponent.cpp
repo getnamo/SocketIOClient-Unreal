@@ -451,16 +451,15 @@ void USocketIOClientComponent::EmitWithGraphCallBack(const FString& EventName, s
 	if (UWorld* World = GEngine->GetWorldFromContextObject(this, EGetWorldErrorMode::LogAndReturnNull))
 	{
 		FLatentActionManager& LatentActionManager = World->GetLatentActionManager();
-		FSIOJLatentAction<USIOJsonObject*> *Kont = LatentActionManager.FindExistingAction<FSIOJLatentAction<USIOJsonObject*>>(LatentInfo.CallbackTarget, LatentInfo.UUID);
-		if (Kont != nullptr)
+		FSIOJLatentAction<USIOJsonObject*> *LatentAction = LatentActionManager.FindExistingAction<FSIOJLatentAction<USIOJsonObject*>>(LatentInfo.CallbackTarget, LatentInfo.UUID);
+		if (LatentAction != nullptr)
 		{
-			Kont->Cancel();
+			LatentAction->Cancel();
 			LatentActionManager.RemoveActionsForObject(LatentInfo.CallbackTarget);
 		}
 
 		//Update continue action with current call (NB: bug, only one continue action can be hung at any one time. Todo: use a map)
 		ContinueAction = MakeShareable(new FSIOJLatentAction<USIOJsonObject*>(this, Result, LatentInfo));
-		ContinueAction->Result = NewObject<USIOJsonObject>(this);
 		
 		//TSharedPtr<FSIOJLatentAction<USIOJsonObject*>> ContinueAction = MakeShareable(new FSIOJLatentAction<USIOJsonObject*>(this, Result, LatentInfo));
 		LatentActionManager.AddNewAction(LatentInfo.CallbackTarget, LatentInfo.UUID, ContinueAction.Get());
@@ -472,8 +471,9 @@ void USocketIOClientComponent::EmitWithGraphCallBack(const FString& EventName, s
 			if (ContinueAction.IsValid())
 			{
 				TSharedPtr<FJsonValue> FirstResponseValue = Response[0];
-				ContinueAction->Result->SetRootObject(FirstResponseValue->AsObject());
-				ContinueAction->Call(ContinueAction->Result);
+				USIOJsonObject* ResultObj = NewObject<USIOJsonObject>();
+				ResultObj->SetRootObject(FirstResponseValue->AsObject());
+				ContinueAction->Call(ResultObj);
 			}
 		}, Namespace);
 	}
