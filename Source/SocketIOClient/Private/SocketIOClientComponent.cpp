@@ -6,6 +6,7 @@
 #include "SIOJConvert.h"
 #include "SocketIOClient.h"
 #include "Engine/Engine.h"
+#include "SIOJRequestJSON.h"
 
 USocketIOClientComponent::USocketIOClientComponent(const FObjectInitializer &init) : UActorComponent(init)
 {
@@ -432,6 +433,51 @@ void USocketIOClientComponent::EmitWithCallBack(const FString& EventName, USIOJs
 	else 
 	{
 		EmitNative(EventName, Message->GetRootValue(),nullptr,Namespace);
+	}
+}
+
+void USocketIOClientComponent::EmitWithGraphCallBack(const FString& EventName, struct FLatentActionInfo LatentInfo, USIOJsonValue* Message /*= nullptr*/, const FString& Namespace /*= FString(TEXT("/"))*/)
+{
+	//Set the message is not null
+	TSharedPtr<FJsonValue> JsonMessage = nullptr;
+	if (Message != nullptr)
+	{
+		JsonMessage = Message->GetRootValue();
+	}
+	else
+	{
+		JsonMessage = MakeShareable(new FJsonValueNull);
+	}
+
+	if (UWorld* World = GEngine->GetWorldFromContextObject(this, EGetWorldErrorMode::LogAndReturnNull))
+	{
+		FLatentActionManager& LatentActionManager = World->GetLatentActionManager();
+		FSIOJLatentAction<USIOJsonObject*> *Kont = LatentActionManager.FindExistingAction<FSIOJLatentAction<USIOJsonObject*>>(LatentInfo.CallbackTarget, LatentInfo.UUID);
+		if (Kont != nullptr)
+		{
+			Kont->Cancel();
+			LatentActionManager.RemoveActionsForObject(LatentInfo.CallbackTarget);
+		}
+
+		USIOJsonObject* FutureResult = NewObject<USIOJsonObject>();
+
+		FSIOJLatentAction<USIOJsonObject*>* ContinueAction = new FSIOJLatentAction<USIOJsonObject*>(this, FutureResult, LatentInfo);
+		LatentActionManager.AddNewAction(LatentInfo.CallbackTarget, LatentInfo.UUID, ContinueAction);
+
+		//emit the call
+		NativeClient->Emit(EventName, JsonMessage, [this, &ContinueAction, FutureResult](const TArray<TSharedPtr<FJsonValue>>& Response)
+		{
+			// Finish the latent action
+			if (ContinueAction)
+			{
+				FSIOJLatentAction<USIOJsonObject*> *K = ContinueAction;
+				ContinueAction = nullptr;
+
+				FutureResult->SetRootObject(Response[0]->AsObject());
+
+				K->Call(FutureResult);
+			}
+		}, Namespace);
 	}
 }
 

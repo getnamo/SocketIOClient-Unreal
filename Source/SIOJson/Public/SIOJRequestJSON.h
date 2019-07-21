@@ -18,7 +18,7 @@
 /**
  * @author Original latent action class by https://github.com/unktomi
  */
-template <class T> class FSIOJLatentAction : public FPendingLatentAction
+template <class T> class SIOJSON_API FSIOJLatentAction : public FPendingLatentAction
 {
 public:
 	virtual void Call(const T &Value) 
