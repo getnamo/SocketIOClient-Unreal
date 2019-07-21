@@ -451,7 +451,9 @@ void USocketIOClientComponent::EmitWithGraphCallBack(const FString& EventName, s
 	if (UWorld* World = GEngine->GetWorldFromContextObject(this, EGetWorldErrorMode::LogAndReturnNull))
 	{
 		FLatentActionManager& LatentActionManager = World->GetLatentActionManager();
-		FSIOJLatentAction<USIOJsonObject*> *LatentAction = LatentActionManager.FindExistingAction<FSIOJLatentAction<USIOJsonObject*>>(LatentInfo.CallbackTarget, LatentInfo.UUID);
+		int32 UUID = LatentInfo.UUID;
+
+		FSIOJLatentAction<USIOJsonObject*> *LatentAction = LatentActionManager.FindExistingAction<FSIOJLatentAction<USIOJsonObject*>>(LatentInfo.CallbackTarget, UUID);
 		if (LatentAction != nullptr)
 		{
 			LatentAction->Cancel();
@@ -459,21 +461,21 @@ void USocketIOClientComponent::EmitWithGraphCallBack(const FString& EventName, s
 		}
 
 		//Update continue action with current call (NB: bug, only one continue action can be hung at any one time. Todo: use a map)
-		ContinueAction = MakeShareable(new FSIOJLatentAction<USIOJsonObject*>(this, Result, LatentInfo));
-		
+		LatentActionMap.Add(UUID, MakeShareable(new FSIOJLatentAction<USIOJsonObject*>(this, Result, LatentInfo)));
+
 		//TSharedPtr<FSIOJLatentAction<USIOJsonObject*>> ContinueAction = MakeShareable(new FSIOJLatentAction<USIOJsonObject*>(this, Result, LatentInfo));
-		LatentActionManager.AddNewAction(LatentInfo.CallbackTarget, LatentInfo.UUID, ContinueAction.Get());
+		LatentActionManager.AddNewAction(LatentInfo.CallbackTarget, UUID, LatentActionMap[UUID].Get());		
 
 		//emit the call &ContinueAction
-		NativeClient->Emit(EventName, JsonMessage, [this, LatentInfo, &LatentActionManager](const TArray<TSharedPtr<FJsonValue>>& Response)
+		NativeClient->Emit(EventName, JsonMessage, [this, UUID](const TArray<TSharedPtr<FJsonValue>>& Response)
 		{
 			// Finish the latent action
-			if (ContinueAction.IsValid())
+			if (LatentActionMap[UUID].IsValid())
 			{
 				TSharedPtr<FJsonValue> FirstResponseValue = Response[0];
 				USIOJsonObject* ResultObj = NewObject<USIOJsonObject>();
 				ResultObj->SetRootObject(FirstResponseValue->AsObject());
-				ContinueAction->Call(ResultObj);
+				LatentActionMap[UUID]->Call(ResultObj);
 			}
 		}, Namespace);
 	}

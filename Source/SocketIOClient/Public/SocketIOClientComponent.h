@@ -370,5 +370,5 @@ protected:
 
 	FCriticalSection AllocationSection;
 	TSharedPtr<FSocketIONative> NativeClient;
-	TSharedPtr<FSIOJLatentAction<USIOJsonObject*>> ContinueAction;
+	TMap<uint32, TSharedPtr<FSIOJLatentAction<USIOJsonObject*>>> LatentActionMap;
 };
