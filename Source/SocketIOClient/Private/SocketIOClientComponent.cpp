@@ -6,7 +6,6 @@
 #include "SIOJConvert.h"
 #include "SocketIOClient.h"
 #include "Engine/Engine.h"
-#include "SIOJRequestJSON.h"
 
 USocketIOClientComponent::USocketIOClientComponent(const FObjectInitializer &init) : UActorComponent(init)
 {
@@ -436,7 +435,7 @@ void USocketIOClientComponent::EmitWithCallBack(const FString& EventName, USIOJs
 	}
 }
 
-void USocketIOClientComponent::EmitWithGraphCallBack(const FString& EventName, struct FLatentActionInfo LatentInfo, USIOJsonValue* Message /*= nullptr*/, const FString& Namespace /*= FString(TEXT("/"))*/)
+void USocketIOClientComponent::EmitWithGraphCallBack(const FString& EventName, struct FLatentActionInfo LatentInfo, USIOJsonObject*& Result, USIOJsonValue* Message /*= nullptr*/, const FString& Namespace /*= FString(TEXT("/"))*/)
 {
 	//Set the message is not null
 	TSharedPtr<FJsonValue> JsonMessage = nullptr;
@@ -459,23 +458,22 @@ void USocketIOClientComponent::EmitWithGraphCallBack(const FString& EventName, s
 			LatentActionManager.RemoveActionsForObject(LatentInfo.CallbackTarget);
 		}
 
-		USIOJsonObject* FutureResult = NewObject<USIOJsonObject>();
+		//Update continue action with current call (NB: bug, only one continue action can be hung at any one time. Todo: use a map)
+		ContinueAction = MakeShareable(new FSIOJLatentAction<USIOJsonObject*>(this, Result, LatentInfo));
+		ContinueAction->Result = NewObject<USIOJsonObject>(this);
+		
+		//TSharedPtr<FSIOJLatentAction<USIOJsonObject*>> ContinueAction = MakeShareable(new FSIOJLatentAction<USIOJsonObject*>(this, Result, LatentInfo));
+		LatentActionManager.AddNewAction(LatentInfo.CallbackTarget, LatentInfo.UUID, ContinueAction.Get());
 
-		FSIOJLatentAction<USIOJsonObject*>* ContinueAction = new FSIOJLatentAction<USIOJsonObject*>(this, FutureResult, LatentInfo);
-		LatentActionManager.AddNewAction(LatentInfo.CallbackTarget, LatentInfo.UUID, ContinueAction);
-
-		//emit the call
-		NativeClient->Emit(EventName, JsonMessage, [this, &ContinueAction, FutureResult](const TArray<TSharedPtr<FJsonValue>>& Response)
+		//emit the call &ContinueAction
+		NativeClient->Emit(EventName, JsonMessage, [this, LatentInfo, &LatentActionManager](const TArray<TSharedPtr<FJsonValue>>& Response)
 		{
 			// Finish the latent action
-			if (ContinueAction)
+			if (ContinueAction.IsValid())
 			{
-				FSIOJLatentAction<USIOJsonObject*> *K = ContinueAction;
-				ContinueAction = nullptr;
-
-				FutureResult->SetRootObject(Response[0]->AsObject());
-
-				K->Call(FutureResult);
+				TSharedPtr<FJsonValue> FirstResponseValue = Response[0];
+				ContinueAction->Result->SetRootObject(FirstResponseValue->AsObject());
+				ContinueAction->Call(ContinueAction->Result);
 			}
 		}, Namespace);
 	}

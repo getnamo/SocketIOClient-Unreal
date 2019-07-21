@@ -5,7 +5,8 @@
 
 #include "Components/ActorComponent.h"
 #include "SocketIONative.h"
-#include "LatentActions.h"
+#include "SIOJRequestJSON.h"
+//#include "LatentActions.h"
 #include "SocketIOClientComponent.generated.h"
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE(FSIOCEventSignature);
@@ -176,17 +177,19 @@ public:
 	*
 	* @param Name					Event name
 	* @param LatentInfo				Graph callback reference
+	* @param Result					Graph callback result SIOJsonValue
 	* @param Message				SIOJsonValue
 	* @param Namespace				Namespace within socket.io
 	*/
-	UFUNCTION(BlueprintCallable, Category = "SocketIO Functions")
+	UFUNCTION(BlueprintCallable, meta = (Latent, LatentInfo = "LatentInfo"), Category = "SocketIO Functions")
 	void EmitWithGraphCallBack(	const FString& EventName,
 								struct FLatentActionInfo LatentInfo,
+								USIOJsonObject*& Result,
 								USIOJsonValue* Message = nullptr,
 								const FString& Namespace = FString(TEXT("/")));
 
 	/**
-	* Bind an event, then respond to it with 'On' multi-cast delegate
+	* Bind an event, then respond to it with 'OnEvent' multi-cast delegate
 	*
 	* @param EventName	Event name
 	* @param Namespace	Optional namespace, defaults to default namespace
@@ -367,4 +370,5 @@ protected:
 
 	FCriticalSection AllocationSection;
 	TSharedPtr<FSocketIONative> NativeClient;
+	TSharedPtr<FSIOJLatentAction<USIOJsonObject*>> ContinueAction;
 };
