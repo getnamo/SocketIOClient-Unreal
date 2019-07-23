@@ -5,6 +5,8 @@
 
 #include "Components/ActorComponent.h"
 #include "SocketIONative.h"
+#include "SIOJRequestJSON.h"
+#include "LatentActions.h"
 #include "SocketIOClientComponent.generated.h"
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE(FSIOCEventSignature);
@@ -171,7 +173,23 @@ public:
 							const FString& Namespace = FString(TEXT("/")));
 
 	/**
-	* Bind an event, then respond to it with 'On' multi-cast delegate
+	* Emit an event with a JsonValue message with a result callback directly into the event graph. This cannot be called from within blueprint functions.
+	*
+	* @param Name					Event name
+	* @param LatentInfo				Graph callback reference
+	* @param Result					Graph callback result SIOJsonValue
+	* @param Message				SIOJsonValue
+	* @param Namespace				Namespace within socket.io
+	*/
+	UFUNCTION(BlueprintCallable, meta = (Latent, LatentInfo = "LatentInfo"), Category = "SocketIO Functions")
+	void EmitWithGraphCallBack(	const FString& EventName,
+								struct FLatentActionInfo LatentInfo,
+								USIOJsonValue*& Result,
+								USIOJsonValue* Message = nullptr,
+								const FString& Namespace = FString(TEXT("/")));
+
+	/**
+	* Bind an event, then respond to it with 'OnEvent' multi-cast delegate
 	*
 	* @param EventName	Event name
 	* @param Namespace	Optional namespace, defaults to default namespace

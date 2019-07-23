@@ -7,6 +7,7 @@
 #include "SocketIOClient.h"
 #include "Engine/Engine.h"
 
+
 USocketIOClientComponent::USocketIOClientComponent(const FObjectInitializer &init) : UActorComponent(init)
 {
 	bShouldAutoConnect = true;
@@ -432,6 +433,52 @@ void USocketIOClientComponent::EmitWithCallBack(const FString& EventName, USIOJs
 	else 
 	{
 		EmitNative(EventName, Message->GetRootValue(),nullptr,Namespace);
+	}
+}
+
+void USocketIOClientComponent::EmitWithGraphCallBack(const FString& EventName, struct FLatentActionInfo LatentInfo, USIOJsonValue*& Result, USIOJsonValue* Message /*= nullptr*/, const FString& Namespace /*= FString(TEXT("/"))*/)
+{
+	//Set the message is not null
+	TSharedPtr<FJsonValue> JsonMessage = nullptr;
+	if (Message != nullptr)
+	{
+		JsonMessage = Message->GetRootValue();
+	}
+	else
+	{
+		JsonMessage = MakeShareable(new FJsonValueNull);
+	}
+
+	if (UWorld* World = GEngine->GetWorldFromContextObject(this, EGetWorldErrorMode::LogAndReturnNull))
+	{
+		FLatentActionManager& LatentActionManager = World->GetLatentActionManager();
+		int32 UUID = LatentInfo.UUID;
+
+		FSIOPendingLatentAction *LatentAction = LatentActionManager.FindExistingAction<FSIOPendingLatentAction>(LatentInfo.CallbackTarget, UUID);
+
+		//It's safe to use a raw new as actions get deleted by the manager
+		LatentAction = new FSIOPendingLatentAction(LatentInfo);
+
+		LatentAction->OnCancelNotification = [this, UUID]()
+		{
+			UE_LOG(LogTemp, Log, TEXT("%d graph callback cancelled."), UUID);
+		};
+
+		LatentActionManager.AddNewAction(LatentInfo.CallbackTarget, LatentInfo.UUID, LatentAction);
+
+		//emit the call the LatentAction, we pass the result reference through lambda capture
+		NativeClient->Emit(EventName, JsonMessage, [this, LatentAction, &Result](const TArray<TSharedPtr<FJsonValue>>& Response)
+		{
+			// Finish the latent action
+			if (LatentAction)
+			{
+				TSharedPtr<FJsonValue> FirstResponseValue = Response[0];
+				USIOJsonValue* ResultObj = NewObject<USIOJsonValue>();
+				ResultObj->SetRootValue(FirstResponseValue);
+				Result = ResultObj;		//update the output value
+				LatentAction->Call();	//resume the latent action
+			}
+		}, Namespace);
 	}
 }
 
