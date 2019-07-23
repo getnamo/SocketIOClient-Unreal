@@ -4,6 +4,7 @@
 #include "SocketIOClientComponent.h"
 #include "LambdaRunnable.h"
 #include "SIOJConvert.h"
+#include "SIOJRequestJSON.h"
 #include "SocketIOClient.h"
 #include "Engine/Engine.h"
 
