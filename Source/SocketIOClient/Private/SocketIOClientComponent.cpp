@@ -7,6 +7,7 @@
 #include "SocketIOClient.h"
 #include "Engine/Engine.h"
 
+
 USocketIOClientComponent::USocketIOClientComponent(const FObjectInitializer &init) : UActorComponent(init)
 {
 	bShouldAutoConnect = true;
@@ -435,7 +436,7 @@ void USocketIOClientComponent::EmitWithCallBack(const FString& EventName, USIOJs
 	}
 }
 
-void USocketIOClientComponent::EmitWithGraphCallBack(const FString& EventName, struct FLatentActionInfo LatentInfo, USIOJsonObject*& Result, USIOJsonValue* Message /*= nullptr*/, const FString& Namespace /*= FString(TEXT("/"))*/)
+void USocketIOClientComponent::EmitWithGraphCallBack(const FString& EventName, struct FLatentActionInfo LatentInfo, USIOJsonValue*& Result, USIOJsonValue* Message /*= nullptr*/, const FString& Namespace /*= FString(TEXT("/"))*/)
 {
 	//Set the message is not null
 	TSharedPtr<FJsonValue> JsonMessage = nullptr;
@@ -453,29 +454,29 @@ void USocketIOClientComponent::EmitWithGraphCallBack(const FString& EventName, s
 		FLatentActionManager& LatentActionManager = World->GetLatentActionManager();
 		int32 UUID = LatentInfo.UUID;
 
-		FSIOJLatentAction<USIOJsonObject*> *LatentAction = LatentActionManager.FindExistingAction<FSIOJLatentAction<USIOJsonObject*>>(LatentInfo.CallbackTarget, UUID);
-		if (LatentAction != nullptr)
+		FSIOPendingLatentAction *LatentAction = LatentActionManager.FindExistingAction<FSIOPendingLatentAction>(LatentInfo.CallbackTarget, UUID);
+
+		//It's safe to use a raw new as actions get deleted by the manager
+		LatentAction = new FSIOPendingLatentAction(LatentInfo);
+
+		LatentAction->OnCancelNotification = [this, UUID]()
 		{
-			LatentAction->Cancel();
-			LatentActionManager.RemoveActionsForObject(LatentInfo.CallbackTarget);
-		}
+			UE_LOG(LogTemp, Log, TEXT("%d graph callback cancelled."), UUID);
+		};
 
-		//Update continue action with current call (NB: bug, only one continue action can be hung at any one time. Todo: use a map)
-		LatentActionMap.Add(UUID, MakeShareable(new FSIOJLatentAction<USIOJsonObject*>(this, Result, LatentInfo)));
+		LatentActionManager.AddNewAction(LatentInfo.CallbackTarget, LatentInfo.UUID, LatentAction);
 
-		//TSharedPtr<FSIOJLatentAction<USIOJsonObject*>> ContinueAction = MakeShareable(new FSIOJLatentAction<USIOJsonObject*>(this, Result, LatentInfo));
-		LatentActionManager.AddNewAction(LatentInfo.CallbackTarget, UUID, LatentActionMap[UUID].Get());		
-
-		//emit the call &ContinueAction
-		NativeClient->Emit(EventName, JsonMessage, [this, UUID](const TArray<TSharedPtr<FJsonValue>>& Response)
+		//emit the call the LatentAction, we pass the result reference through lambda capture
+		NativeClient->Emit(EventName, JsonMessage, [this, LatentAction, &Result](const TArray<TSharedPtr<FJsonValue>>& Response)
 		{
 			// Finish the latent action
-			if (LatentActionMap[UUID].IsValid())
+			if (LatentAction)
 			{
 				TSharedPtr<FJsonValue> FirstResponseValue = Response[0];
-				USIOJsonObject* ResultObj = NewObject<USIOJsonObject>();
-				ResultObj->SetRootObject(FirstResponseValue->AsObject());
-				LatentActionMap[UUID]->Call(ResultObj);
+				USIOJsonValue* ResultObj = NewObject<USIOJsonValue>();
+				ResultObj->SetRootValue(FirstResponseValue);
+				Result = ResultObj;		//update the output value
+				LatentAction->Call();	//resume the latent action
 			}
 		}, Namespace);
 	}
