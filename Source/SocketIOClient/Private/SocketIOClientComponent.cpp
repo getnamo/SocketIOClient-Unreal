@@ -456,7 +456,7 @@ void USocketIOClientComponent::EmitWithGraphCallBack(const FString& EventName, s
 
 		FSIOPendingLatentAction *LatentAction = LatentActionManager.FindExistingAction<FSIOPendingLatentAction>(LatentInfo.CallbackTarget, UUID);
 
-		//It's safe to use a raw new as actions get deleted by the manager
+		//It's safe to use raw new as actions get deleted by the manager
 		LatentAction = new FSIOPendingLatentAction(LatentInfo);
 
 		LatentAction->OnCancelNotification = [this, UUID]()
@@ -466,7 +466,7 @@ void USocketIOClientComponent::EmitWithGraphCallBack(const FString& EventName, s
 
 		LatentActionManager.AddNewAction(LatentInfo.CallbackTarget, LatentInfo.UUID, LatentAction);
 
-		//emit the call the LatentAction, we pass the result reference through lambda capture
+		//emit the message and pass the LatentAction, we also pass the result reference through lambda capture
 		NativeClient->Emit(EventName, JsonMessage, [this, LatentAction, &Result](const TArray<TSharedPtr<FJsonValue>>& Response)
 		{
 			// Finish the latent action
