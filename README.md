@@ -584,6 +584,8 @@ If you're using non-ssl connections (which as of 1.0 is all that is supported), 
 
 ![IOS platform setting](https://i.imgur.com/J7Xzy2j.png)
 
+Its possible you may also need to convert your IP4 to IP6, see https://github.com/getnamo/socketio-client-ue4/issues/136#issuecomment-515337500
+
 ### Android
 
 Minimum/Target SDK 21 or higher is recommended, but not required.
