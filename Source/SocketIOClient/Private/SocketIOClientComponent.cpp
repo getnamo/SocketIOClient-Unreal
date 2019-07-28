@@ -38,7 +38,7 @@ void USocketIOClientComponent::StaticInitialization(UObject* WorldContextObject,
 
 	if (!bValidOwnerWorld)
 	{
-		//Need to allow connections to non-game world setups
+		//Need to allow connections to non-owner worlds.
 		bLimitConnectionToGameWorld = false;
 
 		//The auto-connect will never happen in this case, so disable for clarity
@@ -443,13 +443,13 @@ void USocketIOClientComponent::Emit(const FString& EventName, USIOJsonValue* Mes
 	NativeClient->Emit(EventName, JsonMessage, nullptr, Namespace);
 }
 
-void USocketIOClientComponent::EmitWithCallBack(const FString& EventName, USIOJsonValue* Message /*= nullptr*/, const FString& CallbackFunctionName /*= FString(TEXT(""))*/, UObject* Target /*= nullptr*/, const FString& Namespace /*= FString(TEXT("/"))*/)
+void USocketIOClientComponent::EmitWithCallBack(const FString& EventName, USIOJsonValue* Message /*= nullptr*/, const FString& CallbackFunctionName /*= FString(TEXT(""))*/, UObject* Target /*= nullptr*/, const FString& Namespace /*= FString(TEXT("/"))*/, UObject* WorldContextObject /*= nullptr*/)
 {
 	if (!CallbackFunctionName.IsEmpty())
 	{
 		if (Target == nullptr)
 		{
-			Target = GetOwner();
+			Target = WorldContextObject;
 		}
 
 		//Set the message is not null
@@ -576,13 +576,13 @@ void USocketIOClientComponent::BindEvent(const FString& EventName, const FString
 	}, Namespace);
 }
 
-void USocketIOClientComponent::BindEventToFunction(const FString& EventName, const FString& FunctionName, UObject* Target, const FString& Namespace /*= FString(TEXT("/"))*/)
+void USocketIOClientComponent::BindEventToFunction(const FString& EventName, const FString& FunctionName, UObject* Target, const FString& Namespace /*= FString(TEXT("/"))*/, UObject* WorldContextObject /*= nullptr*/)
 {
 	if (!FunctionName.IsEmpty())
 	{
 		if (Target == nullptr)
 		{
-			Target = GetOwner();
+			Target = WorldContextObject;
 		}
 		OnNativeEvent(EventName, [&, FunctionName, Target](const FString& Event, const TSharedPtr<FJsonValue>& Message)
 		{

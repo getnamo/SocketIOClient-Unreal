@@ -165,15 +165,16 @@ public:
 	* @param Name					Event name
 	* @param Message				SIOJsonValue
 	* @param CallbackFunctionName	Name of the optional callback function with signature (String, SIOJsonValue)
-	* @param Target					CallbackFunction target object, typically self where this is called.
+	* @param Target					Optional, defaults to caller self. Change to delegate function callback to another class.
 	* @param Namespace				Namespace within socket.io
 	*/
-	UFUNCTION(BlueprintCallable, Category = "SocketIO Functions")
+	UFUNCTION(BlueprintCallable, Category = "SocketIO Functions", meta = (WorldContext = "WorldContextObject"))
 	void EmitWithCallBack(	const FString& EventName,
 							USIOJsonValue* Message = nullptr,
 							const FString& CallbackFunctionName = FString(""),
 							UObject* Target = nullptr,
-							const FString& Namespace = FString(TEXT("/")));
+							const FString& Namespace = FString(TEXT("/")),
+							UObject* WorldContextObject = nullptr);
 
 	/**
 	* Emit an event with a JsonValue message with a result callback directly into the event graph. This cannot be called from within blueprint functions.
@@ -207,13 +208,14 @@ public:
 	*
 	* @param EventName		Event name
 	* @param FunctionName	The function that gets called when the event is received
-	* @param Target			Optional, defaults to owner. Change to delegate to another class.
+	* @param Target			Optional, defaults to caller self. Change to delegate to another class.
 	*/
-	UFUNCTION(BlueprintCallable, Category = "SocketIO Functions")
+	UFUNCTION(BlueprintCallable, Category = "SocketIO Functions", meta = (WorldContext = "WorldContextObject"))
 	void BindEventToFunction(	const FString& EventName,
 								const FString& FunctionName,
 								UObject* Target,
-								const FString& Namespace = FString(TEXT("/")));
+								const FString& Namespace = FString(TEXT("/")),
+								UObject* WorldContextObject = nullptr);
 	//
 	//C++ functions
 	//
@@ -361,7 +363,7 @@ public:
 						const FString& Namespace = FString(TEXT("/")));
 
 	
-	/** Only call this if you used ConstructSocketIOComponent from a non-world parent e.g. game instance*/
+	/** Called by SocketIOFunctionLibrary to initialize statically constructed components. */
 	void StaticInitialization(UObject* WorldContextObject, bool bValidOwnerWorld);
 
 	virtual void InitializeComponent() override;
