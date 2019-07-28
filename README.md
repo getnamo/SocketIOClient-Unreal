@@ -244,6 +244,22 @@ If you want your connection to survive level transitions, you can tick the class
 
 This does mean that you may not receive events during times your actor does not have a world (such as a level transition without using a persistent parent map to which the socket.io component actor belongs). If this doesn't work for you consider switching to C++ and using [FSocketIONative](https://github.com/getnamo/socketio-client-ue4#c-fsocketionative), which doesn't doesn't depend on using an actor component.
 
+### Statically Constructed SocketIOClient Component
+
+Since v1.1.0 there is a BPFunctionLibrary method ```Construct SocketIOComponent``` which creates and correctly initializes the component in various execution contexts. This allows you to add and reference a SocketIOClient component inside a non-actor blueprint. Below is an example use pattern. It's important to save the result from the construct function into a member variable of your blueprint or the component will be garbage collected.
+
+![static example](https://i.imgur.com/EX4anxd.png)
+
+#### Note on Auto-connect
+
+Game modes do have actor owners and will correctly respect ```bShouldAutoConnect```. The connection happens one tick after construction so you can disable the toggle and connect at own time.
+
+Game Instances do *not* have actor owners and therefore cannot register and initialize the component. The only drawback is that you must manually connect. ```bShouldAutoConnect``` is disabled in this context.
+
+#### Note on Emit with Graph Callback
+
+Non actor-owners such as Game Instances cannot receive the graph callbacks due to invalid world context. This only affects this one callback method, other methods work as usual.
+
 ## How to use - C++
 
 ### Setup
