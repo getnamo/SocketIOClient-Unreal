@@ -173,7 +173,7 @@ You can have a callback when, for example, you need an acknowledgement or if you
 
 ![IMG](http://i.imgur.com/Ed01Jq0.png)
 
-Instead of using *Emit* you use *Emit With Callback* and by default the target is the owning actor blueprint so you can leave that parameter blank and simply type your function name e.g. *OnEcho* function.
+Instead of using *Emit* you use *Emit With Callback* and by default the target is the calling blueprint so you can leave that parameter blank and simply type your function name e.g. *OnEcho* function.
 
 ![IMG](http://i.imgur.com/hXMXDd2.png)
 
