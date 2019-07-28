@@ -15,7 +15,7 @@ DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FSIOCCloseEventSignature, TEnumAsByt
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FSIOCEventJsonSignature, FString, Event, class USIOJsonValue*, MessageJson);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_ThreeParams(FSIOConnectionProblemSignature, int32, Attempts, int32,  NextAttemptInMs, float, TimeSinceConnected);
 
-UCLASS(ClassGroup = "Networking", meta = (BlueprintSpawnableComponent))
+UCLASS(BlueprintType, ClassGroup = "Networking", meta = (BlueprintSpawnableComponent))
 class SOCKETIOCLIENT_API USocketIOClientComponent : public UActorComponent
 {
 	GENERATED_UCLASS_BODY()
@@ -114,6 +114,10 @@ public:
 
 	UPROPERTY(BlueprintReadOnly, Category = "SocketIO Connection Properties")
 	bool bIsHavingConnectionProblems;
+
+	/** If this component has been statically initialized. Largely exposed for traceability. */
+	UPROPERTY(BlueprintReadOnly, Category = "SocketIO Connection Properties")
+	bool bStaticallyInitialized;
 
 	/**
 	* Connect to a socket.io server, optional method if auto-connect is set to true.
@@ -356,13 +360,20 @@ public:
 						TFunction< void(const FString&, const TArray<uint8>&)> CallbackFunction,
 						const FString& Namespace = FString(TEXT("/")));
 
+	
+	/** Only call this if you used ConstructSocketIOComponent from a non-world parent e.g. game instance*/
+	void StaticInitialization(UObject* WorldContextObject, bool bValidOwnerWorld);
+
 	virtual void InitializeComponent() override;
 	virtual void UninitializeComponent() override;
 	virtual void BeginPlay() override;
+
+	~USocketIOClientComponent();
 	
 protected:
 	void SetupCallbacks();
 	void ClearCallbacks();
+	void InitializeNative();
 
 	bool CallBPFunctionWithResponse(UObject* Target, const FString& FunctionName, TArray<TSharedPtr<FJsonValue>> Response);
 	bool CallBPFunctionWithMessage(UObject* Target, const FString& FunctionName, TSharedPtr<FJsonValue> Message);

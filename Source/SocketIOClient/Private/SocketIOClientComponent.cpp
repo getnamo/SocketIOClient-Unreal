@@ -27,27 +27,50 @@ USocketIOClientComponent::USocketIOClientComponent(const FObjectInitializer &ini
 	MaxReconnectionAttempts = -1.f;
 	ReconnectionDelayInMs = 5000;
 
+	bStaticallyInitialized = false;
+
 	ClearCallbacks();
+}
+
+void USocketIOClientComponent::StaticInitialization(UObject* WorldContextObject, bool bValidOwnerWorld /*= false*/)
+{
+	bStaticallyInitialized = true;
+
+	if (!bValidOwnerWorld)
+	{
+		//Need to allow connections to non-game world setups
+		bLimitConnectionToGameWorld = false;
+
+		//The auto-connect will never happen in this case, so disable for clarity
+		bShouldAutoConnect = false;
+	}
+
+	//We statically initialize for all cases
+	InitializeNative();
 }
 
 void USocketIOClientComponent::InitializeComponent()
 {
 	Super::InitializeComponent();
+
+	if (!bStaticallyInitialized)
 	{
-		//Because our connections can last longer than game world 
-		//end, we let plugin-scoped structures manage our memory
-		if (bPluginScopedConnection)
-		{
-			NativeClient = ISocketIOClientModule::Get().ValidSharedNativePointer(PluginScopedId);
-		}
-		else
-		{
-			NativeClient = ISocketIOClientModule::Get().NewValidNativePointer();
-		}
-		
-		SetupCallbacks();
+		InitializeNative();
+	}
+}
+
+void USocketIOClientComponent::InitializeNative()
+{
+	if (bPluginScopedConnection)
+	{
+		NativeClient = ISocketIOClientModule::Get().ValidSharedNativePointer(PluginScopedId);
+	}
+	else
+	{
+		NativeClient = ISocketIOClientModule::Get().NewValidNativePointer();
 	}
 
+	SetupCallbacks();
 }
 
 void USocketIOClientComponent::BeginPlay()
@@ -58,6 +81,18 @@ void USocketIOClientComponent::BeginPlay()
 	if (bShouldAutoConnect && !bIsConnected)
 	{
 		Connect(AddressAndPort);
+	}
+}
+
+USocketIOClientComponent::~USocketIOClientComponent()
+{
+	ClearCallbacks();
+
+	//If we're a regular connection we should close and release when we quit
+	if (!bPluginScopedConnection && NativeClient.IsValid())
+	{
+		ISocketIOClientModule::Get().ReleaseNativePointer(NativeClient);
+		NativeClient = nullptr;
 	}
 }
 
@@ -184,6 +219,8 @@ void USocketIOClientComponent::ClearCallbacks()
 		NativeClient->ClearCallbacks();
 	}
 }
+
+
 
 bool USocketIOClientComponent::CallBPFunctionWithResponse(UObject* Target, const FString& FunctionName, TArray<TSharedPtr<FJsonValue>> Response)
 {
@@ -530,12 +567,12 @@ void USocketIOClientComponent::EmitNative(const FString& EventName, UStruct* Str
 
 void USocketIOClientComponent::BindEvent(const FString& EventName, const FString& Namespace)
 {
-	NativeClient->OnRawEvent(EventName, [&](const FString& Event, const sio::message::ptr& RawMessage) {
+	NativeClient->OnEvent(EventName, [&](const FString& Event, const TSharedPtr<FJsonValue>& EventValue)
+	{
 		USIOJsonValue* NewValue = NewObject<USIOJsonValue>();
-		auto Value = USIOMessageConvert::ToJsonValue(RawMessage);
-		NewValue->SetRootValue(Value);
+		TSharedPtr<FJsonValue> NonConstValue = EventValue;
+		NewValue->SetRootValue(NonConstValue);
 		OnEvent.Broadcast(Event, NewValue);
-
 	}, Namespace);
 }
 

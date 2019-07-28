@@ -59,6 +59,7 @@ void FSocketIONative::Connect(const FString& InAddressAndPort, const TSharedPtr<
 		PrivateClient->connect(StdAddressString, QueryMap, HeadersMap);
 
 	});
+
 }
 
 void FSocketIONative::Connect(const FString& InAddressAndPort)
@@ -195,8 +196,11 @@ void FSocketIONative::EmitRawBinary(const FString& EventName, uint8* Data, int32
 
 void FSocketIONative::OnEvent(const FString& EventName, TFunction< void(const FString&, const TSharedPtr<FJsonValue>&)> CallbackFunction, const FString& Namespace /*= FString(TEXT("/"))*/)
 {
-	//Keep track of all the bound functions
-	EventFunctionMap.Add(EventName, CallbackFunction);
+	//Keep track of all the bound native JsonValue functions
+	FSIOBoundEvent BoundEvent;
+	BoundEvent.Function = CallbackFunction;
+	BoundEvent.Namespace = Namespace;
+	EventFunctionMap.Add(EventName, BoundEvent);
 
 	OnRawEvent(EventName, [&, CallbackFunction](const FString& Event, const sio::message::ptr& RawMessage) {
 		CallbackFunction(Event, USIOMessageConvert::ToJsonValue(RawMessage));
@@ -255,6 +259,7 @@ void FSocketIONative::OnBinaryEvent(const FString& EventName, TFunction< void(co
 void FSocketIONative::UnbindEvent(const FString& EventName, const FString& Namespace /*= TEXT("/")*/)
 {
 	OnRawEvent(EventName, nullptr, Namespace);
+	EventFunctionMap.Remove(EventName);
 }
 
 void FSocketIONative::SetupInternalCallbacks()

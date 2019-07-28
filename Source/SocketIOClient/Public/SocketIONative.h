@@ -40,6 +40,13 @@ struct TSetFunctionWrapper
 	}
 };
 
+//used for early binds
+struct FSIOBoundEvent
+{
+	TFunction< void(const FString&, const TSharedPtr<FJsonValue>&)> Function;
+	FString Namespace;
+};
+
 
 class SOCKETIOCLIENT_API FSocketIONative
 {
@@ -54,7 +61,7 @@ public:
 	TFunction<void()> OnFailCallback;			
 
 	//Map for all native functions bound to this socket
-	TMap<FString, TFunction< void(const FString&, const TSharedPtr<FJsonValue>&)>> EventFunctionMap;
+	TMap<FString, FSIOBoundEvent> EventFunctionMap;
 
 	/** Default connection address string in form e.g. http://localhost:80. */
 	FString AddressAndPort;
