@@ -196,7 +196,7 @@ Supported Signatures:
 
 #### Emit With Graph Callback
 
-Since v1.1.0 you can use get a callback directly to your calling graph function. Use the ```Emit with Graph Callback``` function and simply drag off from the completed node to receive your result when your server uses the callback.
+Since v1.1.0 you can get a result directly to your calling graph function. Use the ```Emit with Graph Callback``` function and simply drag off from the completed node to receive your result when your server uses the callback. This feature should be useful to fetch data from the server without breaking your graph flow, reducing complexity.
 
 ![graph callback](https://i.imgur.com/CbFHxRj.png)
 
