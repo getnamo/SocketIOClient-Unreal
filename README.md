@@ -194,6 +194,16 @@ Supported Signatures:
 - Bool
 - Byte Array
 
+#### Emit With Graph Callback
+
+Since v1.1.0 you can use get a callback directly to your calling graph function. Use the ```Emit with Graph Callback``` function and simply drag off from the completed node to receive your result when your server uses the callback.
+
+![graph callback](https://i.imgur.com/CbFHxRj.png)
+
+Limitations:
+- Can only be used in Event Graphs (BP functions don't support latent functions)
+- The callback can only be used once by the server per emit. This is a UE4 limitation for latent actions. If you need to use the callback multiple times per emit consider using the ```Emit With Callback``` method which supports unlimited uses of the callback by the server.
+
 #### Emit with Callback node.js server example
 
 If you're unsure how the callbacks look like on the server side, here is a basic example:
