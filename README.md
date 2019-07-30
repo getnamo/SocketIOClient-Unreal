@@ -173,7 +173,7 @@ You can have a callback when, for example, you need an acknowledgement or if you
 
 ![IMG](http://i.imgur.com/Ed01Jq0.png)
 
-Instead of using *Emit* you use *Emit With Callback* and by default the target is the owning actor blueprint so you can leave that parameter blank and simply type your function name e.g. *OnEcho* function.
+Instead of using *Emit* you use *Emit With Callback* and by default the target is the calling blueprint so you can leave that parameter blank and simply type your function name e.g. *OnEcho* function.
 
 ![IMG](http://i.imgur.com/hXMXDd2.png)
 
@@ -193,6 +193,16 @@ Supported Signatures:
 - Int
 - Bool
 - Byte Array
+
+#### Emit With Graph Callback
+
+Since v1.1.0 you can get results directly to your calling graph function. Use the ```Emit with Graph Callback``` method and simply drag off from the completed node to receive your result when your server uses the callback. This feature should be useful for fetching data from the server without breaking your graph flow.
+
+![graph callback](https://i.imgur.com/CbFHxRj.png)
+
+Limitations:
+- Can only be used in Event Graphs (BP functions don't support latent actions)
+- The callback can only be used once by the server per emit. This is a UE4 limitation for latent actions. If you need to use the callback multiple times per emit consider using the other ```Emit With Callback``` method which supports unlimited uses of the callback by the server per emit.
 
 #### Emit with Callback node.js server example
 
