@@ -471,9 +471,111 @@ SIOClientComponent->EmitNative(FString("callbackTest"),  FTestCppStruct::StaticS
 });
 ```
 
+### Example c++ static construct actor component inside custom Game Instance
+
+SIOTestGameInstance.h
+```c++
+#include "CoreMinimal.h"
+#include "Engine/GameInstance.h"
+#include "SocketIOClientComponent.h"
+#include "SIOTestGameInstance.generated.h"
+
+UCLASS()
+class SIOCLIENT_API USIOTestGameInstance : public UGameInstance
+{
+	GENERATED_BODY()
+
+	virtual void Init() override;
+	virtual void Shutdown() override;
+	
+	UPROPERTY()
+	USocketIOClientComponent* SIOComponent;
+};
+```
+
+SIOTestGameInstance.cpp
+```c++
+#include "SIOTestGameInstance.h"
+#include "SocketIOClient.h"
+#include "SocketIOFunctionLibrary.h"
+
+
+void USIOTestGameInstance::Init()
+{
+	Super::Init();
+
+	//Store result in a UPROPERTY variable
+	SIOComponent = USocketIOFunctionLibrary::ConstructSocketIOComponent(this);
+	SIOComponent->Connect("http://localhost:3000", nullptr, nullptr);
+
+	SIOComponent->OnNativeEvent(TEXT("MyEvent"), [this](const FString& Event, const TSharedPtr<FJsonValue>& Message) 
+	{
+		UE_LOG(LogTemp, Log, TEXT("Received: %s"), *USIOJConvert::ToJsonString(Message));
+	});
+
+	SIOComponent->EmitNative(TEXT("MyEmit"), TEXT("hi"));
+}
+
+void USIOTestGameInstance::Shutdown()
+{
+	Super::Shutdown();
+}
+```
+
 ## C++ FSocketIONative
 
 If you do not wish to use UE4 AActors or UObjects, you can use the native base class [FSocketIONative](https://github.com/getnamo/socketio-client-ue4/blob/master/Source/SocketIOClient/Public/SocketIONative.h). Please see the class header for API. It generally follows a similar pattern to ```USocketIOClientComponent``` with the exception of native callbacks which you can for example see in use here: https://github.com/getnamo/socketio-client-ue4/blob/master/Source/SocketIOClient/Private/SocketIOClientComponent.cpp#L81
+
+### Example FSocketIONative Custom Game Instance
+
+SIOTestGameInstance.h
+```c++
+#include "CoreMinimal.h"
+#include "Engine/GameInstance.h"
+#include "SocketIONative.h"
+#include "SIOTestGameInstance.generated.h"
+UCLASS()
+class SIOCLIENT_API USIOTestGameInstance : public UGameInstance
+{
+	GENERATED_BODY()
+
+	virtual void Init() override;
+	virtual void Shutdown() override;
+	
+	TSharedPtr<FSocketIONative> Socket;
+};
+```
+SIOTestGameInstance.cpp
+```c++
+#include "SIOTestGameInstance.h"
+#include "SocketIOClient.h"
+void USIOTestGameInstance::Init()
+{
+	Super::Init();
+
+	Socket= ISocketIOClientModule::Get().NewValidNativePointer();
+	
+	Socket->Connect("http://localhost:3000", nullptr, nullptr);
+
+	Socket->OnEvent(TEXT("MyEvent"), [this](const FString& Event, const TSharedPtr<FJsonValue>& Message)
+		{
+			UE_LOG(LogTemp, Log, TEXT("Received: %s"), *USIOJConvert::ToJsonString(Message));
+		});
+
+	Socket->Emit(TEXT("MyEmit"), TEXT("hi"));
+}
+
+void USIOTestGameInstance::Shutdown()
+{
+	Super::Shutdown();
+
+	if (Socket.IsValid())
+	{
+		ISocketIOClientModule::Get().ReleaseNativePointer(NativeClient);
+		Socket = nullptr;
+	}
+}
+```
 
 ## Alternative Raw C++ Complex message using sio::message
 
