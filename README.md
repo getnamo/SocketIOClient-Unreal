@@ -487,9 +487,111 @@ SIOClientComponent->EmitNative(FString("callbackTest"),  FTestCppStruct::StaticS
 });
 ```
 
+### Example c++ static construct actor component inside custom Game Instance
+
+SIOTestGameInstance.h
+```c++
+#include "CoreMinimal.h"
+#include "Engine/GameInstance.h"
+#include "SocketIOClientComponent.h"
+#include "SIOTestGameInstance.generated.h"
+
+UCLASS()
+class SIOCLIENT_API USIOTestGameInstance : public UGameInstance
+{
+	GENERATED_BODY()
+
+	virtual void Init() override;
+	virtual void Shutdown() override;
+	
+	UPROPERTY()
+	USocketIOClientComponent* SIOComponent;
+};
+```
+
+SIOTestGameInstance.cpp
+```c++
+#include "SIOTestGameInstance.h"
+#include "SocketIOClient.h"
+#include "SocketIOFunctionLibrary.h"
+
+
+void USIOTestGameInstance::Init()
+{
+	Super::Init();
+
+	//Store result in a UPROPERTY variable
+	SIOComponent = USocketIOFunctionLibrary::ConstructSocketIOComponent(this);
+	SIOComponent->Connect("http://localhost:3000", nullptr, nullptr);
+
+	SIOComponent->OnNativeEvent(TEXT("MyEvent"), [this](const FString& Event, const TSharedPtr<FJsonValue>& Message) 
+	{
+		UE_LOG(LogTemp, Log, TEXT("Received: %s"), *USIOJConvert::ToJsonString(Message));
+	});
+
+	SIOComponent->EmitNative(TEXT("MyEmit"), TEXT("hi"));
+}
+
+void USIOTestGameInstance::Shutdown()
+{
+	Super::Shutdown();
+}
+```
+
 ## C++ FSocketIONative
 
 If you do not wish to use UE4 AActors or UObjects, you can use the native base class [FSocketIONative](https://github.com/getnamo/socketio-client-ue4/blob/master/Source/SocketIOClient/Public/SocketIONative.h). Please see the class header for API. It generally follows a similar pattern to ```USocketIOClientComponent``` with the exception of native callbacks which you can for example see in use here: https://github.com/getnamo/socketio-client-ue4/blob/master/Source/SocketIOClient/Private/SocketIOClientComponent.cpp#L81
+
+### Example FSocketIONative Custom Game Instance
+
+SIOTestGameInstance.h
+```c++
+#include "CoreMinimal.h"
+#include "Engine/GameInstance.h"
+#include "SocketIONative.h"
+#include "SIOTestGameInstance.generated.h"
+UCLASS()
+class SIOCLIENT_API USIOTestGameInstance : public UGameInstance
+{
+	GENERATED_BODY()
+
+	virtual void Init() override;
+	virtual void Shutdown() override;
+	
+	TSharedPtr<FSocketIONative> Socket;
+};
+```
+SIOTestGameInstance.cpp
+```c++
+#include "SIOTestGameInstance.h"
+#include "SocketIOClient.h"
+void USIOTestGameInstance::Init()
+{
+	Super::Init();
+
+	Socket= ISocketIOClientModule::Get().NewValidNativePointer();
+	
+	Socket->Connect("http://localhost:3000", nullptr, nullptr);
+
+	Socket->OnEvent(TEXT("MyEvent"), [this](const FString& Event, const TSharedPtr<FJsonValue>& Message)
+		{
+			UE_LOG(LogTemp, Log, TEXT("Received: %s"), *USIOJConvert::ToJsonString(Message));
+		});
+
+	Socket->Emit(TEXT("MyEmit"), TEXT("hi"));
+}
+
+void USIOTestGameInstance::Shutdown()
+{
+	Super::Shutdown();
+
+	if (Socket.IsValid())
+	{
+		ISocketIOClientModule::Get().ReleaseNativePointer(NativeClient);
+		Socket = nullptr;
+	}
+}
+```
 
 ## Alternative Raw C++ Complex message using sio::message
 
@@ -570,6 +672,17 @@ NativeClient->OnRawEvent([&](const FString& Name, const sio::message::ptr& Messa
 			
 		}, FString(TEXT("myArbitraryReceiveEvent")));
 ```
+
+## Http JSON requests
+
+Using e.g. https://gist.github.com/getnamo/ced1e6fbee122b640169f5fb867ed540 server
+
+You can post simple JSON requests using the SIOJRequest (this is the same architecture as [VARest](https://github.com/ufna/VaRest)). 
+
+![Sending a JSON post request](https://i.imgur.com/UOJHcP0.png)
+
+These request functions are available globally.
+
 ## Packaging
 
 ### C++
@@ -588,6 +701,8 @@ If you're using this as a project plugin you will need to convert your blueprint
 If you're using non-ssl connections (which as of 1.0 is all that is supported), then you need to enable ```Allow web connections to non-HTTPS websites```
 
 ![IOS platform setting](https://i.imgur.com/J7Xzy2j.png)
+
+Its possible you may also need to convert your IP4 to IP6, see https://github.com/getnamo/socketio-client-ue4/issues/136#issuecomment-515337500
 
 ### Android
 
