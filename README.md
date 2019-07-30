@@ -571,7 +571,7 @@ void USIOTestGameInstance::Shutdown()
 
 	if (Socket.IsValid())
 	{
-		ISocketIOClientModule::Get().ReleaseNativePointer(NativeClient);
+		ISocketIOClientModule::Get().ReleaseNativePointer(Socket);
 		Socket = nullptr;
 	}
 }
