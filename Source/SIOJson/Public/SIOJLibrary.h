@@ -44,7 +44,7 @@ struct FSIOJCallResponse
  * Usefull tools for REST communications
  */
 UCLASS()
-class USIOJLibrary : public UBlueprintFunctionLibrary
+class SIOJSON_API USIOJLibrary : public UBlueprintFunctionLibrary
 {
 	GENERATED_BODY()
 
