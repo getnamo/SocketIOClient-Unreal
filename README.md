@@ -511,7 +511,7 @@ void USIOTestGameInstance::Init()
 			UE_LOG(LogTemp, Log, TEXT("Received: %s"), *USIOJConvert::ToJsonString(Message));
 		});
 
-	Socket->Emit(TEXT("MyEmit"), TEXT("hi"));
+	Socket->Emit(TEXT("MyEmit"), FString("hi"));
 }
 
 void USIOTestGameInstance::Shutdown()
