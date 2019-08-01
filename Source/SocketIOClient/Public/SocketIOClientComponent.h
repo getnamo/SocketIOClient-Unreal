@@ -275,6 +275,19 @@ public:
 					const FString& Namespace = FString(TEXT("/")));
 
 	/**
+	* (Overloaded) Emit an event with a string message
+	*
+	* @param EventName				Event name
+	* @param StringMessage			Message in string format
+	* @param CallbackFunction		Optional callback TFunction
+	* @param Namespace				Optional Namespace within socket.io
+	*/
+	void EmitNative(const FString& EventName,
+		const SIO_TEXT_TYPE StringMessage = TEXT(""),
+		TFunction< void(const TArray<TSharedPtr<FJsonValue>>&)> CallbackFunction = nullptr,
+		const FString& Namespace = FString(TEXT("/")));
+
+	/**
 	* (Overloaded) Emit an event with a number (double) message
 	*
 	* @param EventName				Event name

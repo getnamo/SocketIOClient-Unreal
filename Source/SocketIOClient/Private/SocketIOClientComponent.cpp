@@ -560,6 +560,11 @@ void USocketIOClientComponent::EmitNative(const FString& EventName, UStruct* Str
 	EmitNative(EventName, USIOJConvert::ToJsonObject(Struct, (void*)StructPtr), CallbackFunction, Namespace);
 }
 
+void USocketIOClientComponent::EmitNative(const FString& EventName, const SIO_TEXT_TYPE StringMessage /*= TEXT("")*/, TFunction< void(const TArray<TSharedPtr<FJsonValue>>&)> CallbackFunction /*= nullptr*/, const FString& Namespace /*= FString(TEXT("/"))*/)
+{
+	EmitNative(EventName, MakeShareable(new FJsonValueString(FString(StringMessage))), CallbackFunction, Namespace);
+}
+
 #if PLATFORM_WINDOWS
 #pragma endregion Emit
 #pragma region OnEvents
