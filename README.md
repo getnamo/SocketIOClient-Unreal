@@ -471,7 +471,7 @@ SIOClientComponent->EmitNative(FString("callbackTest"),  FTestCppStruct::StaticS
 });
 ```
 
-### Example c++ static construct actor component inside custom Game Instance
+### Example c++ static construct actor component inside custom Game Instance (only available in 1.1.0 or newer)
 
 SIOTestGameInstance.h
 ```c++
