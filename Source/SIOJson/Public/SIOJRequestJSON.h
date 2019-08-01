@@ -58,6 +58,8 @@ public:
 		Cancel();
 	}
 
+
+#if WITH_EDITOR
 	virtual FString GetDescription() const override
 	{
 		if (Called)
@@ -69,6 +71,7 @@ public:
 			return TEXT("Pending.");
 		}
 	};
+#endif
 
 
 	const FName ExecutionFunction;

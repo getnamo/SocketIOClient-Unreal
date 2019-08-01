@@ -176,6 +176,8 @@ public:
 							const FString& Namespace = FString(TEXT("/")),
 							UObject* WorldContextObject = nullptr);
 
+#if WITH_EDITOR
+
 	/**
 	* Emit an event with a JsonValue message with a result callback directly into the event graph. This cannot be called from within blueprint functions.
 	*
@@ -191,6 +193,8 @@ public:
 								USIOJsonValue*& Result,
 								USIOJsonValue* Message = nullptr,
 								const FString& Namespace = FString(TEXT("/")));
+
+#endif // WITH_EDITOR
 
 	/**
 	* Bind an event, then respond to it with 'OnEvent' multi-cast delegate

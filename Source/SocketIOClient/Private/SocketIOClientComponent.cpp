@@ -474,6 +474,8 @@ void USocketIOClientComponent::EmitWithCallBack(const FString& EventName, USIOJs
 	}
 }
 
+#if WITH_EDITOR
+
 void USocketIOClientComponent::EmitWithGraphCallBack(const FString& EventName, struct FLatentActionInfo LatentInfo, USIOJsonValue*& Result, USIOJsonValue* Message /*= nullptr*/, const FString& Namespace /*= FString(TEXT("/"))*/)
 {
 	//Set the message is not null
@@ -519,6 +521,8 @@ void USocketIOClientComponent::EmitWithGraphCallBack(const FString& EventName, s
 		}, Namespace);
 	}
 }
+
+#endif //WITH_EDITOR
 
 void USocketIOClientComponent::EmitNative(const FString& EventName, const TSharedPtr<FJsonValue>& Message /*= nullptr*/, TFunction< void(const TArray<TSharedPtr<FJsonValue>>&)> CallbackFunction /*= nullptr*/, const FString& Namespace /*= FString(TEXT("/"))*/)
 {
