@@ -40,6 +40,13 @@ struct TSetFunctionWrapper
 	}
 };
 
+//used for early binds
+struct FSIOBoundEvent
+{
+	TFunction< void(const FString&, const TSharedPtr<FJsonValue>&)> Function;
+	FString Namespace;
+};
+
 
 class SOCKETIOCLIENT_API FSocketIONative
 {
@@ -54,7 +61,7 @@ public:
 	TFunction<void()> OnFailCallback;			
 
 	//Map for all native functions bound to this socket
-	TMap<FString, TFunction< void(const FString&, const TSharedPtr<FJsonValue>&)>> EventFunctionMap;
+	TMap<FString, FSIOBoundEvent> EventFunctionMap;
 
 	/** Default connection address string in form e.g. http://localhost:80. */
 	FString AddressAndPort;
@@ -152,6 +159,30 @@ public:
 	void Emit(
 		const FString& EventName,
 		const FString& StringMessage = FString(),
+		TFunction< void(const TArray<TSharedPtr<FJsonValue>>&)> CallbackFunction = nullptr,
+		const FString& Namespace = TEXT("/"));
+
+
+//flexible type allowing TEXT() passed as second param for overloaded emit
+#if !defined(SIO_TEXT_TYPE)
+	#if PLATFORM_TCHAR_IS_CHAR16
+		#define SIO_TEXT_TYPE char16_t*
+	#else
+		#define SIO_TEXT_TYPE wchar_t*
+	#endif
+#endif
+
+	/**
+	* (Overloaded) Emit an event with a string literal message
+	*
+	* @param EventName				Event name
+	* @param StringMessage			Message in string format
+	* @param CallbackFunction		Optional callback TFunction
+	* @param Namespace				Optional Namespace within socket.io
+	*/
+	void Emit(
+		const FString& EventName,
+		const SIO_TEXT_TYPE StringMessage = TEXT(""),
 		TFunction< void(const TArray<TSharedPtr<FJsonValue>>&)> CallbackFunction = nullptr,
 		const FString& Namespace = TEXT("/"));
 

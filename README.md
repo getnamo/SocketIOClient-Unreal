@@ -173,7 +173,7 @@ You can have a callback when, for example, you need an acknowledgement or if you
 
 ![IMG](http://i.imgur.com/Ed01Jq0.png)
 
-Instead of using *Emit* you use *Emit With Callback* and by default the target is the owning actor blueprint so you can leave that parameter blank and simply type your function name e.g. *OnEcho* function.
+Instead of using *Emit* you use *Emit With Callback* and by default the target is the calling blueprint so you can leave that parameter blank and simply type your function name e.g. *OnEcho* function.
 
 ![IMG](http://i.imgur.com/hXMXDd2.png)
 
@@ -193,6 +193,16 @@ Supported Signatures:
 - Int
 - Bool
 - Byte Array
+
+#### Emit With Graph Callback
+
+Since v1.1.0 you can get results directly to your calling graph function. Use the ```Emit with Graph Callback``` method and simply drag off from the completed node to receive your result when your server uses the callback. This feature should be useful for fetching data from the server without breaking your graph flow.
+
+![graph callback](https://i.imgur.com/CbFHxRj.png)
+
+Limitations:
+- Can only be used in Event Graphs (BP functions don't support latent actions)
+- The callback can only be used once by the server per emit. This is a UE4 limitation for latent actions. If you need to use the callback multiple times per emit consider using the other ```Emit With Callback``` method which supports unlimited uses of the callback by the server per emit.
 
 #### Emit with Callback node.js server example
 
@@ -243,6 +253,22 @@ If you want your connection to survive level transitions, you can tick the class
 ![plugin scoped connection](https://i.imgur.com/lE8BHbN.png)
 
 This does mean that you may not receive events during times your actor does not have a world (such as a level transition without using a persistent parent map to which the socket.io component actor belongs). If this doesn't work for you consider switching to C++ and using [FSocketIONative](https://github.com/getnamo/socketio-client-ue4#c-fsocketionative), which doesn't doesn't depend on using an actor component.
+
+### Statically Constructed SocketIOClient Component
+
+Since v1.1.0 there is a BPFunctionLibrary method ```Construct SocketIOComponent``` which creates and correctly initializes the component in various execution contexts. This allows you to add and reference a SocketIOClient component inside a non-actor blueprint. Below is an example use pattern. It's important to save the result from the construct function into a member variable of your blueprint or the component will be garbage collected.
+
+![static example](https://i.imgur.com/EX4anxd.png)
+
+#### Note on Auto-connect
+
+Game modes do have actor owners and will correctly respect ```bShouldAutoConnect```. The connection happens one tick after construction so you can disable the toggle and connect at own time.
+
+Game Instances do *not* have actor owners and therefore cannot register and initialize the component. The only drawback is that you must manually connect. ```bShouldAutoConnect``` is disabled in this context.
+
+#### Note on Emit with Graph Callback
+
+Non actor-owners such as Game Instances cannot receive the graph callbacks due to invalid world context. This only affects this one callback method, other methods work as usual.
 
 ## How to use - C++
 

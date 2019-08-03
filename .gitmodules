@@ -1,0 +1,9 @@
+[submodule "Source/ThirdParty/websocketpp"]
+	path = Source/ThirdParty/websocketpp
+	url = https://github.com/getnamo/websocketpp
+[submodule "Source/ThirdParty/rapidjson"]
+	path = Source/ThirdParty/rapidjson
+	url = https://github.com/getnamo/rapidjson
+[submodule "Source/ThirdParty/asio"]
+	path = Source/ThirdParty/asio
+	url = https://github.com/getnamo/asio

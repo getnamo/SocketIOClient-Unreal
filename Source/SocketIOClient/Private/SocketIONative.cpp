@@ -59,6 +59,7 @@ void FSocketIONative::Connect(const FString& InAddressAndPort, const TSharedPtr<
 		PrivateClient->connect(StdAddressString, QueryMap, HeadersMap);
 
 	});
+
 }
 
 void FSocketIONative::Connect(const FString& InAddressAndPort)
@@ -107,24 +108,32 @@ void FSocketIONative::ClearCallbacks()
 
 void FSocketIONative::Emit(const FString& EventName, const TSharedPtr<FJsonValue>& Message /*= nullptr*/, TFunction< void(const TArray<TSharedPtr<FJsonValue>>&)> CallbackFunction /*= nullptr*/, const FString& Namespace /*= FString(TEXT("/"))*/)
 {
-	const auto SafeCallback = CallbackFunction;
+	TFunction<void(const sio::message::list&)> RawCallback = nullptr;
+
+	//Only bind the raw callback if we pass in a callback ourselves;
+	if (CallbackFunction)
+	{
+		RawCallback = [&, CallbackFunction](const sio::message::list& MessageList)
+		{
+			TArray<TSharedPtr<FJsonValue>> ValueArray;
+
+			for (uint32 i = 0; i < MessageList.size(); i++)
+			{
+				auto ItemMessagePtr = MessageList[i];
+				ValueArray.Add(USIOMessageConvert::ToJsonValue(ItemMessagePtr));
+			}
+			if (CallbackFunction)
+			{
+				CallbackFunction(ValueArray);
+			}
+		};
+	}
+
 	EmitRaw(
 		EventName,
 		USIOMessageConvert::ToSIOMessage(Message),
-		[&, SafeCallback](const sio::message::list& MessageList)
-	{
-		TArray<TSharedPtr<FJsonValue>> ValueArray;
-
-		for (uint32 i = 0; i < MessageList.size(); i++)
-		{
-			auto ItemMessagePtr = MessageList[i];
-			ValueArray.Add(USIOMessageConvert::ToJsonValue(ItemMessagePtr));
-		}
-		if (SafeCallback)
-		{
-			SafeCallback(ValueArray);
-		}
-	}, Namespace);
+		RawCallback,
+		Namespace);
 }
 
 void FSocketIONative::Emit(const FString& EventName, const TSharedPtr<FJsonObject>& ObjectMessage /*= nullptr*/, TFunction< void(const TArray<TSharedPtr<FJsonValue>>&)> CallbackFunction /*= nullptr*/, const FString& Namespace /*= FString(TEXT("/"))*/)
@@ -168,24 +177,38 @@ void FSocketIONative::Emit(const FString& EventName, TFunction< void(const TArra
 	Emit(EventName, NoneValue, CallbackFunction, Namespace);
 }
 
+void FSocketIONative::Emit(const FString& EventName, const SIO_TEXT_TYPE StringMessage /*= TEXT("")*/, TFunction< void(const TArray<TSharedPtr<FJsonValue>>&)> CallbackFunction /*= nullptr*/, const FString& Namespace /*= TEXT("/")*/)
+{
+	Emit(EventName, MakeShareable(new FJsonValueString(FString(StringMessage))), CallbackFunction, Namespace);
+}
+
 void FSocketIONative::EmitRaw(const FString& EventName, const sio::message::list& MessageList /*= nullptr*/, TFunction<void(const sio::message::list&)> CallbackFunction /*= nullptr*/, const FString& Namespace /*= FString(TEXT("/"))*/)
 {
-	const TFunction<void(const sio::message::list&)> SafeFunction = CallbackFunction;
+	std::function<void(sio::message::list const&)> RawCallback = nullptr;
+
+	//Only have non-null raw callback if we pass in a callback function
+	if (CallbackFunction)
+	{
+		RawCallback = [&, CallbackFunction](const sio::message::list& response)
+		{
+			if (CallbackFunction != nullptr)
+			{
+				//Callback on game thread
+				FFunctionGraphTask::CreateAndDispatchWhenReady([&, CallbackFunction, response]
+				{
+					if (CallbackFunction)
+					{
+						CallbackFunction(response);
+					}
+				}, TStatId(), nullptr, ENamedThreads::GameThread);
+			}
+		};
+	}
 
 	PrivateClient->socket(USIOMessageConvert::StdString(Namespace))->emit(
 		USIOMessageConvert::StdString(EventName),
 		MessageList,
-		[&, SafeFunction](const sio::message::list& response)
-	{
-		if (SafeFunction != nullptr)
-		{
-			//Callback on game thread
-			FFunctionGraphTask::CreateAndDispatchWhenReady([&, SafeFunction, response]
-			{
-				SafeFunction(response);
-			}, TStatId(), nullptr, ENamedThreads::GameThread);
-		}
-	});
+		RawCallback);
 }
 
 void FSocketIONative::EmitRawBinary(const FString& EventName, uint8* Data, int32 DataLength, const FString& Namespace /*= FString(TEXT("/"))*/)
@@ -195,8 +218,11 @@ void FSocketIONative::EmitRawBinary(const FString& EventName, uint8* Data, int32
 
 void FSocketIONative::OnEvent(const FString& EventName, TFunction< void(const FString&, const TSharedPtr<FJsonValue>&)> CallbackFunction, const FString& Namespace /*= FString(TEXT("/"))*/)
 {
-	//Keep track of all the bound functions
-	EventFunctionMap.Add(EventName, CallbackFunction);
+	//Keep track of all the bound native JsonValue functions
+	FSIOBoundEvent BoundEvent;
+	BoundEvent.Function = CallbackFunction;
+	BoundEvent.Namespace = Namespace;
+	EventFunctionMap.Add(EventName, BoundEvent);
 
 	OnRawEvent(EventName, [&, CallbackFunction](const FString& Event, const sio::message::ptr& RawMessage) {
 		CallbackFunction(Event, USIOMessageConvert::ToJsonValue(RawMessage));
@@ -255,6 +281,7 @@ void FSocketIONative::OnBinaryEvent(const FString& EventName, TFunction< void(co
 void FSocketIONative::UnbindEvent(const FString& EventName, const FString& Namespace /*= TEXT("/")*/)
 {
 	OnRawEvent(EventName, nullptr, Namespace);
+	EventFunctionMap.Remove(EventName);
 }
 
 void FSocketIONative::SetupInternalCallbacks()

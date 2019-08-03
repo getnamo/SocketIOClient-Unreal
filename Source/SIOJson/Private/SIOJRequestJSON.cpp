@@ -209,6 +209,7 @@ void USIOJRequestJSON::ApplyURL(const FString& Url, USIOJsonObject *&Result, UOb
 		FLatentActionManager& LatentActionManager = World->GetLatentActionManager();
 		FSIOJLatentAction<USIOJsonObject*> *Kont = LatentActionManager.FindExistingAction<FSIOJLatentAction<USIOJsonObject*>>(LatentInfo.CallbackTarget, LatentInfo.UUID);
 
+
 		if (Kont != nullptr)
 		{
 			Kont->Cancel();
