@@ -63,12 +63,14 @@ namespace
 				if (IntValue == INDEX_NONE)
 				{
 					//Failed 'NewEnumeratorX' lookup, try via DisplayNames
+					const FString LowerStrValue = StrValue.ToLower();
 					
 					//blueprints only support int8 sized enums
 					int8 MaxEnum = (int8)Enum->GetMaxEnumValue();
 					for (int32 i = 0; i < MaxEnum; i++) 
 					{
-						if(StrValue.Equals(Enum->GetDisplayNameTextByIndex(i).ToString()))
+						//Case insensitive match
+						if(StrValue.Equals(Enum->GetDisplayNameTextByIndex(i).ToString().ToLower()))
 						{
 							IntValue = i;
 						}
