@@ -308,7 +308,8 @@ void FSocketIONative::UnbindEvent(const FString& EventName, const FString& Names
 
 void FSocketIONative::SetupInternalCallbacks()
 {
-	PrivateClient->set_open_listener(sio::client::con_listener([&]() {
+	PrivateClient->set_open_listener(sio::client::con_listener([&]() 
+	{
 		//too early to get session id here so we defer the connection event until we connect to a namespace
 	}));
 
