@@ -64,7 +64,7 @@ void USocketIOClientComponent::InitializeNative()
 	{
 		NativeClient = ISocketIOClientModule::Get().ValidSharedNativePointer(PluginScopedId);
 
-		//This is the default option, but this component requires this to be always true
+		//Enforcement: This is the default FSocketIONative option value, but this component requires it to be always true.
 		NativeClient->bCallbackOnGameThread = true;
 	}
 	else
