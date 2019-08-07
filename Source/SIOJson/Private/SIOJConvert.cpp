@@ -232,10 +232,10 @@ TSharedPtr<FJsonObject> USIOJConvert::ToJsonObject(UStruct* StructDefinition, vo
 		{
 			EnumOverrideExportCallback.BindLambda([](UProperty* Property, const void* Value)
 			{
-				if (UEnumProperty* EnumProperty = Cast<UEnumProperty>(Property))
+				if (UByteProperty* BPEnumProperty = Cast<UByteProperty>(Property))
 				{
 					//Override default enum behavior by fetching display name text
-					UEnum* EnumDef = EnumProperty->GetEnum();
+					UEnum* EnumDef = BPEnumProperty->Enum;
 					int32 IntValue = *(int32*)Value;
 					FString StringValue = EnumDef->GetDisplayNameTextByIndex(IntValue).ToString();
 					
