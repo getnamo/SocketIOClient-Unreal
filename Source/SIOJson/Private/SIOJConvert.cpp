@@ -275,6 +275,12 @@ bool USIOJConvert::JsonObjectToUStruct(TSharedPtr<FJsonObject> JsonObject, UStru
 		TSharedPtr<FJsonValue> JsonValue = MakeShareable(new FJsonValueObject(JsonObject));
 		ReplaceJsonValueNamesWithMap(JsonValue, KeyMap);
 
+		/*Todo: add support for enums by pretty name and not by NewEnumeratorX
+		Will require re-writing FJsonObjectConverter::JsonObjectToUStruct to lookup by display name in numeric case
+		of https://github.com/EpicGames/UnrealEngine/blob/release/Engine/Source/Runtime/JsonUtilities/Private/JsonObjectConverter.cpp#L377, 
+		or getting engine pull request merge.
+		*/
+
 		//Now it's a regular struct and will fill correctly
 		return JsonObjectToUStruct(JsonObject, Struct, StructPtr, false);
 	}
