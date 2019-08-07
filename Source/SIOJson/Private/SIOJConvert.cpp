@@ -8,7 +8,6 @@
 #include "Runtime/Core/Public/Misc/FileHelper.h"
 #include "SIOJsonValue.h"
 #include "SIOJsonObject.h"
-#include "Runtime/Engine/Classes/Engine/UserDefinedEnum.h"
 #include "Runtime/JsonUtilities/Public/JsonObjectConverter.h"
 
 typedef TJsonWriterFactory< TCHAR, TCondensedJsonPrintPolicy<TCHAR> > FCondensedJsonStringWriterFactory;
@@ -248,39 +247,6 @@ TSharedPtr<FJsonObject> USIOJConvert::ToJsonObject(UStruct* StructDefinition, vo
 	else
 	{
 		TSharedRef<FJsonObject> JsonObject = MakeShareable(new FJsonObject);
-
-		/* Temp hijack for debugging*/
-
-		for (TFieldIterator<UProperty> It(StructDefinition); It; ++It)
-		{
-			UProperty* Property = *It;
-			FString VariableName = Property->GetName();
-			const void* Value = Property->ContainerPtrToValuePtr<uint8>(StructPtr);
-			
-
-			bool bIsEnum = Property->IsA<UByteProperty>();
-
-			
-
-			if (bIsEnum)
-			{
-				UByteProperty* ByteProp = Cast<UByteProperty>(Property);
-
-				//UUserDefinedEnum* BPEnum = Cast<UUserDefinedEnum>(ByteProp->Enum);
-
-				
-				int32 IntValue = *(int32*)Value;
-				FString EnumString = ByteProp->Enum->GetDisplayNameTextByIndex(IntValue).ToString();
-
-
-				UE_LOG(LogTemp, Log, TEXT("%s with enum %s"), *VariableName, *EnumString);
-			}
-			else
-			{
-				UE_LOG(LogTemp, Log, TEXT("%s"), *VariableName);
-			}
-
-		}
 
 		if (!EnumOverrideExportCallback.IsBound())
 		{
