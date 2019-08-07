@@ -212,22 +212,11 @@ TSharedPtr<FJsonObject> USIOJConvert::ToJsonObject(const FString& JsonString)
 
 TSharedPtr<FJsonObject> USIOJConvert::ToJsonObject(UStruct* StructDefinition, void* StructPtr, bool IsBlueprintStruct)
 {	
+	TSharedRef<FJsonObject> JsonObject = MakeShareable(new FJsonObject);
+
 	if (IsBlueprintStruct)
 	{
-		//Get the object keys
-		TSharedPtr<FJsonObject> Object = ToJsonObject(StructDefinition, StructPtr, false);
-
-		//Wrap it into a value and pass it into the trimmer
-		TSharedPtr<FJsonValue> JsonValue = MakeShareable(new FJsonValueObject(Object));
-		TrimValueKeyNames(JsonValue);
-
-		//Return object with trimmed names
-		return JsonValue->AsObject();
-	}
-	else
-	{
-		TSharedRef<FJsonObject> JsonObject = MakeShareable(new FJsonObject);
-
+		//Handle BP enum override
 		if (!EnumOverrideExportCallback.IsBound())
 		{
 			EnumOverrideExportCallback.BindLambda([](UProperty* Property, const void* Value)
@@ -238,7 +227,7 @@ TSharedPtr<FJsonObject> USIOJConvert::ToJsonObject(UStruct* StructDefinition, vo
 					UEnum* EnumDef = BPEnumProperty->Enum;
 					int32 IntValue = *(int32*)Value;
 					FString StringValue = EnumDef->GetDisplayNameTextByIndex(IntValue).ToString();
-					
+
 					return (TSharedPtr<FJsonValue>)MakeShared<FJsonValueString>(StringValue);
 				}
 
@@ -246,8 +235,20 @@ TSharedPtr<FJsonObject> USIOJConvert::ToJsonObject(UStruct* StructDefinition, vo
 				return TSharedPtr<FJsonValue>();
 			});
 		}
-		
-		bool success = FJsonObjectConverter::UStructToJsonObject(StructDefinition, StructPtr, JsonObject, 0, 0, &EnumOverrideExportCallback);
+
+		//Get the object keys
+		FJsonObjectConverter::UStructToJsonObject(StructDefinition, StructPtr, JsonObject, 0, 0, &EnumOverrideExportCallback);
+
+		//Wrap it into a value and pass it into the trimmer
+		TSharedPtr<FJsonValue> JsonValue = MakeShareable(new FJsonValueObject(JsonObject));
+		TrimValueKeyNames(JsonValue);
+
+		//Return object with trimmed names
+		return JsonValue->AsObject();
+	}
+	else
+	{
+		FJsonObjectConverter::UStructToJsonObject(StructDefinition, StructPtr, JsonObject, 0, 0);
 		return JsonObject;
 	}
 }
