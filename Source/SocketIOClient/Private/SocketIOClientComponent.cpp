@@ -2,7 +2,6 @@
 
 
 #include "SocketIOClientComponent.h"
-#include "LambdaRunnable.h"
 #include "SIOJConvert.h"
 #include "SIOJRequestJSON.h"
 #include "SocketIOClient.h"
@@ -64,6 +63,9 @@ void USocketIOClientComponent::InitializeNative()
 	if (bPluginScopedConnection)
 	{
 		NativeClient = ISocketIOClientModule::Get().ValidSharedNativePointer(PluginScopedId);
+
+		//This is the default option, but this component requires this to be always true
+		NativeClient->bCallbackOnGameThread = true;
 	}
 	else
 	{
@@ -127,58 +129,47 @@ void USocketIOClientComponent::SetupCallbacks()
 
 	NativeClient->OnConnectedCallback = [this](const FString& InSessionId)
 	{
-		FLambdaRunnable::RunShortLambdaOnGameThread([this, InSessionId]
+		if (NativeClient.IsValid())
 		{
-			if (this)
-			{
-				bIsConnected = true;
-				SessionId = InSessionId;
-				OnConnected.Broadcast(SessionId, bIsHavingConnectionProblems);
-				bIsHavingConnectionProblems = false;
-			}
-		});
+			bIsConnected = true;
+			SessionId = InSessionId;
+			OnConnected.Broadcast(SessionId, bIsHavingConnectionProblems);
+			bIsHavingConnectionProblems = false;
+		}
 	};
 
 	const FSIOCCloseEventSignature OnDisconnectedSafe = OnDisconnected;
 
 	NativeClient->OnDisconnectedCallback = [OnDisconnectedSafe, this](const ESIOConnectionCloseReason Reason)
 	{
-		FLambdaRunnable::RunShortLambdaOnGameThread([OnDisconnectedSafe, this, Reason]
+		if (NativeClient.IsValid())
 		{
-			if (this && OnDisconnectedSafe.IsBound())
-			{
-				bIsConnected = false;
-				OnDisconnectedSafe.Broadcast(Reason);
-			}
-		});
+			bIsConnected = false;
+			OnDisconnectedSafe.Broadcast(Reason);
+		}
 	};
 
 	NativeClient->OnNamespaceConnectedCallback = [this](const FString& Namespace)
 	{
-		FLambdaRunnable::RunShortLambdaOnGameThread([this, Namespace]
+		if (NativeClient.IsValid())
 		{
-			if (this && OnSocketNamespaceConnected.IsBound())
-			{
-				OnSocketNamespaceConnected.Broadcast(Namespace);
-			}
-		});
+			OnSocketNamespaceConnected.Broadcast(Namespace);
+		}
 	};
 
 	const FSIOCSocketEventSignature OnSocketNamespaceDisconnectedSafe = OnSocketNamespaceDisconnected;
 
 	NativeClient->OnNamespaceDisconnectedCallback = [this, OnSocketNamespaceDisconnectedSafe](const FString& Namespace)
 	{
-		FLambdaRunnable::RunShortLambdaOnGameThread([OnSocketNamespaceDisconnectedSafe, this, Namespace]
+
+		if (NativeClient.IsValid())
 		{
-			if (this && OnSocketNamespaceDisconnectedSafe.IsBound())
-			{
-				OnSocketNamespaceDisconnectedSafe.Broadcast(Namespace);
-			}
-		});
+			OnSocketNamespaceDisconnectedSafe.Broadcast(Namespace);
+		}
 	};
 	NativeClient->OnReconnectionCallback = [this](const uint32 AttemptCount, const uint32 DelayInMs)
 	{
-		FLambdaRunnable::RunShortLambdaOnGameThread([this, AttemptCount, DelayInMs]
+		if (NativeClient.IsValid())
 		{
 			//First time we know about this problem?
 			if (!bIsHavingConnectionProblems)
@@ -190,25 +181,22 @@ void USocketIOClientComponent::SetupCallbacks()
 			FTimespan Difference = FDateTime::Now() - TimeWhenConnectionProblemsStarted;
 			float ElapsedInSec = Difference.GetTotalSeconds();
 
-			if (ReconnectionTimeout > 0 && ElapsedInSec>ReconnectionTimeout)
+			if (ReconnectionTimeout > 0 && ElapsedInSec > ReconnectionTimeout)
 			{
 				//Let's stop trying and disconnect if we're using timeouts
 				Disconnect();
 			}
 
-			if (this && OnConnectionProblems.IsBound())
-			{
-				OnConnectionProblems.Broadcast(AttemptCount, DelayInMs, ElapsedInSec);
-			}
-		});
+			OnConnectionProblems.Broadcast(AttemptCount, DelayInMs, ElapsedInSec);
+		}
 	};
 
 	NativeClient->OnFailCallback = [this]()
 	{
-		FLambdaRunnable::RunShortLambdaOnGameThread([this]
+		if(NativeClient.IsValid())
 		{
 			OnFail.Broadcast();
-		});
+		};
 	};
 }
 
