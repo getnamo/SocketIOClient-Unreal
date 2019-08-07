@@ -20,26 +20,6 @@ namespace
 {
 	FJsonObjectConverter::CustomExportCallback EnumOverrideExportCallback;
 }
-//overwrite the FJsonObjectConverter to correctly handle enums
-namespace
-{
-
-
-	/** Convert property to JSON, assuming either the property is not an array or the value is an individual array element */
-	TSharedPtr<FJsonValue> ConvertScalarUPropertyToJsonValue(UProperty* Property, const void* Value, int64 CheckFlags, int64 SkipFlags, const FJsonObjectConverter::CustomExportCallback* ExportCb)
-	{
-		if (UEnumProperty* EnumProperty = Cast<UEnumProperty>(Property))
-		{
-			// export enums as strings
-			UEnum* EnumDef = EnumProperty->GetEnum();
-			FString StringValue = EnumDef->GetNameStringByValue(EnumProperty->GetUnderlyingProperty()->GetSignedIntPropertyValue(Value));
-			return MakeShared<FJsonValueString>(StringValue);
-		}
-
-		// invalid
-		return TSharedPtr<FJsonValue>();
-	}
-}
 
 
 FString FTrimmedKeyMap::ToString()
