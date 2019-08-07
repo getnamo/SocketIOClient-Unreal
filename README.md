@@ -169,7 +169,7 @@ Supported auto-conversion
 
 ### Emit with Callback
 
-You can have a callback when, for example, you need an acknowledgement or if you're fetching data from the server. You can respond to this callback straight in your blueprint.
+You can have a callback when, for example, you need an acknowledgement or if you're fetching data from the server. You can respond to this callback straight in your blueprint. Keep in mind that the server can only use the callback *once* per emit.
 
 ![IMG](http://i.imgur.com/Ed01Jq0.png)
 
@@ -202,7 +202,6 @@ Since v1.1.0 you can get results directly to your calling graph function. Use th
 
 Limitations:
 - Can only be used in Event Graphs (BP functions don't support latent actions)
-- The callback can only be used once by the server per emit. This is a UE4 limitation for latent actions. If you need to use the callback multiple times per emit consider using the other ```Emit With Callback``` method which supports unlimited uses of the callback by the server per emit.
 
 #### Emit with Callback node.js server example
 
