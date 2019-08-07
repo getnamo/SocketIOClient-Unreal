@@ -5,16 +5,42 @@
 //#include "Runtime/Json/Public/Json.h"
 #include "JsonGlobals.h"
 #include "Policies/CondensedJsonPrintPolicy.h"
-#include "Runtime/JsonUtilities/Public/JsonObjectConverter.h"
 #include "Runtime/Core/Public/Misc/FileHelper.h"
 #include "SIOJsonValue.h"
 #include "SIOJsonObject.h"
+#include "Runtime/Engine/Classes/Engine/UserDefinedEnum.h"
+#include "Runtime/JsonUtilities/Public/JsonObjectConverter.h"
 
 typedef TJsonWriterFactory< TCHAR, TCondensedJsonPrintPolicy<TCHAR> > FCondensedJsonStringWriterFactory;
 typedef TJsonWriter< TCHAR, TCondensedJsonPrintPolicy<TCHAR> > FCondensedJsonStringWriter;
 
 //The one key that will break
 #define TMAP_STRING TEXT("!__!INTERNAL_TMAP")
+
+namespace 
+{
+	FJsonObjectConverter::CustomExportCallback EnumOverrideExportCallback;
+}
+//overwrite the FJsonObjectConverter to correctly handle enums
+namespace
+{
+
+
+	/** Convert property to JSON, assuming either the property is not an array or the value is an individual array element */
+	TSharedPtr<FJsonValue> ConvertScalarUPropertyToJsonValue(UProperty* Property, const void* Value, int64 CheckFlags, int64 SkipFlags, const FJsonObjectConverter::CustomExportCallback* ExportCb)
+	{
+		if (UEnumProperty* EnumProperty = Cast<UEnumProperty>(Property))
+		{
+			// export enums as strings
+			UEnum* EnumDef = EnumProperty->GetEnum();
+			FString StringValue = EnumDef->GetNameStringByValue(EnumProperty->GetUnderlyingProperty()->GetSignedIntPropertyValue(Value));
+			return MakeShared<FJsonValueString>(StringValue);
+		}
+
+		// invalid
+		return TSharedPtr<FJsonValue>();
+	}
+}
 
 
 FString FTrimmedKeyMap::ToString()
@@ -203,12 +229,14 @@ TSharedPtr<FJsonObject> USIOJConvert::ToJsonObject(const FString& JsonString)
 	return JsonObject;
 }
 
-TSharedPtr<FJsonObject> USIOJConvert::ToJsonObject(UStruct* Struct, void* StructPtr, bool IsBlueprintStruct)
+
+
+TSharedPtr<FJsonObject> USIOJConvert::ToJsonObject(UStruct* StructDefinition, void* StructPtr, bool IsBlueprintStruct)
 {	
 	if (IsBlueprintStruct)
 	{
 		//Get the object keys
-		TSharedPtr<FJsonObject> Object = ToJsonObject(Struct, StructPtr, false);
+		TSharedPtr<FJsonObject> Object = ToJsonObject(StructDefinition, StructPtr, false);
 
 		//Wrap it into a value and pass it into the trimmer
 		TSharedPtr<FJsonValue> JsonValue = MakeShareable(new FJsonValueObject(Object));
@@ -220,7 +248,60 @@ TSharedPtr<FJsonObject> USIOJConvert::ToJsonObject(UStruct* Struct, void* Struct
 	else
 	{
 		TSharedRef<FJsonObject> JsonObject = MakeShareable(new FJsonObject);
-		bool success = FJsonObjectConverter::UStructToJsonObject(Struct, StructPtr, JsonObject, 0, 0);
+
+		/* Temp hijack for debugging*/
+
+		for (TFieldIterator<UProperty> It(StructDefinition); It; ++It)
+		{
+			UProperty* Property = *It;
+			FString VariableName = Property->GetName();
+			const void* Value = Property->ContainerPtrToValuePtr<uint8>(StructPtr);
+			
+
+			bool bIsEnum = Property->IsA<UByteProperty>();
+
+			
+
+			if (bIsEnum)
+			{
+				UByteProperty* ByteProp = Cast<UByteProperty>(Property);
+
+				//UUserDefinedEnum* BPEnum = Cast<UUserDefinedEnum>(ByteProp->Enum);
+
+				
+				int32 IntValue = *(int32*)Value;
+				FString EnumString = ByteProp->Enum->GetDisplayNameTextByIndex(IntValue).ToString();
+
+
+				UE_LOG(LogTemp, Log, TEXT("%s with enum %s"), *VariableName, *EnumString);
+			}
+			else
+			{
+				UE_LOG(LogTemp, Log, TEXT("%s"), *VariableName);
+			}
+
+		}
+
+		if (!EnumOverrideExportCallback.IsBound())
+		{
+			EnumOverrideExportCallback.BindLambda([](UProperty* Property, const void* Value)
+			{
+				if (UEnumProperty* EnumProperty = Cast<UEnumProperty>(Property))
+				{
+					//Override default enum behavior by fetching display name text
+					UEnum* EnumDef = EnumProperty->GetEnum();
+					int32 IntValue = *(int32*)Value;
+					FString StringValue = EnumDef->GetDisplayNameTextByIndex(IntValue).ToString();
+					
+					return (TSharedPtr<FJsonValue>)MakeShared<FJsonValueString>(StringValue);
+				}
+
+				// invalid
+				return TSharedPtr<FJsonValue>();
+			});
+		}
+		
+		bool success = FJsonObjectConverter::UStructToJsonObject(StructDefinition, StructPtr, JsonObject, 0, 0, &EnumOverrideExportCallback);
 		return JsonObject;
 	}
 }
@@ -505,4 +586,10 @@ void USIOJConvert::ReplaceJsonValueNamesWithMap(TSharedPtr<FJsonValue>& JsonValu
 			ReplaceJsonValueNamesWithMap(Item, KeyMap);
 		}
 	}
+}
+
+FString USIOJConvert::EnumToString(const FString& enumName, const int32 value)
+{
+	UEnum* pEnum = FindObject<UEnum>(ANY_PACKAGE, *enumName);
+	return *(pEnum ? pEnum->GetNameStringByIndex(static_cast<uint8>(value)) : "null");
 }
