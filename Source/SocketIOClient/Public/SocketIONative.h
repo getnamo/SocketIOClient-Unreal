@@ -84,6 +84,9 @@ public:
 	/** If set to true, each state change callback will log to console*/
 	bool VerboseLog;
 
+	/** If true, all callbacks and events will occur on game thread. Default true. */
+	bool bCallbackOnGameThread;
+
 	FSocketIONative();
 
 	/**

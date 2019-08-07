@@ -18,6 +18,7 @@ FSocketIONative::FSocketIONative()
 	bIsConnected = false;
 	MaxReconnectionAttempts = -1;
 	ReconnectionDelay = 5000;
+	bCallbackOnGameThread = true;
 
 	PrivateClient = MakeShareable(new sio::client);
 
@@ -194,13 +195,20 @@ void FSocketIONative::EmitRaw(const FString& EventName, const sio::message::list
 			if (CallbackFunction != nullptr)
 			{
 				//Callback on game thread
-				FFunctionGraphTask::CreateAndDispatchWhenReady([&, CallbackFunction, response]
+				if (bCallbackOnGameThread)
 				{
-					if (CallbackFunction)
+					FLambdaRunnable::RunShortLambdaOnGameThread([&, CallbackFunction, response]
 					{
-						CallbackFunction(response);
-					}
-				}, TStatId(), nullptr, ENamedThreads::GameThread);
+						if (CallbackFunction)
+						{
+							CallbackFunction(response);
+						}
+					});
+				}
+				else
+				{
+					CallbackFunction(response);
+				}
 			}
 		};
 	}
@@ -240,10 +248,17 @@ void FSocketIONative::OnRawEvent(const FString& EventName, TFunction< void(const
 	{
 		const FString SafeName = USIOMessageConvert::FStringFromStd(name);
 
-		FFunctionGraphTask::CreateAndDispatchWhenReady([&, SafeFunction, SafeName, data]
+		if (bCallbackOnGameThread)
+		{
+			FLambdaRunnable::RunShortLambdaOnGameThread([&, SafeFunction, SafeName, data]
+			{
+				SafeFunction(SafeName, data);
+			});
+		}
+		else
 		{
 			SafeFunction(SafeName, data);
-		}, TStatId(), nullptr, ENamedThreads::GameThread);
+		}
 	}));
 }
 
@@ -266,10 +281,17 @@ void FSocketIONative::OnBinaryEvent(const FString& EventName, TFunction< void(co
 			auto MessageBuffer = data->get_binary();
 			Buffer.Append((uint8*)(MessageBuffer->data()), BufferSize);
 
-			FFunctionGraphTask::CreateAndDispatchWhenReady([&, SafeFunction, SafeName, Buffer]
+			if (bCallbackOnGameThread)
+			{
+				FLambdaRunnable::RunShortLambdaOnGameThread([&, SafeFunction, SafeName, Buffer]
+				{
+					SafeFunction(SafeName, Buffer);
+				});
+			}
+			else
 			{
 				SafeFunction(SafeName, Buffer);
-			}, TStatId(), nullptr, ENamedThreads::GameThread);
+			}
 		}
 		else
 		{
@@ -305,7 +327,21 @@ void FSocketIONative::SetupInternalCallbacks()
 
 		if (OnDisconnectedCallback)
 		{
-			OnDisconnectedCallback(DisconnectReason);
+			if (bCallbackOnGameThread)
+			{
+				FLambdaRunnable::RunShortLambdaOnGameThread([&, DisconnectReason]
+				{
+					if (OnDisconnectedCallback)
+					{
+						OnDisconnectedCallback(DisconnectReason);
+					}
+				});
+			}
+			else
+			{
+				OnDisconnectedCallback(DisconnectReason);
+			}
+			
 		}
 	}));
 
@@ -327,11 +363,25 @@ void FSocketIONative::SetupInternalCallbacks()
 			}
 			if (OnConnectedCallback)
 			{
-				OnConnectedCallback(SessionId);
+				if (bCallbackOnGameThread)
+				{
+					const FString SafeSessionId = SessionId;
+					FLambdaRunnable::RunShortLambdaOnGameThread([&, SafeSessionId]
+					{
+						if (OnConnectedCallback)
+						{
+							OnConnectedCallback(SessionId);
+						}
+					});
+				}
+				else
+				{
+					OnConnectedCallback(SessionId);
+				}
 			}
 		}
 
-		FString Namespace = USIOMessageConvert::FStringFromStd(nsp);
+		const FString Namespace = USIOMessageConvert::FStringFromStd(nsp);
 
 		if (VerboseLog)
 		{
@@ -339,13 +389,26 @@ void FSocketIONative::SetupInternalCallbacks()
 		}
 		if (OnNamespaceConnectedCallback)
 		{
-			OnNamespaceConnectedCallback(Namespace);
+			if (bCallbackOnGameThread)
+			{
+				FLambdaRunnable::RunShortLambdaOnGameThread([&, Namespace]
+				{
+					if (OnNamespaceConnectedCallback)
+					{
+						OnNamespaceConnectedCallback(Namespace);
+					}
+				});
+			}
+			else
+			{
+				OnNamespaceConnectedCallback(Namespace);
+			}
 		}
 	}));
 
 	PrivateClient->set_socket_close_listener(sio::client::socket_listener([&](std::string const& nsp)
 	{
-		FString Namespace = USIOMessageConvert::FStringFromStd(nsp);
+		const FString Namespace = USIOMessageConvert::FStringFromStd(nsp);
 		FString NamespaceSession = SessionId;
 		if (NamespaceSession.Equals(TEXT("Invalid")))
 		{
@@ -357,7 +420,20 @@ void FSocketIONative::SetupInternalCallbacks()
 		}
 		if (OnNamespaceDisconnectedCallback)
 		{
-			OnNamespaceDisconnectedCallback(USIOMessageConvert::FStringFromStd(nsp));
+			if (bCallbackOnGameThread)
+			{
+				FLambdaRunnable::RunShortLambdaOnGameThread([&, Namespace]
+				{
+					if (OnNamespaceDisconnectedCallback)
+					{
+						OnNamespaceDisconnectedCallback(Namespace);
+					}
+				});
+			}
+			else
+			{
+				OnNamespaceDisconnectedCallback(Namespace);
+			}
 		}
 	}));
 
@@ -369,7 +445,20 @@ void FSocketIONative::SetupInternalCallbacks()
 		}
 		if (OnFailCallback)
 		{
-			OnFailCallback();
+			if (bCallbackOnGameThread)
+			{
+				FLambdaRunnable::RunShortLambdaOnGameThread([&]
+				{
+					if (OnFailCallback)
+					{
+						OnFailCallback();
+					}
+				});
+			}
+			else
+			{
+				OnFailCallback();
+			}
 		}
 	}));
 
@@ -383,7 +472,20 @@ void FSocketIONative::SetupInternalCallbacks()
 		}
 		if (OnReconnectionCallback)
 		{
-			OnReconnectionCallback(num, delay);
+			if (bCallbackOnGameThread)
+			{
+				FLambdaRunnable::RunShortLambdaOnGameThread([&, num, delay]
+				{
+					if (OnReconnectionCallback)
+					{
+						OnReconnectionCallback(num, delay);
+					}
+				});
+			}
+			else
+			{
+				OnReconnectionCallback(num, delay);
+			}
 		}
 	}));
 }
