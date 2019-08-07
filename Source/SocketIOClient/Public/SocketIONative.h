@@ -72,7 +72,7 @@ public:
 	/** in milliseconds, default is 5000 */
 	uint32 ReconnectionDelay;
 
-	/** If true will auto-connect on begin play to address specified in AddressAndPort. */
+	/** Whether this instance has a currently live connection to the server. */
 	bool bIsConnected;
 
 	/** When connected this session id will be valid and contain a unique Id. */
