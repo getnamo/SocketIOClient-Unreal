@@ -70,7 +70,7 @@ namespace
 					for (int32 i = 0; i < MaxEnum; i++) 
 					{
 						//Case insensitive match
-						if(StrValue.Equals(Enum->GetDisplayNameTextByIndex(i).ToString().ToLower()))
+						if(LowerStrValue.Equals(Enum->GetDisplayNameTextByIndex(i).ToString().ToLower()))
 						{
 							IntValue = i;
 						}
