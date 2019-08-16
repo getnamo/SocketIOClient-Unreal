@@ -18,6 +18,7 @@ FSocketIONative::FSocketIONative()
 	bIsConnected = false;
 	MaxReconnectionAttempts = -1;
 	ReconnectionDelay = 5000;
+	bCallbackOnGameThread = true;
 
 	PrivateClient = MakeShareable(new sio::client);
 
@@ -108,24 +109,32 @@ void FSocketIONative::ClearCallbacks()
 
 void FSocketIONative::Emit(const FString& EventName, const TSharedPtr<FJsonValue>& Message /*= nullptr*/, TFunction< void(const TArray<TSharedPtr<FJsonValue>>&)> CallbackFunction /*= nullptr*/, const FString& Namespace /*= FString(TEXT("/"))*/)
 {
-	const auto SafeCallback = CallbackFunction;
+	TFunction<void(const sio::message::list&)> RawCallback = nullptr;
+
+	//Only bind the raw callback if we pass in a callback ourselves;
+	if (CallbackFunction)
+	{
+		RawCallback = [&, CallbackFunction](const sio::message::list& MessageList)
+		{
+			TArray<TSharedPtr<FJsonValue>> ValueArray;
+
+			for (uint32 i = 0; i < MessageList.size(); i++)
+			{
+				auto ItemMessagePtr = MessageList[i];
+				ValueArray.Add(USIOMessageConvert::ToJsonValue(ItemMessagePtr));
+			}
+			if (CallbackFunction)
+			{
+				CallbackFunction(ValueArray);
+			}
+		};
+	}
+
 	EmitRaw(
 		EventName,
 		USIOMessageConvert::ToSIOMessage(Message),
-		[&, SafeCallback](const sio::message::list& MessageList)
-	{
-		TArray<TSharedPtr<FJsonValue>> ValueArray;
-
-		for (uint32 i = 0; i < MessageList.size(); i++)
-		{
-			auto ItemMessagePtr = MessageList[i];
-			ValueArray.Add(USIOMessageConvert::ToJsonValue(ItemMessagePtr));
-		}
-		if (SafeCallback)
-		{
-			SafeCallback(ValueArray);
-		}
-	}, Namespace);
+		RawCallback,
+		Namespace);
 }
 
 void FSocketIONative::Emit(const FString& EventName, const TSharedPtr<FJsonObject>& ObjectMessage /*= nullptr*/, TFunction< void(const TArray<TSharedPtr<FJsonValue>>&)> CallbackFunction /*= nullptr*/, const FString& Namespace /*= FString(TEXT("/"))*/)
@@ -176,22 +185,38 @@ void FSocketIONative::Emit(const FString& EventName, const SIO_TEXT_TYPE StringM
 
 void FSocketIONative::EmitRaw(const FString& EventName, const sio::message::list& MessageList /*= nullptr*/, TFunction<void(const sio::message::list&)> CallbackFunction /*= nullptr*/, const FString& Namespace /*= FString(TEXT("/"))*/)
 {
-	const TFunction<void(const sio::message::list&)> SafeFunction = CallbackFunction;
+	std::function<void(sio::message::list const&)> RawCallback = nullptr;
+
+	//Only have non-null raw callback if we pass in a callback function
+	if (CallbackFunction)
+	{
+		RawCallback = [&, CallbackFunction](const sio::message::list& response)
+		{
+			if (CallbackFunction != nullptr)
+			{
+				//Callback on game thread
+				if (bCallbackOnGameThread)
+				{
+					FLambdaRunnable::RunShortLambdaOnGameThread([&, CallbackFunction, response]
+					{
+						if (CallbackFunction)
+						{
+							CallbackFunction(response);
+						}
+					});
+				}
+				else
+				{
+					CallbackFunction(response);
+				}
+			}
+		};
+	}
 
 	PrivateClient->socket(USIOMessageConvert::StdString(Namespace))->emit(
 		USIOMessageConvert::StdString(EventName),
 		MessageList,
-		[&, SafeFunction](const sio::message::list& response)
-	{
-		if (SafeFunction != nullptr)
-		{
-			//Callback on game thread
-			FFunctionGraphTask::CreateAndDispatchWhenReady([&, SafeFunction, response]
-			{
-				SafeFunction(response);
-			}, TStatId(), nullptr, ENamedThreads::GameThread);
-		}
-	});
+		RawCallback);
 }
 
 void FSocketIONative::EmitRawBinary(const FString& EventName, uint8* Data, int32 DataLength, const FString& Namespace /*= FString(TEXT("/"))*/)
@@ -223,10 +248,17 @@ void FSocketIONative::OnRawEvent(const FString& EventName, TFunction< void(const
 	{
 		const FString SafeName = USIOMessageConvert::FStringFromStd(name);
 
-		FFunctionGraphTask::CreateAndDispatchWhenReady([&, SafeFunction, SafeName, data]
+		if (bCallbackOnGameThread)
+		{
+			FLambdaRunnable::RunShortLambdaOnGameThread([&, SafeFunction, SafeName, data]
+			{
+				SafeFunction(SafeName, data);
+			});
+		}
+		else
 		{
 			SafeFunction(SafeName, data);
-		}, TStatId(), nullptr, ENamedThreads::GameThread);
+		}
 	}));
 }
 
@@ -249,10 +281,17 @@ void FSocketIONative::OnBinaryEvent(const FString& EventName, TFunction< void(co
 			auto MessageBuffer = data->get_binary();
 			Buffer.Append((uint8*)(MessageBuffer->data()), BufferSize);
 
-			FFunctionGraphTask::CreateAndDispatchWhenReady([&, SafeFunction, SafeName, Buffer]
+			if (bCallbackOnGameThread)
+			{
+				FLambdaRunnable::RunShortLambdaOnGameThread([&, SafeFunction, SafeName, Buffer]
+				{
+					SafeFunction(SafeName, Buffer);
+				});
+			}
+			else
 			{
 				SafeFunction(SafeName, Buffer);
-			}, TStatId(), nullptr, ENamedThreads::GameThread);
+			}
 		}
 		else
 		{
@@ -269,7 +308,8 @@ void FSocketIONative::UnbindEvent(const FString& EventName, const FString& Names
 
 void FSocketIONative::SetupInternalCallbacks()
 {
-	PrivateClient->set_open_listener(sio::client::con_listener([&]() {
+	PrivateClient->set_open_listener(sio::client::con_listener([&]() 
+	{
 		//too early to get session id here so we defer the connection event until we connect to a namespace
 	}));
 
@@ -288,7 +328,21 @@ void FSocketIONative::SetupInternalCallbacks()
 
 		if (OnDisconnectedCallback)
 		{
-			OnDisconnectedCallback(DisconnectReason);
+			if (bCallbackOnGameThread)
+			{
+				FLambdaRunnable::RunShortLambdaOnGameThread([&, DisconnectReason]
+				{
+					if (OnDisconnectedCallback)
+					{
+						OnDisconnectedCallback(DisconnectReason);
+					}
+				});
+			}
+			else
+			{
+				OnDisconnectedCallback(DisconnectReason);
+			}
+			
 		}
 	}));
 
@@ -310,11 +364,25 @@ void FSocketIONative::SetupInternalCallbacks()
 			}
 			if (OnConnectedCallback)
 			{
-				OnConnectedCallback(SessionId);
+				if (bCallbackOnGameThread)
+				{
+					const FString SafeSessionId = SessionId;
+					FLambdaRunnable::RunShortLambdaOnGameThread([&, SafeSessionId]
+					{
+						if (OnConnectedCallback)
+						{
+							OnConnectedCallback(SessionId);
+						}
+					});
+				}
+				else
+				{
+					OnConnectedCallback(SessionId);
+				}
 			}
 		}
 
-		FString Namespace = USIOMessageConvert::FStringFromStd(nsp);
+		const FString Namespace = USIOMessageConvert::FStringFromStd(nsp);
 
 		if (VerboseLog)
 		{
@@ -322,13 +390,26 @@ void FSocketIONative::SetupInternalCallbacks()
 		}
 		if (OnNamespaceConnectedCallback)
 		{
-			OnNamespaceConnectedCallback(Namespace);
+			if (bCallbackOnGameThread)
+			{
+				FLambdaRunnable::RunShortLambdaOnGameThread([&, Namespace]
+				{
+					if (OnNamespaceConnectedCallback)
+					{
+						OnNamespaceConnectedCallback(Namespace);
+					}
+				});
+			}
+			else
+			{
+				OnNamespaceConnectedCallback(Namespace);
+			}
 		}
 	}));
 
 	PrivateClient->set_socket_close_listener(sio::client::socket_listener([&](std::string const& nsp)
 	{
-		FString Namespace = USIOMessageConvert::FStringFromStd(nsp);
+		const FString Namespace = USIOMessageConvert::FStringFromStd(nsp);
 		FString NamespaceSession = SessionId;
 		if (NamespaceSession.Equals(TEXT("Invalid")))
 		{
@@ -340,7 +421,20 @@ void FSocketIONative::SetupInternalCallbacks()
 		}
 		if (OnNamespaceDisconnectedCallback)
 		{
-			OnNamespaceDisconnectedCallback(USIOMessageConvert::FStringFromStd(nsp));
+			if (bCallbackOnGameThread)
+			{
+				FLambdaRunnable::RunShortLambdaOnGameThread([&, Namespace]
+				{
+					if (OnNamespaceDisconnectedCallback)
+					{
+						OnNamespaceDisconnectedCallback(Namespace);
+					}
+				});
+			}
+			else
+			{
+				OnNamespaceDisconnectedCallback(Namespace);
+			}
 		}
 	}));
 
@@ -352,7 +446,20 @@ void FSocketIONative::SetupInternalCallbacks()
 		}
 		if (OnFailCallback)
 		{
-			OnFailCallback();
+			if (bCallbackOnGameThread)
+			{
+				FLambdaRunnable::RunShortLambdaOnGameThread([&]
+				{
+					if (OnFailCallback)
+					{
+						OnFailCallback();
+					}
+				});
+			}
+			else
+			{
+				OnFailCallback();
+			}
 		}
 	}));
 
@@ -366,7 +473,20 @@ void FSocketIONative::SetupInternalCallbacks()
 		}
 		if (OnReconnectionCallback)
 		{
-			OnReconnectionCallback(num, delay);
+			if (bCallbackOnGameThread)
+			{
+				FLambdaRunnable::RunShortLambdaOnGameThread([&, num, delay]
+				{
+					if (OnReconnectionCallback)
+					{
+						OnReconnectionCallback(num, delay);
+					}
+				});
+			}
+			else
+			{
+				OnReconnectionCallback(num, delay);
+			}
 		}
 	}));
 }

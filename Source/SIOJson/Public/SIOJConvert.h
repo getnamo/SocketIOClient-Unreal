@@ -71,12 +71,7 @@ public:
 	static void SetTrimmedKeyMapForProp(TSharedPtr<FTrimmedKeyMap>& InMap, UProperty* ArrayInnerProp);
 	static void ReplaceJsonValueNamesWithMap(TSharedPtr<FJsonValue>& InValue, TSharedPtr<FTrimmedKeyMap> KeyMap);
 
-	template<typename T>
-	static FString EnumToString(const FString& enumName, const T value)
-	{
-		UEnum* pEnum = FindObject<UEnum>(ANY_PACKAGE, *enumName);
-		return *(pEnum ? pEnum->GetNameStringByIndex(static_cast<uint8>(value)) : "null");
-	}
+	static FString EnumToString(const FString& enumName, const int32 value);
 }; 
 
 

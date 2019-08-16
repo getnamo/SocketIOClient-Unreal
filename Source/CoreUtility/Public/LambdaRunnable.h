@@ -25,4 +25,7 @@ public:
 	Runs a short lambda on the game thread via task graph system
 	*/
 	static FGraphEventRef RunShortLambdaOnGameThread(TFunction< void()> InFunction);
+
+	/** Runs a thread with idle for duration*/
+	static void SetTimeout(TFunction<void()>OnDone, float DurationInSec);
 };

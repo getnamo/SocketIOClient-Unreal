@@ -169,7 +169,7 @@ Supported auto-conversion
 
 ### Emit with Callback
 
-You can have a callback when, for example, you need an acknowledgement or if you're fetching data from the server. You can respond to this callback straight in your blueprint.
+You can have a callback when, for example, you need an acknowledgement or if you're fetching data from the server. You can respond to this callback straight in your blueprint. Keep in mind that the server can only use the callback *once* per emit.
 
 ![IMG](http://i.imgur.com/Ed01Jq0.png)
 
@@ -202,7 +202,6 @@ Since v1.1.0 you can get results directly to your calling graph function. Use th
 
 Limitations:
 - Can only be used in Event Graphs (BP functions don't support latent actions)
-- The callback can only be used once by the server per emit. This is a UE4 limitation for latent actions. If you need to use the callback multiple times per emit consider using the other ```Emit With Callback``` method which supports unlimited uses of the callback by the server per emit.
 
 #### Emit with Callback node.js server example
 
@@ -497,57 +496,6 @@ SIOClientComponent->EmitNative(FString("callbackTest"),  FTestCppStruct::StaticS
 });
 ```
 
-### Example c++ static construct actor component inside custom Game Instance
-
-SIOTestGameInstance.h
-```c++
-#include "CoreMinimal.h"
-#include "Engine/GameInstance.h"
-#include "SocketIOClientComponent.h"
-#include "SIOTestGameInstance.generated.h"
-
-UCLASS()
-class SIOCLIENT_API USIOTestGameInstance : public UGameInstance
-{
-	GENERATED_BODY()
-
-	virtual void Init() override;
-	virtual void Shutdown() override;
-	
-	UPROPERTY()
-	USocketIOClientComponent* SIOComponent;
-};
-```
-
-SIOTestGameInstance.cpp
-```c++
-#include "SIOTestGameInstance.h"
-#include "SocketIOClient.h"
-#include "SocketIOFunctionLibrary.h"
-
-
-void USIOTestGameInstance::Init()
-{
-	Super::Init();
-
-	//Store result in a UPROPERTY variable
-	SIOComponent = USocketIOFunctionLibrary::ConstructSocketIOComponent(this);
-	SIOComponent->Connect("http://localhost:3000", nullptr, nullptr);
-
-	SIOComponent->OnNativeEvent(TEXT("MyEvent"), [this](const FString& Event, const TSharedPtr<FJsonValue>& Message) 
-	{
-		UE_LOG(LogTemp, Log, TEXT("Received: %s"), *USIOJConvert::ToJsonString(Message));
-	});
-
-	SIOComponent->EmitNative(TEXT("MyEmit"), TEXT("hi"));
-}
-
-void USIOTestGameInstance::Shutdown()
-{
-	Super::Shutdown();
-}
-```
-
 ## C++ FSocketIONative
 
 If you do not wish to use UE4 AActors or UObjects, you can use the native base class [FSocketIONative](https://github.com/getnamo/socketio-client-ue4/blob/master/Source/SocketIOClient/Public/SocketIONative.h). Please see the class header for API. It generally follows a similar pattern to ```USocketIOClientComponent``` with the exception of native callbacks which you can for example see in use here: https://github.com/getnamo/socketio-client-ue4/blob/master/Source/SocketIOClient/Private/SocketIOClientComponent.cpp#L81
@@ -588,7 +536,7 @@ void USIOTestGameInstance::Init()
 			UE_LOG(LogTemp, Log, TEXT("Received: %s"), *USIOJConvert::ToJsonString(Message));
 		});
 
-	Socket->Emit(TEXT("MyEmit"), TEXT("hi"));
+	Socket->Emit(TEXT("MyEmit"), FString("hi"));
 }
 
 void USIOTestGameInstance::Shutdown()
