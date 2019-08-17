@@ -54,7 +54,8 @@ namespace sio
 		m_reconn_delay(5000),
 		m_reconn_delay_max(25000),
 		m_reconn_attempts(0xFFFFFFFF),
-		m_reconn_made(0)
+		m_reconn_made(0),
+		m_tcp_no_delay(true)	//nagle's algorithm disabled by default
 	{
 		using websocketpp::log::alevel;
 #ifndef DEBUG
@@ -178,7 +179,7 @@ namespace sio
 		m_reconn_attempts_when_closed = m_reconn_attempts;
 		this->set_reconnect_attempts(0);
 
-		this>close();
+		this->close();
 		if(m_network_thread)
 		{
 			m_network_thread->join();
@@ -427,6 +428,12 @@ namespace sio
 		LOG("Connected." << endl);
 		m_con_state = con_opened;
 		m_con = con;
+
+		if (m_tcp_no_delay) {
+			m_client.get_con_from_hdl(con)->get_next_layer().set_option(
+				websocketpp::lib::asio::ip::tcp::no_delay{ true });
+		}
+
 		m_reconn_made = 0;
 		this->sockets_invoke_void(&sio::socket::on_open);
 		this->socket("");

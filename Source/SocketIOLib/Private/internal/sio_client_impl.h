@@ -250,6 +250,9 @@ namespace sio
 
 		unsigned m_reconn_made;
 
+		//toggle this to enable/disable nagle's algorithm
+		bool m_tcp_no_delay;
+
 		friend class sio::client;
 		friend class sio::socket;
 	};
