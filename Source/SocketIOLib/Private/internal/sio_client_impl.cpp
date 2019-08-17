@@ -29,14 +29,19 @@
 #include <sstream>
 #include <mutex>
 #include <cmath>
+
 // Comment this out to disable handshake logging to stdout
+#define DEBUG 0
+
+using namespace std;
+
 #if defined(DEBUG)
 #define LOG(x) std::cout << x
 #else
 #define LOG(x)
 #endif
 
-using namespace std;
+
 
 namespace sio
 {
@@ -269,7 +274,7 @@ namespace sio
 
 	void client_impl::close_impl(close::status::value const& code,string const& reason)
 	{
-		LOG("Close by reason:"<<reason << endl);
+		LOG("Close by reason: %d" << reason << endl);
 		if(m_reconn_timer)
 		{
 			m_reconn_timer->cancel();
@@ -336,6 +341,8 @@ namespace sio
 			return;
 		}
 		LOG("Pong timeout"<<endl);
+		UE_LOG(LogTemp, Log, TEXT("Pong timeout close"));
+
 		m_client.get_io_service().dispatch(lib::bind(&client_impl::close_impl, this,close::status::policy_violation,"Pong timeout"));
 	}
 
@@ -456,7 +463,7 @@ namespace sio
 				m_reconn_timer.reset(new asio::system_timer(m_client.get_io_service()));
 				lib::error_code ecl;
 				m_reconn_timer->expires_from_now(std::chrono::milliseconds(delay), ecl);
-				m_reconn_timer->async_wait(lib::bind(&client_impl::timeout_reconnect,this,lib::placeholders::_1));
+				m_reconn_timer->async_wait(lib::bind(&client_impl::timeout_reconnect, this, lib::placeholders::_1));
 				return;
 			}
 			reason = client::close_reason_drop;
@@ -473,7 +480,7 @@ namespace sio
 		if (m_ping_timeout_timer) {
 			lib::error_code ec;
 			m_ping_timeout_timer->expires_from_now(std::chrono::milliseconds(m_ping_timeout),ec);
-			m_ping_timeout_timer->async_wait(lib::bind(&client_impl::timeout_pong, this,lib::placeholders::_1));
+			m_ping_timeout_timer->async_wait(lib::bind(&client_impl::timeout_pong, this, lib::placeholders::_1));
 		}
 		// Parse the incoming message according to socket.IO rules
 		m_packet_mgr.put_payload(msg->get_payload());
