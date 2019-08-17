@@ -75,6 +75,9 @@ namespace sio
         void close();
 
         void sync_close();
+        
+        // stop io_service
+        void stop();
 
         bool opened() const;
 

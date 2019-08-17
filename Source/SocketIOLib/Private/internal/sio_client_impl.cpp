@@ -290,6 +290,11 @@ namespace sio
 			m_client.close(m_con, code, reason, ec);
 		}
 	}
+	
+	void client_impl::stop()
+	{
+		m_client.stop();
+	}
 
 	void client_impl::send_impl(shared_ptr<const string> const& payload_ptr,frame::opcode::value opcode)
 	{
