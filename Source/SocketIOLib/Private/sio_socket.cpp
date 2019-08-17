@@ -24,12 +24,6 @@
 #include <queue>
 #include <cstdarg>
 
-#if defined(DEBUG)
-#define LOG(x) std::cout << x
-#else
-#define LOG(x)
-#endif
-
 #define NULL_GUARD(_x_)  \
     if(_x_ == NULL) return
 
