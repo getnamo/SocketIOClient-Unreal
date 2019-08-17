@@ -299,10 +299,11 @@ namespace sio
             packet p(packet::type_disconnect,m_nsp);
             send_packet(p);
             
-            //if(!m_connection_timer)
-            //{
-            m_connection_timer.reset(new asio::system_timer(m_client->get_io_service()));
-            //}
+            if(!m_connection_timer)
+            {
+				m_connection_timer.reset(new asio::system_timer(m_client->get_io_service()));
+            }
+
             lib::error_code ec;
             m_connection_timer->expires_from_now(std::chrono::milliseconds(3000), ec);
             m_connection_timer->async_wait(lib::bind(&socket::impl::on_close, this));

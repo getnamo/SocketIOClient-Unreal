@@ -165,8 +165,8 @@ namespace sio
 	void client_impl::close()
 	{
 		//don't ever try to close with multiple reconnect attempts
-		m_reconn_attempts_when_closed = m_reconn_attempts;
-		this->set_reconnect_attempts(0);
+		//m_reconn_attempts_when_closed = m_reconn_attempts;
+		//this->set_reconnect_attempts(0);
 
 		m_con_state = con_closing;
 		this->sockets_invoke_void(&sio::socket::close);
@@ -176,9 +176,6 @@ namespace sio
 
 	void client_impl::sync_close()
 	{
-		m_reconn_attempts_when_closed = m_reconn_attempts;
-		this->set_reconnect_attempts(0);
-
 		this->close();
 		if(m_network_thread)
 		{
@@ -274,7 +271,7 @@ namespace sio
 
 	void client_impl::close_impl(close::status::value const& code,string const& reason)
 	{
-		LOG("Close by reason: %d" << reason << endl);
+		UE_LOG(LogTemp, Log, TEXT("Close by reason: %s"), *FString(reason.c_str()));
 		if(m_reconn_timer)
 		{
 			m_reconn_timer->cancel();
@@ -282,7 +279,7 @@ namespace sio
 		}
 		if (m_con.expired())
 		{
-			cerr << "Error: No active session" << endl;
+			UE_LOG(LogTemp, Warning, TEXT("close_impl::Error: No active session: %s"), *FString(reason.c_str()));
 		}
 		else
 		{
@@ -304,7 +301,7 @@ namespace sio
 			m_client.send(m_con,*payload_ptr,opcode,ec);
 			if(ec)
 			{
-				cerr<<"Send failed,reason:"<< ec.message()<<endl;
+				UE_LOG(LogTemp, Log, TEXT("Send failed,reason: %s"), *FString(ec.message().c_str()));
 			}
 		}
 	}
@@ -329,26 +326,31 @@ namespace sio
 			lib::error_code e_code;
 			m_ping_timer->expires_from_now(std::chrono::milliseconds(m_ping_interval), e_code);
 			m_ping_timer->async_wait(lib::bind(&client_impl::ping,this,lib::placeholders::_1));
+			UE_LOG(LogTemp, Log, TEXT("Starting ping timeout 1"));
 		}
-		if(!m_ping_timeout_timer)
+		if (!m_ping_timeout_timer)
 		{
 			m_ping_timeout_timer.reset(new asio::system_timer(m_client.get_io_service()));
-			lib::error_code timeout_ec;
-			m_ping_timeout_timer->expires_from_now(std::chrono::milliseconds(m_ping_timeout), timeout_ec);
-			m_ping_timeout_timer->async_wait(lib::bind(&client_impl::timeout_pong, this,lib::placeholders::_1));
 		}
+		lib::error_code timeout_ec;
+		m_ping_timeout_timer->expires_from_now(std::chrono::milliseconds(m_ping_timeout), timeout_ec);
+		m_ping_timeout_timer->async_wait(lib::bind(&client_impl::timeout_pong, this,lib::placeholders::_1));
+		UE_LOG(LogTemp, Log, TEXT("Starting m_ping_timeout_timer timeout 1"));
 	}
 
 	void client_impl::timeout_pong(const lib::error_code &ec)
 	{
 		if(ec)
 		{
+			if (ec != asio::error::operation_aborted)
+			{
+				UE_LOG(LogTemp, Log, TEXT("timeout_pong err: %d"), ec.value());
+			}
 			return;
 		}
-		LOG("Pong timeout"<<endl);
-		UE_LOG(LogTemp, Log, TEXT("Pong timeout close"));
+		UE_LOG(LogTemp, Log, TEXT("Pong timeout => closing connection"));
 
-		m_client.get_io_service().dispatch(lib::bind(&client_impl::close_impl, this,close::status::policy_violation,"Pong timeout"));
+		m_client.get_io_service().dispatch(lib::bind(&client_impl::close_impl, this, close::status::policy_violation,"Pong timeout"));
 	}
 
 	void client_impl::timeout_reconnect(lib::error_code const& ec)
@@ -362,9 +364,9 @@ namespace sio
 			m_con_state = con_opening;
 			m_reconn_made++;
 			this->reset_states();
-			LOG("Reconnecting..."<<endl);
+			UE_LOG(LogTemp, Log, TEXT("Reconnecting..."));
 			if(m_reconnecting_listener) m_reconnecting_listener();
-			m_client.get_io_service().dispatch(lib::bind(&client_impl::connect_impl,this,m_base_url,m_query_string));
+			m_client.get_io_service().dispatch(lib::bind(&client_impl::connect_impl, this, m_base_url, m_query_string));
 		}
 	}
 
@@ -406,10 +408,10 @@ namespace sio
 		m_con.reset();
 		m_con_state = con_closed;
 		this->sockets_invoke_void(&sio::socket::on_disconnect);
-		LOG("Connection failed." << endl);
+		UE_LOG(LogTemp, Log, TEXT("Connection failed."));
 		if(m_reconn_made<m_reconn_attempts)
 		{
-			LOG("Reconnect for attempt:"<<m_reconn_made<<endl);
+			UE_LOG(LogTemp, Log, TEXT("Reconnect for attempt:%d"), m_reconn_made);
 			unsigned delay = this->next_delay();
 			if(m_reconnect_listener) m_reconnect_listener(m_reconn_made,delay);
 			m_reconn_timer.reset(new asio::system_timer(m_client.get_io_service()));
@@ -425,7 +427,7 @@ namespace sio
 
 	void client_impl::on_open(connection_hdl con)
 	{
-		LOG("Connected." << endl);
+		UE_LOG(LogTemp, Log, TEXT("Connected."));
 		m_con_state = con_opened;
 		m_con = con;
 
@@ -442,13 +444,13 @@ namespace sio
 
 	void client_impl::on_close(connection_hdl con)
 	{
-		LOG("Client Disconnected." << endl);
+		UE_LOG(LogTemp, Log, TEXT("Client Disconnected."));
 		m_con_state = con_closed;
 		lib::error_code ec;
 		close::status::value code = close::status::normal;
 		client_type::connection_ptr conn_ptr  = m_client.get_con_from_hdl(con, ec);
 		if (ec) {
-			LOG("OnClose get conn failed"<<ec<<endl);
+			UE_LOG(LogTemp, Log, TEXT("OnClose get conn failed: %d"), ec.value());
 		}
 		else
 		{
@@ -468,7 +470,7 @@ namespace sio
 			this->sockets_invoke_void(&sio::socket::on_disconnect);
 			if(m_reconn_made<m_reconn_attempts)
 			{
-				LOG("Reconnect for attempt:"<<m_reconn_made<<endl);
+				UE_LOG(LogTemp, Log, TEXT("Reconnect for attempt: %d"), m_reconn_made);
 				unsigned delay = this->next_delay();
 				if(m_reconnect_listener) m_reconnect_listener(m_reconn_made,delay);
 				m_reconn_timer.reset(new asio::system_timer(m_client.get_io_service()));
@@ -492,6 +494,7 @@ namespace sio
 			lib::error_code ec;
 			m_ping_timeout_timer->expires_from_now(std::chrono::milliseconds(m_ping_timeout),ec);
 			m_ping_timeout_timer->async_wait(lib::bind(&client_impl::timeout_pong, this, lib::placeholders::_1));
+			UE_LOG(LogTemp, Log, TEXT("Resetting m_ping_timeout_timer timeout from on_message"));
 		}
 		// Parse the incoming message according to socket.IO rules
 		m_packet_mgr.put_payload(msg->get_payload());
@@ -519,6 +522,9 @@ namespace sio
 			{
 				m_ping_interval = 25000;
 			}
+			//temp debug modification
+			//m_ping_interval = 5000;
+
 			it = values->find("pingTimeout");
 
 			if (it!=values->end()&&it->second->get_flag() == message::flag_integer) {
@@ -533,10 +539,12 @@ namespace sio
 			lib::error_code ec;
 			m_ping_timer->expires_from_now(std::chrono::milliseconds(m_ping_interval), ec);
 			if (ec) {
-				//LOG("ec:" << ec.message() << endl);
+				UE_LOG(LogTemp, Log, TEXT("ec: %s"), ec.message().c_str());
 			}
+			UE_LOG(LogTemp, Log, TEXT("Started ping timeout due to on_handshake"));
+
 			m_ping_timer->async_wait(lib::bind(&client_impl::ping,this,lib::placeholders::_1));
-			LOG("On handshake,sid:"<<m_sid<<",ping interval:"<<m_ping_interval<<",ping timeout"<<m_ping_timeout<<endl);
+			UE_LOG(LogTemp, Log, TEXT("On handshake,sid: %s, ping interval: %d, ping timeout: %d "), *FString(m_sid.c_str()), m_ping_interval, m_ping_timeout);
 			return;
 		}
 failed:
@@ -546,10 +554,12 @@ failed:
 
 	void client_impl::on_pong()
 	{
+		UE_LOG(LogTemp, Log, TEXT("Received pong"));
 		if(m_ping_timeout_timer)
 		{
 			m_ping_timeout_timer->cancel();
 			m_ping_timeout_timer.reset();
+			UE_LOG(LogTemp, Log, TEXT("m_ping_timeout_timer cancelled by on_pong"));
 		}
 	}
 
@@ -582,22 +592,24 @@ failed:
 	void client_impl::on_encode(bool isBinary,shared_ptr<const string> const& payload)
 	{
 		LOG("encoded payload length:"<<payload->length()<<endl);
-		m_client.get_io_service().dispatch(lib::bind(&client_impl::send_impl,this,payload,isBinary?frame::opcode::binary:frame::opcode::text));
+		m_client.get_io_service().dispatch(lib::bind(&client_impl::send_impl, this, payload, isBinary ? frame::opcode::binary : frame::opcode::text));
 	}
 
 	void client_impl::clear_timers()
 	{
-		LOG("clear timers"<<endl);
+		UE_LOG(LogTemp, Log, TEXT("clear timers"));
 		lib::error_code ec;
 		if(m_ping_timeout_timer)
 		{
 			m_ping_timeout_timer->cancel(ec);
 			m_ping_timeout_timer.reset();
+			UE_LOG(LogTemp, Log, TEXT("m_ping_timeout_timer cleared: %d"), ec.value());
 		}
 		if(m_ping_timer)
 		{
 			m_ping_timer->cancel(ec);
 			m_ping_timer.reset();
+			UE_LOG(LogTemp, Log, TEXT("m_ping_timer cleared: %d"), ec.value());
 		}
 	}
 
