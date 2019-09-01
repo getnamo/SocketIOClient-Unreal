@@ -224,7 +224,10 @@ void FSocketIONative::EmitRawBinary(const FString& EventName, uint8* Data, int32
 	PrivateClient->socket(USIOMessageConvert::StdString(Namespace))->emit(USIOMessageConvert::StdString(EventName), std::make_shared<std::string>((char*)Data, DataLength));
 }
 
-void FSocketIONative::OnEvent(const FString& EventName, TFunction< void(const FString&, const TSharedPtr<FJsonValue>&)> CallbackFunction, const FString& Namespace /*= FString(TEXT("/"))*/)
+void FSocketIONative::OnEvent(const FString& EventName, 
+	TFunction< void(const FString&, const TSharedPtr<FJsonValue>&)> CallbackFunction, 
+	const FString& Namespace /*= FString(TEXT("/"))*/,
+	ESIOThreadOverrideOption CallbackThread /*= USE_DEFAULT*/)
 {
 	//Keep track of all the bound native JsonValue functions
 	FSIOBoundEvent BoundEvent;
@@ -234,21 +237,41 @@ void FSocketIONative::OnEvent(const FString& EventName, TFunction< void(const FS
 
 	OnRawEvent(EventName, [&, CallbackFunction](const FString& Event, const sio::message::ptr& RawMessage) {
 		CallbackFunction(Event, USIOMessageConvert::ToJsonValue(RawMessage));
-	}, Namespace);
+	}, Namespace, CallbackThread);
 }
 
-void FSocketIONative::OnRawEvent(const FString& EventName, TFunction< void(const FString&, const sio::message::ptr&)> CallbackFunction, const FString& Namespace /*= FString(TEXT("/"))*/)
+void FSocketIONative::OnRawEvent(const FString& EventName, 
+	TFunction< void(const FString&, const sio::message::ptr&)> CallbackFunction, 
+	const FString& Namespace /*= FString(TEXT("/"))*/,
+	ESIOThreadOverrideOption CallbackThread /*= USE_DEFAULT*/)
 {
 	const TFunction< void(const FString&, const sio::message::ptr&)> SafeFunction = CallbackFunction;	//copy the function so it remains in context
+	
+	//determine thread override option
+	bool bCallbackThisEventOnGameThread = bCallbackOnGameThread;
+	switch (CallbackThread)
+	{
+	case USE_DEFAULT:
+		break;
+	case GAME_THREAD:
+		bCallbackThisEventOnGameThread = true;
+		break;
+	case NETWORK_THREAD:
+		bCallbackThisEventOnGameThread = false;
+		break;
+	default:
+		break;
+	}
 
 	PrivateClient->socket(USIOMessageConvert::StdString(Namespace))->on(
 		USIOMessageConvert::StdString(EventName),
 		sio::socket::event_listener_aux(
-			[&, SafeFunction](std::string const& name, sio::message::ptr const& data, bool isAck, sio::message::list &ack_resp)
+			[&, SafeFunction, bCallbackThisEventOnGameThread](std::string const& name, sio::message::ptr const& data, bool isAck, sio::message::list &ack_resp)
 	{
 		const FString SafeName = USIOMessageConvert::FStringFromStd(name);
 
-		if (bCallbackOnGameThread)
+
+		if (bCallbackThisEventOnGameThread)
 		{
 			FLambdaRunnable::RunShortLambdaOnGameThread([&, SafeFunction, SafeName, data]
 			{

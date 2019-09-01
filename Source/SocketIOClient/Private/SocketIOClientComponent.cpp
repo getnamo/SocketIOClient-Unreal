@@ -571,7 +571,12 @@ void USocketIOClientComponent::BindEvent(const FString& EventName, const FString
 	}, Namespace);
 }
 
-void USocketIOClientComponent::BindEventToFunction(const FString& EventName, const FString& FunctionName, UObject* Target, const FString& Namespace /*= FString(TEXT("/"))*/, UObject* WorldContextObject /*= nullptr*/)
+void USocketIOClientComponent::BindEventToFunction(const FString& EventName,
+	const FString& FunctionName,
+	UObject* Target, 
+	const FString& Namespace /*= FString(TEXT("/"))*/,
+	ESIOThreadOverrideOption ThreadOverride /*= USE_DEFAULT*/, 
+	UObject* WorldContextObject /*= nullptr*/)
 {
 	if (!FunctionName.IsEmpty())
 	{
@@ -582,7 +587,7 @@ void USocketIOClientComponent::BindEventToFunction(const FString& EventName, con
 		OnNativeEvent(EventName, [&, FunctionName, Target](const FString& Event, const TSharedPtr<FJsonValue>& Message)
 		{
 			CallBPFunctionWithMessage(Target, FunctionName, Message);
-		}, Namespace);
+		}, Namespace, ThreadOverride);
 	}
 	else
 	{
@@ -591,9 +596,12 @@ void USocketIOClientComponent::BindEventToFunction(const FString& EventName, con
 	}
 }
 
-void USocketIOClientComponent::OnNativeEvent(const FString& EventName, TFunction< void(const FString&, const TSharedPtr<FJsonValue>&)> CallbackFunction, const FString& Namespace /*= FString(TEXT("/"))*/)
+void USocketIOClientComponent::OnNativeEvent(const FString& EventName,
+	TFunction< void(const FString&, const TSharedPtr<FJsonValue>&)> CallbackFunction,
+	const FString& Namespace /*= FString(TEXT("/"))*/,
+	ESIOThreadOverrideOption ThreadOverride /*= USE_DEFAULT*/)
 {
-	NativeClient->OnEvent(EventName, CallbackFunction, Namespace);
+	NativeClient->OnEvent(EventName, CallbackFunction, Namespace, ThreadOverride);
 }
 
 #if PLATFORM_WINDOWS

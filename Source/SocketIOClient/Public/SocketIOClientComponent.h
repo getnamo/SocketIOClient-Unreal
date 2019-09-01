@@ -157,7 +157,7 @@ public:
 	* @param Namespace	Namespace within socket.io
 	*/
 	UFUNCTION(BlueprintCallable, Category = "SocketIO Functions")
-	void Emit(const FString& EventName, USIOJsonValue* Message = nullptr, const FString& Namespace = FString(TEXT("/")));
+	void Emit(const FString& EventName, USIOJsonValue* Message = nullptr, const FString& Namespace = TEXT("/"));
 
 	/**
 	* Emit an event with a JsonValue message with a callback function defined by CallBackFunctionName
@@ -173,7 +173,7 @@ public:
 							USIOJsonValue* Message = nullptr,
 							const FString& CallbackFunctionName = FString(""),
 							UObject* Target = nullptr,
-							const FString& Namespace = FString(TEXT("/")),
+							const FString& Namespace = TEXT("/"),
 							UObject* WorldContextObject = nullptr);
 
 
@@ -191,7 +191,7 @@ public:
 								struct FLatentActionInfo LatentInfo,
 								USIOJsonValue*& Result,
 								USIOJsonValue* Message = nullptr,
-								const FString& Namespace = FString(TEXT("/")));
+								const FString& Namespace = TEXT("/"));
 
 	/**
 	* Bind an event, then respond to it with 'OnEvent' multi-cast delegate
@@ -200,7 +200,7 @@ public:
 	* @param Namespace	Optional namespace, defaults to default namespace
 	*/
 	UFUNCTION(BlueprintCallable, Category = "SocketIO Functions")
-	void BindEvent(const FString& EventName, const FString& Namespace = FString(TEXT("/")));
+	void BindEvent(const FString& EventName, const FString& Namespace = TEXT("/"));
 
 
 	/**
@@ -210,12 +210,15 @@ public:
 	* @param EventName		Event name
 	* @param FunctionName	The function that gets called when the event is received
 	* @param Target			Optional, defaults to caller self. Change to delegate to another class.
+	* @param Namespace		Optional namespace, defaults to default namespace
+	* @param ThreadOverride	Optional override to receive event on specified thread. Note NETWORK thread is lower latency but unsafe for a lot of blueprint use. Use with CAUTION.
 	*/
 	UFUNCTION(BlueprintCallable, Category = "SocketIO Functions", meta = (WorldContext = "WorldContextObject"))
 	void BindEventToFunction(	const FString& EventName,
 								const FString& FunctionName,
 								UObject* Target,
-								const FString& Namespace = FString(TEXT("/")),
+								const FString& Namespace = TEXT("/"),
+								ESIOThreadOverrideOption ThreadOverride = USE_DEFAULT,
 								UObject* WorldContextObject = nullptr);
 	//
 	//C++ functions
@@ -246,7 +249,7 @@ public:
 	void EmitNative(const FString& EventName,
 					const TSharedPtr<FJsonValue>& Message = nullptr,
 					TFunction< void(const TArray<TSharedPtr<FJsonValue>>&)> CallbackFunction = nullptr,
-					const FString& Namespace = FString(TEXT("/")));
+					const FString& Namespace = TEXT("/"));
 
 	/**
 	* (Overloaded) Emit an event with a Json Object message
@@ -259,7 +262,7 @@ public:
 	void EmitNative(const FString& EventName,
 					const TSharedPtr<FJsonObject>& ObjectMessage = nullptr,
 					TFunction< void(const TArray<TSharedPtr<FJsonValue>>&)> CallbackFunction = nullptr,
-					const FString& Namespace = FString(TEXT("/")));
+					const FString& Namespace = TEXT("/"));
 
 	/**
 	* (Overloaded) Emit an event with a string message
@@ -272,7 +275,7 @@ public:
 	void EmitNative(const FString& EventName,
 					const FString& StringMessage = FString(),
 					TFunction< void(const TArray<TSharedPtr<FJsonValue>>&)> CallbackFunction = nullptr,
-					const FString& Namespace = FString(TEXT("/")));
+					const FString& Namespace = TEXT("/"));
 
 	/**
 	* (Overloaded) Emit an event with a string message
@@ -285,7 +288,7 @@ public:
 	void EmitNative(const FString& EventName,
 		const SIO_TEXT_TYPE StringMessage = TEXT(""),
 		TFunction< void(const TArray<TSharedPtr<FJsonValue>>&)> CallbackFunction = nullptr,
-		const FString& Namespace = FString(TEXT("/")));
+		const FString& Namespace = TEXT("/"));
 
 	/**
 	* (Overloaded) Emit an event with a number (double) message
@@ -298,7 +301,7 @@ public:
 	void EmitNative(const FString& EventName,
 					double NumberMessage,
 					TFunction< void(const TArray<TSharedPtr<FJsonValue>>&)> CallbackFunction = nullptr,
-					const FString& Namespace = FString(TEXT("/")));
+					const FString& Namespace = TEXT("/"));
 
 	/**
 	* (Overloaded) Emit an event with a bool message
@@ -311,7 +314,7 @@ public:
 	void EmitNative(const FString& EventName,
 					bool BooleanMessage,
 					TFunction< void(const TArray<TSharedPtr<FJsonValue>>&)> CallbackFunction = nullptr,
-					const FString& Namespace = FString(TEXT("/")));
+					const FString& Namespace = TEXT("/"));
 
 	/**
 	* (Overloaded) Emit an event with a binary message
@@ -324,7 +327,7 @@ public:
 	void EmitNative(const FString& EventName,
 					const TArray<uint8>& BinaryMessage,
 					TFunction< void(const TArray<TSharedPtr<FJsonValue>>&)> CallbackFunction = nullptr,
-					const FString& Namespace = FString(TEXT("/")));
+					const FString& Namespace = TEXT("/"));
 
 	/**
 	* (Overloaded) Emit an event with an array message
@@ -337,7 +340,7 @@ public:
 	void EmitNative(const FString& EventName,
 					const TArray<TSharedPtr<FJsonValue>>& ArrayMessage,
 					TFunction< void(const TArray<TSharedPtr<FJsonValue>>&)> CallbackFunction = nullptr,
-					const FString& Namespace = FString(TEXT("/")));
+					const FString& Namespace = TEXT("/"));
 
 	/**
 	* (Overloaded) Emit an event with an UStruct message
@@ -352,7 +355,7 @@ public:
 					UStruct* Struct,
 					const void* StructPtr,
 					TFunction< void(const TArray<TSharedPtr<FJsonValue>>&)> CallbackFunction = nullptr,
-					const FString& Namespace = FString(TEXT("/")));
+					const FString& Namespace = TEXT("/"));
 
 	/**
 	* Call function callback on receiving socket event. C++ only.
@@ -360,10 +363,12 @@ public:
 	* @param EventName	Event name
 	* @param TFunction	Lambda callback, JSONValue
 	* @param Namespace	Optional namespace, defaults to default namespace
+	* @param ThreadOverride	Optional override to receive event on specified thread. Note NETWORK thread is lower latency but unsafe for a lot of blueprint use. Use with CAUTION.
 	*/
 	void OnNativeEvent(	const FString& EventName,
 						TFunction< void(const FString&, const TSharedPtr<FJsonValue>&)> CallbackFunction,
-						const FString& Namespace = FString(TEXT("/")));
+						const FString& Namespace = TEXT("/"),
+						ESIOThreadOverrideOption ThreadOverride = USE_DEFAULT);
 
 	/**
 	* Call function callback on receiving binary event. C++ only.
@@ -374,7 +379,7 @@ public:
 	*/
 	void OnBinaryEvent(	const FString& EventName,
 						TFunction< void(const FString&, const TArray<uint8>&)> CallbackFunction,
-						const FString& Namespace = FString(TEXT("/")));
+						const FString& Namespace = TEXT("/"));
 
 	
 	/** Called by SocketIOFunctionLibrary to initialize statically constructed components. */

@@ -16,6 +16,14 @@ enum ESIOConnectionCloseReason
 	CLOSE_REASON_DROP
 };
 
+UENUM(BlueprintType)
+enum ESIOThreadOverrideOption
+{
+	USE_DEFAULT,
+	GAME_THREAD,
+	NETWORK_THREAD
+};
+
 //Wrapper function for TFunctions which can be hashed based on pointers. I.e. no duplicate functions allowed
 //NB: Not currently used
 template <typename T>
@@ -310,11 +318,13 @@ public:
 	* @param EventName	Event name
 	* @param TFunction	Lambda callback, JSONValue
 	* @param Namespace	Optional namespace, defaults to default namespace
+	* @param CallbackThread Override default bCallbackOnGameThread option to specified option for this event
 	*/
 	void OnEvent(
 		const FString& EventName,
 		TFunction< void(const FString&, const TSharedPtr<FJsonValue>&)> CallbackFunction,
-		const FString& Namespace = TEXT("/"));
+		const FString& Namespace = TEXT("/"),
+		ESIOThreadOverrideOption CallbackThread = USE_DEFAULT);
 
 	/**
 	* Call function callback on receiving raw event. C++ only.
@@ -322,11 +332,13 @@ public:
 	* @param EventName	Event name
 	* @param TFunction	Lambda callback, raw flavor
 	* @param Namespace	Optional namespace, defaults to default namespace
+	* @param CallbackThread Override default bCallbackOnGameThread option to specified option for this event
 	*/
 	void OnRawEvent(
 		const FString& EventName,
 		TFunction< void(const FString&, const sio::message::ptr&)> CallbackFunction,
-		const FString& Namespace = TEXT("/"));
+		const FString& Namespace = TEXT("/"),
+		ESIOThreadOverrideOption CallbackThread = USE_DEFAULT);
 	/**
 	* Call function callback on receiving binary event. C++ only.
 	*
