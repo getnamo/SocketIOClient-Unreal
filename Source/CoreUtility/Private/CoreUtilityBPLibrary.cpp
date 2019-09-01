@@ -94,6 +94,41 @@ UTexture2D* UCoreUtilityBPLibrary::Conv_BytesToTexture(const TArray<uint8>& InBy
 	return Texture;
 }
 
+USoundWave* UCoreUtilityBPLibrary::Conv_BytesToSoundWave(const TArray<uint8>& InBytes)
+{
+	//Alloc, needs to happen on game thread (todo: pre-alloc optimized version)
+	USoundWave* SoundWave = NewObject<USoundWave>(USoundWave::StaticClass());
+
+	FWaveModInfo WaveInfo;
+
+	if (WaveInfo.ReadWaveInfo(InBytes.GetData(), InBytes.Num()))
+	{
+		SoundWave->InvalidateCompressedData();
+
+		//Memcopy data
+		SoundWave->RawData.Lock(LOCK_READ_WRITE);
+		void* LockedData = SoundWave->RawData.Realloc(InBytes.Num());
+		FMemory::Memcpy(LockedData, InBytes.GetData(), InBytes.Num());
+		SoundWave->RawData.Unlock();
+
+		int32 DurationDiv = *WaveInfo.pChannels * *WaveInfo.pBitsPerSample * *WaveInfo.pSamplesPerSec;
+		if (DurationDiv)
+		{
+			SoundWave->Duration = *WaveInfo.pWaveDataSize * 8.0f / DurationDiv;
+		}
+		else
+		{
+			SoundWave->Duration = 0.0f;
+		}
+		SoundWave->SetSampleRate(*WaveInfo.pSamplesPerSec);
+		SoundWave->NumChannels = *WaveInfo.pChannels;
+		SoundWave->RawPCMDataSize = WaveInfo.SampleDataSize;
+		SoundWave->SoundGroup = ESoundGroup::SOUNDGROUP_Default;
+	}
+
+	return SoundWave;
+}
+
 TFuture<UTexture2D*> UCoreUtilityBPLibrary::Conv_BytesToTexture_Async(const TArray<uint8>& InBytes)
 {
 	//Running this on a background thread
