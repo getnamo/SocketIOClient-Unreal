@@ -103,7 +103,7 @@ USoundWave* UCoreUtilityBPLibrary::Conv_WavBytesToSoundWave(const TArray<uint8>&
 	return SoundWave;
 }
 
-void UCoreUtilityBPLibrary::SetSoundWaveFromWavBytes(USoundWave* InSoundWave, const TArray<uint8>& InBytes, UObject* WorldContextObject)
+USoundWave* UCoreUtilityBPLibrary::SetSoundWaveFromWavBytes(USoundWave* InSoundWave, const TArray<uint8>& InBytes, UObject* WorldContextObject)
 {
 	FWaveModInfo WaveInfo;
 
@@ -125,27 +125,30 @@ void UCoreUtilityBPLibrary::SetSoundWaveFromWavBytes(USoundWave* InSoundWave, co
 		{
 			FThreadSafeBool bAllocationComplete = false;
 			AsyncTask(ENamedThreads::GameThread, [&bAllocationComplete, &InSoundWave, WorldContextObject]
+			{
+				if (WorldContextObject)
 				{
-					bAllocationComplete = true;
-					if (WorldContextObject)
-					{
-						InSoundWave = NewObject<USoundWave>(WorldContextObject);
-					}
-					else
-					{
-						InSoundWave = NewObject<USoundWave>(USoundWave::StaticClass());
-					}
-				});
+					InSoundWave = NewObject<USoundWave>(WorldContextObject);
+				}
+				else
+				{
+					InSoundWave = NewObject<USoundWave>(USoundWave::StaticClass());
+				}
+				bAllocationComplete = true;
+			});
 
 			//block while not complete
 			while (!bAllocationComplete)
 			{
+				//0.1ms sleeps, this should be very quick
+				FPlatformProcess::Sleep(0.0001f);
 			};
 		}
 	}
 
 	if (WaveInfo.ReadWaveInfo(InBytes.GetData(), InBytes.Num()))
 	{
+		//todo: invalidate soundwave somehow, below doesn't do it correctly, re-used soundwaves fail
 		InSoundWave->InvalidateCompressedData();
 
 		//Memcopy raw data
@@ -169,6 +172,8 @@ void UCoreUtilityBPLibrary::SetSoundWaveFromWavBytes(USoundWave* InSoundWave, co
 		InSoundWave->RawPCMDataSize = WaveInfo.SampleDataSize;
 		InSoundWave->SoundGroup = ESoundGroup::SOUNDGROUP_Default;
 	}
+
+	return InSoundWave;
 }
 
 TFuture<UTexture2D*> UCoreUtilityBPLibrary::Conv_BytesToTexture_Async(const TArray<uint8>& InBytes)
