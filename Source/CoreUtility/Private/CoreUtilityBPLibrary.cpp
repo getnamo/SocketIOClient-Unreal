@@ -96,7 +96,6 @@ UTexture2D* UCoreUtilityBPLibrary::Conv_BytesToTexture(const TArray<uint8>& InBy
 
 USoundWave* UCoreUtilityBPLibrary::Conv_WavBytesToSoundWave(const TArray<uint8>& InBytes)
 {
-	//Alloc, needs to happen on game thread (todo: pre-alloc optimized version)
 	USoundWave* SoundWave = NewObject<USoundWave>(USoundWave::StaticClass());
 
 	SetSoundWaveFromWavBytes(SoundWave, InBytes);
@@ -104,20 +103,58 @@ USoundWave* UCoreUtilityBPLibrary::Conv_WavBytesToSoundWave(const TArray<uint8>&
 	return SoundWave;
 }
 
-void UCoreUtilityBPLibrary::SetSoundWaveFromWavBytes(USoundWave* InSoundWave, const TArray<uint8>& InBytes)
+void UCoreUtilityBPLibrary::SetSoundWaveFromWavBytes(USoundWave* InSoundWave, const TArray<uint8>& InBytes, UObject* WorldContextObject)
 {
 	FWaveModInfo WaveInfo;
+
+	//Allocate if needed
+	if (!InSoundWave)
+	{
+		if (IsInGameThread()) 
+		{
+			if (WorldContextObject)
+			{
+				InSoundWave = NewObject<USoundWave>(WorldContextObject);
+			}
+			else
+			{
+				InSoundWave = NewObject<USoundWave>(USoundWave::StaticClass());
+			}
+		}
+		else
+		{
+			FThreadSafeBool bAllocationComplete = false;
+			AsyncTask(ENamedThreads::GameThread, [&bAllocationComplete, &InSoundWave, WorldContextObject]
+				{
+					bAllocationComplete = true;
+					if (WorldContextObject)
+					{
+						InSoundWave = NewObject<USoundWave>(WorldContextObject);
+					}
+					else
+					{
+						InSoundWave = NewObject<USoundWave>(USoundWave::StaticClass());
+					}
+				});
+
+			//block while not complete
+			while (!bAllocationComplete)
+			{
+			};
+		}
+	}
 
 	if (WaveInfo.ReadWaveInfo(InBytes.GetData(), InBytes.Num()))
 	{
 		InSoundWave->InvalidateCompressedData();
 
-		//Memcopy data
+		//Memcopy raw data
 		InSoundWave->RawData.Lock(LOCK_READ_WRITE);
 		void* LockedData = InSoundWave->RawData.Realloc(InBytes.Num());
 		FMemory::Memcpy(LockedData, InBytes.GetData(), InBytes.Num());
 		InSoundWave->RawData.Unlock();
 
+		//Set duration/etc
 		int32 DurationDiv = *WaveInfo.pChannels * *WaveInfo.pBitsPerSample * *WaveInfo.pSamplesPerSec;
 		if (DurationDiv)
 		{

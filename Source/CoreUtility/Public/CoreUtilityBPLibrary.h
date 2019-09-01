@@ -65,8 +65,8 @@ public:
 	UFUNCTION(BlueprintPure, meta = (DisplayName = "To SoundWave (Wav Bytes)", BlueprintAutocast), Category = "CoreUtility|Conversion")
 	static USoundWave* Conv_WavBytesToSoundWave(const TArray<uint8>& InBytes);
 
-	UFUNCTION(BlueprintCallable, Category = "CoreUtility|Conversion")
-	static void SetSoundWaveFromWavBytes(USoundWave* InSoundWave, const TArray<uint8>& InBytes);
+	UFUNCTION(BlueprintCallable, Category = "CoreUtility|Conversion", meta = (WorldContext = "WorldContextObject"))
+	static void SetSoundWaveFromWavBytes(USoundWave* InSoundWave, const TArray<uint8>& InBytes, UObject* WorldContextObject = nullptr);
 
 	//Fully Async texture conversion from bytes will auto-detect format, depends on TFuture, cannot be called in blueprint
 	static TFuture<UTexture2D*> Conv_BytesToTexture_Async(const TArray<uint8>& InBytes);
