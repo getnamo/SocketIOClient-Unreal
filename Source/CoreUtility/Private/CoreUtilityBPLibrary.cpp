@@ -276,43 +276,9 @@ FString UCoreUtilityBPLibrary::NowUTCString()
 	return FDateTime::UtcNow().ToString();
 }
 
-
 FString UCoreUtilityBPLibrary::GetLoginId()
 {
 	return FPlatformMisc::GetLoginId();
-}
-
-
-void UCoreUtilityBPLibrary::CallbackOnGameThread(struct FLatentActionInfo LatentInfo, UObject* WorldContextObject /*= nullptr*/)
-{
-	if (UWorld* World = GEngine->GetWorldFromContextObject(WorldContextObject, EGetWorldErrorMode::LogAndReturnNull))
-	{
-		FLatentActionManager& LatentActionManager = World->GetLatentActionManager();
-		int32 UUID = LatentInfo.UUID;
-
-		FSIOPendingLatentAction *LatentAction = LatentActionManager.FindExistingAction<FSIOPendingLatentAction>(LatentInfo.CallbackTarget, UUID);
-		LatentAction = new FSIOPendingLatentAction(LatentInfo);
-
-		LatentAction->OnCancelNotification = [UUID]()
-		{
-			UE_LOG(LogTemp, Log, TEXT("%d graph callback cancelled."), UUID);
-		};
-		LatentActionManager.AddNewAction(LatentInfo.CallbackTarget, LatentInfo.UUID, LatentAction);
-
-		if (IsInGameThread())
-		{
-			LatentAction->Call();
-		}
-		else
-		{
-			FLambdaRunnable::RunShortLambdaOnGameThread([LatentAction]
-			{
-				UE_LOG(LogTemp, Log, TEXT("RunShortLambdaOnGameThread"));
-				LatentAction->Call();
-			});
-		}
-	}
-
 }
 
 void UCoreUtilityBPLibrary::CallFunctionOnThread(const FString& FunctionName, ESIOCallbackType ThreadType, UObject* WorldContextObject /*= nullptr*/)
@@ -343,20 +309,29 @@ void UCoreUtilityBPLibrary::CallFunctionOnThread(const FString& FunctionName, ES
 		{
 			FLambdaRunnable::RunShortLambdaOnGameThread([Function, Target]
 			{
-				Target->ProcessEvent(Function, nullptr);
+				if (Target->IsValidLowLevel())
+				{
+					Target->ProcessEvent(Function, nullptr);
+				}
 			});
 		}
 		break;
 	case CALLBACK_BACKGROUND_THREADPOOL:
 		FLambdaRunnable::RunLambdaOnBackGroundThreadPool([Function, Target]
 		{
-			Target->ProcessEvent(Function, nullptr);
+			if (Target->IsValidLowLevel())
+			{
+				Target->ProcessEvent(Function, nullptr);
+			}
 		});
 		break;
 	case CALLBACK_BACKGROUND_TASKGRAPH:
 		FLambdaRunnable::RunShortLambdaOnBackGroundTask([Function, Target]
 		{
-			Target->ProcessEvent(Function, nullptr);
+			if (Target->IsValidLowLevel())
+			{
+				Target->ProcessEvent(Function, nullptr);
+			}
 		});
 		break;
 	default:
