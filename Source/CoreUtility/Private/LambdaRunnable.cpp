@@ -19,6 +19,11 @@ FGraphEventRef FLambdaRunnable::RunShortLambdaOnGameThread(TFunction< void()> In
 	return FFunctionGraphTask::CreateAndDispatchWhenReady(InFunction, TStatId(), nullptr, ENamedThreads::GameThread);
 }
 
+FGraphEventRef FLambdaRunnable::RunShortLambdaOnBackGroundTask(TFunction< void()> InFunction)
+{
+	return FFunctionGraphTask::CreateAndDispatchWhenReady(InFunction, TStatId(), nullptr, ENamedThreads::AnyThread);
+}
+
 void FLambdaRunnable::SetTimeout(TFunction<void()>OnDone, float DurationInSec)
 {
 	RunLambdaOnBackGroundThread([OnDone, DurationInSec]()

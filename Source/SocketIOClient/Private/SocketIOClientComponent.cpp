@@ -575,7 +575,7 @@ void USocketIOClientComponent::BindEventToFunction(const FString& EventName,
 	const FString& FunctionName,
 	UObject* Target, 
 	const FString& Namespace /*= FString(TEXT("/"))*/,
-	ESIOThreadOverrideOption ThreadOverride /*= USE_DEFAULT*/, 
+	ESIOThreadOverrideOption ThreadOverride /*= USE_DEFAULT*/,
 	UObject* WorldContextObject /*= nullptr*/)
 {
 	if (!FunctionName.IsEmpty())

@@ -368,7 +368,7 @@ public:
 	void OnNativeEvent(	const FString& EventName,
 						TFunction< void(const FString&, const TSharedPtr<FJsonValue>&)> CallbackFunction,
 						const FString& Namespace = TEXT("/"),
-						ESIOThreadOverrideOption ThreadOverride = USE_DEFAULT);
+		ESIOThreadOverrideOption ThreadOverride = USE_DEFAULT);
 
 	/**
 	* Call function callback on receiving binary event. C++ only.

@@ -12,6 +12,7 @@
 #include "Runtime/RHI/Public/RHI.h"
 #include "Runtime/Core/Public/Misc/FileHelper.h"
 #include "CoreMinimal.h"
+#include "Engine/Engine.h"
 
 #pragma warning( push )
 #pragma warning( disable : 5046)
@@ -279,6 +280,61 @@ FString UCoreUtilityBPLibrary::NowUTCString()
 FString UCoreUtilityBPLibrary::GetLoginId()
 {
 	return FPlatformMisc::GetLoginId();
+}
+
+
+void UCoreUtilityBPLibrary::CallbackOnThread(struct FLatentActionInfo LatentInfo, ESIOCallbackType ThreadType /*= CALLBACK_GAME_THREAD*/, UObject* WorldContextObject /*= nullptr*/)
+{
+	if (UWorld* World = GEngine->GetWorldFromContextObject(WorldContextObject, EGetWorldErrorMode::LogAndReturnNull))
+	{
+		FLatentActionManager& LatentActionManager = World->GetLatentActionManager();
+		int32 UUID = LatentInfo.UUID;
+
+		FSIOPendingLatentAction *LatentAction = LatentActionManager.FindExistingAction<FSIOPendingLatentAction>(LatentInfo.CallbackTarget, UUID);
+
+		//It's safe to use raw new as actions get deleted by the manager
+		if (!LatentAction)
+		{
+			LatentAction = new FSIOPendingLatentAction(LatentInfo);
+
+			LatentAction->OnCancelNotification = [UUID]()
+			{
+				UE_LOG(LogTemp, Log, TEXT("%d graph callback cancelled."), UUID);
+			};
+		}
+
+		switch (ThreadType)
+		{
+		case CALLBACK_GAME_THREAD:
+			if (IsInGameThread())
+			{
+				LatentAction->Call();
+			}
+			else
+			{
+				LatentAction->Call();
+				FLambdaRunnable::RunShortLambdaOnGameThread([LatentAction]
+				{
+					LatentAction->Call();
+				});
+			}
+			break;
+		case CALLBACK_BACKGROUND_THREAD:
+			FLambdaRunnable::RunLambdaOnBackGroundThread([LatentAction]
+			{
+				LatentAction->Call();
+			});
+			break;
+		case CALLBACK_BACKGROUND_TASKGRAPH:
+			FLambdaRunnable::RunShortLambdaOnBackGroundTask([LatentAction]
+			{
+				LatentAction->Call();
+			});
+			break;
+		default:
+			break;
+		}
+	}
 }
 
 #pragma warning( pop )

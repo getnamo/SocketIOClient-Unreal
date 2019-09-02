@@ -20,8 +20,8 @@ UENUM(BlueprintType)
 enum ESIOThreadOverrideOption
 {
 	USE_DEFAULT,
-	GAME_THREAD,
-	NETWORK_THREAD
+	USE_GAME_THREAD,
+	USE_NETWORK_THREAD
 };
 
 //Wrapper function for TFunctions which can be hashed based on pointers. I.e. no duplicate functions allowed

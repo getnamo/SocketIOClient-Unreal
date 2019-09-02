@@ -11,76 +11,10 @@
 #include "Runtime/Json/Public/Dom/JsonObject.h"
 #include "Runtime/Json/Public/Dom/JsonValue.h"
 #include "LatentActions.h"
+#include "LambdaRunnable.h"
 #include "Engine/LatentActionManager.h"
 #include "SIOJTypes.h"
 #include "SIOJRequestJSON.generated.h"
-
-
-//A simpler latent action where we don't hold the value
-class SIOJSON_API FSIOPendingLatentAction : public FPendingLatentAction
-{
-public:
-	TFunction<void()> OnCancelNotification = nullptr;
-
-	FSIOPendingLatentAction(const FLatentActionInfo& LatentInfo) :
-		ExecutionFunction(LatentInfo.ExecutionFunction),
-		OutputLink(LatentInfo.Linkage),
-		CallbackTarget(LatentInfo.CallbackTarget),
-		Called(false)
-	{
-	}
-
-	virtual void UpdateOperation(FLatentResponse& Response) override
-	{
-		Response.FinishAndTriggerIf(Called, ExecutionFunction, OutputLink, CallbackTarget);
-	}
-
-	void Call() 
-	{
-		Called = true;
-	}
-
-	void Cancel()
-	{
-		if (OnCancelNotification)
-		{
-			OnCancelNotification();
-		}
-	}
-
-	virtual void NotifyObjectDestroyed() override
-	{
-		Cancel();
-	}
-
-	virtual void NotifyActionAborted() override
-	{
-		Cancel();
-	}
-
-
-#if WITH_EDITOR
-	virtual FString GetDescription() const override
-	{
-		if (Called)
-		{
-			return TEXT("Done.");
-		}
-		else
-		{
-			return TEXT("Pending.");
-		}
-	};
-#endif
-
-
-	const FName ExecutionFunction;
-	const int32 OutputLink;
-	const FWeakObjectPtr CallbackTarget;
-
-private:
-	bool Called;
-};
 
 /**
  * @author Original latent action class by https://github.com/unktomi

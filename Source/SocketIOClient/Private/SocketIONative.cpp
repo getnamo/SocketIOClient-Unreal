@@ -253,10 +253,10 @@ void FSocketIONative::OnRawEvent(const FString& EventName,
 	{
 	case USE_DEFAULT:
 		break;
-	case GAME_THREAD:
+	case USE_GAME_THREAD:
 		bCallbackThisEventOnGameThread = true;
 		break;
-	case NETWORK_THREAD:
+	case USE_NETWORK_THREAD:
 		bCallbackThisEventOnGameThread = false;
 		break;
 	default:

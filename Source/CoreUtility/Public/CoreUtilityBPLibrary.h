@@ -37,6 +37,14 @@ enum class EImageFormatBPType : uint8
 	ICNS
 };
 
+UENUM(BlueprintType)
+enum ESIOCallbackType
+{
+	CALLBACK_GAME_THREAD,
+	CALLBACK_BACKGROUND_THREAD,
+	CALLBACK_BACKGROUND_TASKGRAPH
+};
+
 /**
  * Useful generic blueprint functions, mostly conversion
  */
@@ -66,7 +74,7 @@ public:
 	static USoundWave* Conv_WavBytesToSoundWave(const TArray<uint8>& InBytes);
 
 	//Sets and updates soundwave if needed from incoming bytes. Callable on background threads
-	UFUNCTION(BlueprintCallable, Category = "CoreUtility|Conversion", meta = (WorldContext = "WorldContextObject"))
+	UFUNCTION(BlueprintCallable, Category = "CoreUtility|Conversion")
 	static void SetSoundWaveFromWavBytes(USoundWaveProcedural* InSoundWave, const TArray<uint8>& InBytes);
 
 	//Fully Async texture conversion from bytes will auto-detect format, depends on TFuture, cannot be called in blueprint
@@ -84,4 +92,6 @@ public:
 	UFUNCTION(BlueprintPure, Category = "CoreUtility|Conversion")
 	static FString GetLoginId();
 
+	UFUNCTION(BlueprintCallable, Category = "CoreUtility|Conversion", meta = (Latent, LatentInfo = "LatentInfo", WorldContext = "WorldContextObject"))
+	static void CallbackOnThread(struct FLatentActionInfo LatentInfo, ESIOCallbackType ThreadType = CALLBACK_GAME_THREAD, UObject* WorldContextObject = nullptr);
 };
