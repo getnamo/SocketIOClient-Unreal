@@ -96,66 +96,45 @@ UTexture2D* UCoreUtilityBPLibrary::Conv_BytesToTexture(const TArray<uint8>& InBy
 
 USoundWave* UCoreUtilityBPLibrary::Conv_WavBytesToSoundWave(const TArray<uint8>& InBytes)
 {
-	USoundWave* SoundWave = NewObject<USoundWave>(USoundWave::StaticClass());
+	USoundWave* SoundWave;
 
-	SetSoundWaveFromWavBytes(SoundWave, InBytes);
+	//Allocate based on thread
+	if (IsInGameThread())
+	{
+		SoundWave = NewObject<USoundWaveProcedural>(USoundWaveProcedural::StaticClass());
+		SetSoundWaveFromWavBytes((USoundWaveProcedural*)SoundWave, InBytes);
+	}
+	else
+	{
+		//We will go to another thread, copy our bytes
+		TArray<uint8> CopiedBytes = InBytes;
+		FThreadSafeBool bAllocationComplete = false;
+		AsyncTask(ENamedThreads::GameThread, [&bAllocationComplete, &SoundWave]
+			{
+				SoundWave = NewObject<USoundWaveProcedural>(USoundWaveProcedural::StaticClass());
+				bAllocationComplete = true;
+			});
+
+		//block while not complete
+		while (!bAllocationComplete)
+		{
+			//100micros sleep, this should be very quick
+			FPlatformProcess::Sleep(0.0001f);
+		};
+
+		SetSoundWaveFromWavBytes((USoundWaveProcedural*)SoundWave, CopiedBytes);
+	}
 
 	return SoundWave;
 }
 
-USoundWave* UCoreUtilityBPLibrary::SetSoundWaveFromWavBytes(USoundWave* InSoundWave, const TArray<uint8>& InBytes, UObject* WorldContextObject)
+void UCoreUtilityBPLibrary::SetSoundWaveFromWavBytes(USoundWaveProcedural* InSoundWave, const TArray<uint8>& InBytes)
 {
 	FWaveModInfo WaveInfo;
 
-	//Allocate if needed
-	if (!InSoundWave)
-	{
-		if (IsInGameThread()) 
-		{
-			if (WorldContextObject)
-			{
-				InSoundWave = NewObject<USoundWave>(WorldContextObject);
-			}
-			else
-			{
-				InSoundWave = NewObject<USoundWave>(USoundWave::StaticClass());
-			}
-		}
-		else
-		{
-			FThreadSafeBool bAllocationComplete = false;
-			AsyncTask(ENamedThreads::GameThread, [&bAllocationComplete, &InSoundWave, WorldContextObject]
-			{
-				if (WorldContextObject)
-				{
-					InSoundWave = NewObject<USoundWave>(WorldContextObject);
-				}
-				else
-				{
-					InSoundWave = NewObject<USoundWave>(USoundWave::StaticClass());
-				}
-				bAllocationComplete = true;
-			});
-
-			//block while not complete
-			while (!bAllocationComplete)
-			{
-				//0.1ms sleeps, this should be very quick
-				FPlatformProcess::Sleep(0.0001f);
-			};
-		}
-	}
-
 	if (WaveInfo.ReadWaveInfo(InBytes.GetData(), InBytes.Num()))
 	{
-		//todo: invalidate soundwave somehow, below doesn't do it correctly, re-used soundwaves fail
-		InSoundWave->InvalidateCompressedData();
-
-		//Memcopy raw data
-		InSoundWave->RawData.Lock(LOCK_READ_WRITE);
-		void* LockedData = InSoundWave->RawData.Realloc(InBytes.Num());
-		FMemory::Memcpy(LockedData, InBytes.GetData(), InBytes.Num());
-		InSoundWave->RawData.Unlock();
+		InSoundWave->ResetAudio();
 
 		//Set duration/etc
 		int32 DurationDiv = *WaveInfo.pChannels * *WaveInfo.pBitsPerSample * *WaveInfo.pSamplesPerSec;
@@ -167,13 +146,15 @@ USoundWave* UCoreUtilityBPLibrary::SetSoundWaveFromWavBytes(USoundWave* InSoundW
 		{
 			InSoundWave->Duration = 0.0f;
 		}
+
 		InSoundWave->SetSampleRate(*WaveInfo.pSamplesPerSec);
 		InSoundWave->NumChannels = *WaveInfo.pChannels;
-		InSoundWave->RawPCMDataSize = WaveInfo.SampleDataSize;
+		//SoundWaveProc->RawPCMDataSize = WaveInfo.SampleDataSize;
+		InSoundWave->bLooping = false;
 		InSoundWave->SoundGroup = ESoundGroup::SOUNDGROUP_Default;
-	}
 
-	return InSoundWave;
+		InSoundWave->QueueAudio(WaveInfo.SampleDataStart, WaveInfo.SampleDataSize);
+	}
 }
 
 TFuture<UTexture2D*> UCoreUtilityBPLibrary::Conv_BytesToTexture_Async(const TArray<uint8>& InBytes)

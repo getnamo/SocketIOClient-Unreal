@@ -5,7 +5,7 @@
 
 #include "Kismet/BlueprintFunctionLibrary.h"
 #include "Runtime/Core/Public/Async/Future.h"
-#include "Runtime/Engine/Classes/Sound/SoundWave.h"
+#include "Runtime/Engine/Classes/Sound/SoundWaveProcedural.h"
 #include "CoreUtilityBPLibrary.generated.h"
 
 /* Wrapper for EImageFormat::Type for BP*/
@@ -61,13 +61,13 @@ public:
 	UFUNCTION(BlueprintPure, meta = (DisplayName = "To Texture2D (Bytes)", BlueprintAutocast), Category = "CoreUtility|Conversion")
 	static UTexture2D* Conv_BytesToTexture(const TArray<uint8>& InBytes);
 
-	//Assumes .wav chunks - needs to happen on game thread
+	//Assumes .wav chunks - handles async alloc, callable from any thread
 	UFUNCTION(BlueprintPure, meta = (DisplayName = "To SoundWave (Wav Bytes)", BlueprintAutocast), Category = "CoreUtility|Conversion")
 	static USoundWave* Conv_WavBytesToSoundWave(const TArray<uint8>& InBytes);
 
 	//Sets and updates soundwave if needed from incoming bytes. Callable on background threads
 	UFUNCTION(BlueprintCallable, Category = "CoreUtility|Conversion", meta = (WorldContext = "WorldContextObject"))
-	static USoundWave* SetSoundWaveFromWavBytes(USoundWave* InSoundWave, const TArray<uint8>& InBytes, UObject* WorldContextObject = nullptr);
+	static void SetSoundWaveFromWavBytes(USoundWaveProcedural* InSoundWave, const TArray<uint8>& InBytes);
 
 	//Fully Async texture conversion from bytes will auto-detect format, depends on TFuture, cannot be called in blueprint
 	static TFuture<UTexture2D*> Conv_BytesToTexture_Async(const TArray<uint8>& InBytes);
