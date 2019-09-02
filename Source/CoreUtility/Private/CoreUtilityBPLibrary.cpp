@@ -134,9 +134,7 @@ void UCoreUtilityBPLibrary::SetSoundWaveFromWavBytes(USoundWaveProcedural* InSou
 
 	if (WaveInfo.ReadWaveInfo(InBytes.GetData(), InBytes.Num()))
 	{
-		InSoundWave->ResetAudio();
-
-		//Set duration/etc
+		//copy header info
 		int32 DurationDiv = *WaveInfo.pChannels * *WaveInfo.pBitsPerSample * *WaveInfo.pSamplesPerSec;
 		if (DurationDiv)
 		{
@@ -153,6 +151,7 @@ void UCoreUtilityBPLibrary::SetSoundWaveFromWavBytes(USoundWaveProcedural* InSou
 		InSoundWave->bLooping = false;
 		InSoundWave->SoundGroup = ESoundGroup::SOUNDGROUP_Default;
 
+		//Queue actual audio data
 		InSoundWave->QueueAudio(WaveInfo.SampleDataStart, WaveInfo.SampleDataSize);
 	}
 }
