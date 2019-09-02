@@ -283,7 +283,7 @@ FString UCoreUtilityBPLibrary::GetLoginId()
 }
 
 
-void UCoreUtilityBPLibrary::CallbackOnThread(struct FLatentActionInfo LatentInfo, ESIOCallbackType ThreadType /*= CALLBACK_GAME_THREAD*/, UObject* WorldContextObject /*= nullptr*/)
+void UCoreUtilityBPLibrary::CallbackOnGameThread(struct FLatentActionInfo LatentInfo, UObject* WorldContextObject /*= nullptr*/)
 {
 	if (UWorld* World = GEngine->GetWorldFromContextObject(WorldContextObject, EGetWorldErrorMode::LogAndReturnNull))
 	{
@@ -291,49 +291,76 @@ void UCoreUtilityBPLibrary::CallbackOnThread(struct FLatentActionInfo LatentInfo
 		int32 UUID = LatentInfo.UUID;
 
 		FSIOPendingLatentAction *LatentAction = LatentActionManager.FindExistingAction<FSIOPendingLatentAction>(LatentInfo.CallbackTarget, UUID);
+		LatentAction = new FSIOPendingLatentAction(LatentInfo);
 
-		//It's safe to use raw new as actions get deleted by the manager
-		if (!LatentAction)
+		LatentAction->OnCancelNotification = [UUID]()
 		{
-			LatentAction = new FSIOPendingLatentAction(LatentInfo);
+			UE_LOG(LogTemp, Log, TEXT("%d graph callback cancelled."), UUID);
+		};
+		LatentActionManager.AddNewAction(LatentInfo.CallbackTarget, LatentInfo.UUID, LatentAction);
 
-			LatentAction->OnCancelNotification = [UUID]()
-			{
-				UE_LOG(LogTemp, Log, TEXT("%d graph callback cancelled."), UUID);
-			};
+		if (IsInGameThread())
+		{
+			LatentAction->Call();
 		}
-
-		switch (ThreadType)
+		else
 		{
-		case CALLBACK_GAME_THREAD:
-			if (IsInGameThread())
+			FLambdaRunnable::RunShortLambdaOnGameThread([LatentAction]
 			{
-				LatentAction->Call();
-			}
-			else
-			{
-				LatentAction->Call();
-				FLambdaRunnable::RunShortLambdaOnGameThread([LatentAction]
-				{
-					LatentAction->Call();
-				});
-			}
-			break;
-		case CALLBACK_BACKGROUND_THREAD:
-			FLambdaRunnable::RunLambdaOnBackGroundThread([LatentAction]
-			{
+				UE_LOG(LogTemp, Log, TEXT("RunShortLambdaOnGameThread"));
 				LatentAction->Call();
 			});
-			break;
-		case CALLBACK_BACKGROUND_TASKGRAPH:
-			FLambdaRunnable::RunShortLambdaOnBackGroundTask([LatentAction]
-			{
-				LatentAction->Call();
-			});
-			break;
-		default:
-			break;
 		}
+	}
+
+}
+
+void UCoreUtilityBPLibrary::CallFunctionOnThread(const FString& FunctionName, ESIOCallbackType ThreadType, UObject* WorldContextObject /*= nullptr*/)
+{
+	UObject* Target = WorldContextObject;
+
+	if (!Target->IsValidLowLevel())
+	{
+		UE_LOG(LogTemp, Warning, TEXT("CallFunctionOnThread: Target not found for '%s'"), *FunctionName);
+		return;
+	}
+
+	UFunction* Function = Target->FindFunction(FName(*FunctionName));
+	if (nullptr == Function)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("CallFunctionOnThread: Function not found '%s'"), *FunctionName);
+		return;
+	}
+
+	switch (ThreadType)
+	{
+	case CALLBACK_GAME_THREAD:
+		if (IsInGameThread())
+		{
+			Target->ProcessEvent(Function, nullptr);
+		}
+		else
+		{
+			FLambdaRunnable::RunShortLambdaOnGameThread([Function, Target]
+			{
+				Target->ProcessEvent(Function, nullptr);
+			});
+		}
+		break;
+	case CALLBACK_BACKGROUND_THREADPOOL:
+		FLambdaRunnable::RunLambdaOnBackGroundThreadPool([Function, Target]
+		{
+			Target->ProcessEvent(Function, nullptr);
+		});
+		break;
+	case CALLBACK_BACKGROUND_TASKGRAPH:
+		FLambdaRunnable::RunShortLambdaOnBackGroundTask([Function, Target]
+		{
+			Target->ProcessEvent(Function, nullptr);
+		});
+		break;
+	default:
+		break;
 	}
 }
 

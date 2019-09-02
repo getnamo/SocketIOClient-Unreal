@@ -41,7 +41,7 @@ UENUM(BlueprintType)
 enum ESIOCallbackType
 {
 	CALLBACK_GAME_THREAD,
-	CALLBACK_BACKGROUND_THREAD,
+	CALLBACK_BACKGROUND_THREADPOOL,
 	CALLBACK_BACKGROUND_TASKGRAPH
 };
 
@@ -92,6 +92,10 @@ public:
 	UFUNCTION(BlueprintPure, Category = "CoreUtility|Conversion")
 	static FString GetLoginId();
 
+	/** Equivalent to Delay 0 */
 	UFUNCTION(BlueprintCallable, Category = "CoreUtility|Conversion", meta = (Latent, LatentInfo = "LatentInfo", WorldContext = "WorldContextObject"))
-	static void CallbackOnThread(struct FLatentActionInfo LatentInfo, ESIOCallbackType ThreadType = CALLBACK_GAME_THREAD, UObject* WorldContextObject = nullptr);
+	static void CallbackOnGameThread(struct FLatentActionInfo LatentInfo, UObject* WorldContextObject = nullptr);
+
+	UFUNCTION(BlueprintCallable, Category = "CoreUtility|Conversion", meta = (WorldContext = "WorldContextObject"))
+	static void CallFunctionOnThread(const FString& Function, ESIOCallbackType ThreadType, UObject* WorldContextObject = nullptr);
 };
