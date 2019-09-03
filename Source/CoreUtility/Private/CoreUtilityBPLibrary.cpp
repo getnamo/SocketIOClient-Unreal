@@ -22,6 +22,8 @@
 #include "opus.h"
 #endif
 
+#include "Runtime/Online/Voice/Public/VoiceModule.h"
+
 
 #pragma warning( push )
 #pragma warning( disable : 5046)
@@ -104,13 +106,14 @@ UTexture2D* UCoreUtilityBPLibrary::Conv_BytesToTexture(const TArray<uint8>& InBy
 	return Texture;
 }
 
-TSharedPtr<IStreamedCompressedInfo> Coder;
+//TSharedPtr<IStreamedCompressedInfo> Coder;
+
 
 TArray<uint8> UCoreUtilityBPLibrary::Conv_OpusBytesToWav(const TArray<uint8>& InBytes)
 {
 	TArray<uint8> RawBytes;
 
-	if (!Coder.IsValid())
+	/*if (!Coder.IsValid())
 	{
 		Coder = MakeShareable(new FOpusAudioInfo());
 		
@@ -122,7 +125,7 @@ TArray<uint8> UCoreUtilityBPLibrary::Conv_OpusBytesToWav(const TArray<uint8>& In
 	RawBytes.SetNumUninitialized(200000);
 	FDecodeResult Result = Coder->Decode(InBytes.GetData(), InBytes.Num(), RawBytes.GetData(), RawBytes.Num());
 
-	UE_LOG(LogTemp, Log, TEXT("Result: %d"), Result.NumPcmBytesProduced);
+	UE_LOG(LogTemp, Log, TEXT("Result: %d"), Result.NumPcmBytesProduced);*/
 
 
 	return RawBytes;
@@ -130,24 +133,102 @@ TArray<uint8> UCoreUtilityBPLibrary::Conv_OpusBytesToWav(const TArray<uint8>& In
 
 TArray<uint8> UCoreUtilityBPLibrary::Conv_WavBytesToOpus(const TArray<uint8>& InBytes)
 {
-	TArray<uint8> RawBytes;
+	TArray<uint8> OpusBytes;
 
-	if (!Coder.IsValid())
+	FWaveModInfo WaveInfo;
+
+
+	if (!WaveInfo.ReadWaveInfo(InBytes.GetData(), InBytes.Num()))
 	{
-		Coder = MakeShareable(new FOpusAudioInfo());
+		return OpusBytes;
 	}
 
+	TArray<uint8> PCMBytes;
+	PCMBytes.Append(WaveInfo.SampleDataStart, WaveInfo.SampleDataSize);
+	
+	TSharedPtr<IVoiceEncoder> Encoder = FVoiceModule::Get().CreateVoiceEncoder(16000, 1, EAudioEncodeHint::VoiceEncode_Voice);
 
-	//FSoundQualityInfo Info;
-	//Coder->ReadCompressedInfo(InBytes.GetData(), InBytes.Num(), &Info);
-	//RawBytes.SetNumUninitialized(Info.SampleDataSize);
+	uint32 CompressedSize;
+	OpusBytes.SetNumUninitialized(PCMBytes.Num());
+	int32 FrameSize = 4096;
 
-	//Coder->(RawBytes.GetData(), false, RawBytes.Num());
-	//.Decode(InBytes.GetData(), InBytes.Num(), RawBytes.GetData())
+	//for (int i = 0; i < PCMBytes.Num(); i += FrameSize)
+	//{
+	Encoder->Encode(PCMBytes.GetData(), 10000, OpusBytes.GetData(), CompressedSize);
+	//}
 
-	//FAudioCaptureSynth 
+	OpusBytes.SetNum(CompressedSize);
 
-	return RawBytes;
+	return OpusBytes;
+}
+
+
+TArray<uint8> UCoreUtilityBPLibrary::Conv_WavBytesToOpusOld(const TArray<uint8>& InBytes)
+{
+	TArray<uint8> OpusBytes;
+
+	FWaveModInfo WaveInfo;
+
+
+	if (!WaveInfo.ReadWaveInfo(InBytes.GetData(), InBytes.Num()))
+	{
+		return OpusBytes;
+	}
+
+	TArray<uint8> PCMBytes;
+	PCMBytes.Append(WaveInfo.SampleDataStart, WaveInfo.SampleDataSize);
+
+	OpusEncoder *Encoder;
+	int32 err;
+
+	Encoder = opus_encoder_create(*WaveInfo.pSamplesPerSec, *WaveInfo.pChannels, OPUS_APPLICATION_AUDIO, &err);
+
+	if (err < 0)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("opus_encoder_create err"));
+		return OpusBytes;
+	}
+
+	// Frame size must be one of 2.5, 5, 10, 20, 40 or 60 ms
+	const int32 FrameSizeMs = 60;
+
+	// Calculate frame size required by Opus
+	const int32 FrameSize = (*WaveInfo.pSamplesPerSec * FrameSizeMs) / 1000;
+
+	const int32 BitRate = 24000;	//voip bitrate (64kbs for mp3 if used)
+	
+	const int32 MaxPacketSize = (3 * 1276);
+
+	
+
+	err = opus_encoder_ctl(Encoder, OPUS_SET_BITRATE(BitRate));
+
+	//This needs to loop until we're done
+	
+	int32 BytesLeft = WaveInfo.SampleDataSize;
+	int32 Offset = 0;
+
+	while (BytesLeft > 0)
+	{
+		if (OpusBytes.Num() < Offset + MaxPacketSize)
+		{
+			OpusBytes.AddUninitialized(MaxPacketSize);
+		}
+		int32 BytesWritten = opus_encode(Encoder, (const opus_int16*)(PCMBytes.GetData() + Offset), FrameSize, OpusBytes.GetData(), MaxPacketSize);
+		if (BytesWritten < 0)
+		{
+			UE_LOG(LogTemp, Warning, TEXT("opus_encode err"));
+			return OpusBytes;
+		}
+		Offset += BytesWritten;
+		BytesLeft -= FrameSize;
+	}
+
+	//OpusBytes.SetNumUninitialized(Offset);
+
+	opus_encoder_destroy(Encoder);
+
+	return OpusBytes;
 }
 
 USoundWave* UCoreUtilityBPLibrary::Conv_WavBytesToSoundWave(const TArray<uint8>& InBytes)

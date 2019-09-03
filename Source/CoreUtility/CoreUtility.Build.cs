@@ -39,7 +39,8 @@ public class CoreUtility : ModuleRules
                 "Engine",
 				"RHI",
 				"RenderCore",
-				"libOpus"
+				"libOpus",
+				"Voice"
 			}
             );
 
