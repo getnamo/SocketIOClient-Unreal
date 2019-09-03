@@ -23,10 +23,6 @@
 #include "ogg/ogg.h"
 #endif
 
-#include "Runtime/Online/Voice/Public/VoiceModule.h"
-//#include "Runtime/AudioMixer/Public/DSP/Encoders/OpusEncoder.h"
-
-
 #pragma warning( push )
 #pragma warning( disable : 5046)
 
@@ -115,88 +111,44 @@ TArray<uint8> UCoreUtilityBPLibrary::Conv_OpusBytesToWav(const TArray<uint8>& In
 {
 	TArray<uint8> RawBytes;
 
-	/*if (!Coder.IsValid())
+	OpusDecoder* Decoder;
+	int32 OpusErr;
+
+	// Frame size must be one of 2.5, 5, 10, 20, 40 or 60 ms
+	const int32 FrameSizeMs = 60;
+	const int32 SampleRate = 16000;
+	int32 FrameSize = (SampleRate * FrameSizeMs) / 1000;
+	const int32 BitRate = 24000;	//voip bitrate (64kbs for mp3 if used)
+
+	const int32 MaxPacketSize = (3 * 1276);
+
+	const int32 MaxFrameSize = 6 * FrameSize;
+
+	Decoder = opus_decoder_create(SampleRate, 1, &OpusErr);
+
+	TArray<uint8> TempBuffer;
+	TempBuffer.SetNum(MaxFrameSize);
+
+	int32 Offset = 0;
+
+	while (Offset<InBytes.Num())
 	{
-		Coder = MakeShareable(new FOpusAudioInfo());
-		
+		FrameSize = opus_decode(Decoder, InBytes.GetData() + Offset, FrameSize, (opus_int16*)TempBuffer.GetData(), MaxFrameSize, 0);
+		Offset += FrameSize;
+
+		if (FrameSize > 0)
+		{
+			RawBytes.Append(TempBuffer.GetData(), FrameSize);
+		}
+		else if (FrameSize < 0)
+		{
+			UE_LOG(LogTemp, Warning, TEXT("opus_decode err: %d"), FrameSize);
+			return RawBytes;
+		}
 	}
-
-	Coder->CreateDecoder();
-	FSoundQualityInfo Info;
-	Coder->ParseHeader(InBytes.GetData(), InBytes.Num(), &Info);
-	RawBytes.SetNumUninitialized(200000);
-	FDecodeResult Result = Coder->Decode(InBytes.GetData(), InBytes.Num(), RawBytes.GetData(), RawBytes.Num());
-
-	UE_LOG(LogTemp, Log, TEXT("Result: %d"), Result.NumPcmBytesProduced);*/
 
 
 	return RawBytes;
-}
-
-TArray<uint8> UCoreUtilityBPLibrary::Conv_WavBytesToOpusOld(const TArray<uint8>& InBytes)
-{
-	TArray<uint8> OpusBytes;
-	/*FWaveModInfo WaveInfo;
-	if (!WaveInfo.ReadWaveInfo(InBytes.GetData(), InBytes.Num()))
-	{
-		return OpusBytes;
-	}
-
-	FSoundQualityInfo Info;
-	Info.NumChannels = *WaveInfo.pChannels;
-	Info.SampleDataSize = WaveInfo.SampleDataSize;
-	Info.Quality = 100;
-	Info.SampleRate = *WaveInfo.pSamplesPerSec;
-
-	TArray<float> FloatPCM;
-	FloatPCM.SetNumUninitialized(InBytes.Num() / 2);
-
-	for (uint32 i = 0; i < WaveInfo.SampleDataSize; i +=2)
-	{
-		const int16 PCMValue = *(WaveInfo.SampleDataStart + i);
-		FloatPCM[i / 2] = PCMValue / 32768;
-	}
-
-	TSharedPtr<FOpusEncoder>Encoder = MakeShareable(new FOpusEncoder(Info, 4096));
-
-	Encoder->PushAudio(FloatPCM.GetData(), FloatPCM.Num());
-	int32 FinalSize = Encoder->Finalize();
-	OpusBytes.SetNumUninitialized(FinalSize);
-
-	Encoder->PopData(OpusBytes.GetData(), OpusBytes.Num());*/
-
-	return OpusBytes;
-}
-
-TArray<uint8> UCoreUtilityBPLibrary::Conv_WavBytesToOpusOld2(const TArray<uint8>& InBytes)
-{
-	TArray<uint8> OpusBytes;
-
-	FWaveModInfo WaveInfo;
-
-
-	if (!WaveInfo.ReadWaveInfo(InBytes.GetData(), InBytes.Num()))
-	{
-		return OpusBytes;
-	}
-
-	TArray<uint8> PCMBytes;
-	PCMBytes.Append(WaveInfo.SampleDataStart, WaveInfo.SampleDataSize);
-	
-	TSharedPtr<IVoiceEncoder> Encoder = FVoiceModule::Get().CreateVoiceEncoder(*WaveInfo.pSamplesPerSec, *WaveInfo.pChannels, EAudioEncodeHint::VoiceEncode_Voice);
-
-	uint32 CompressedSize;
-	OpusBytes.SetNumUninitialized(PCMBytes.Num());
-	int32 FrameSize = 4096;
-
-	//for (int i = 0; i < PCMBytes.Num(); i += FrameSize)
-	//{
-	Encoder->Encode(PCMBytes.GetData(), 10000, OpusBytes.GetData(), CompressedSize);
-	//}
-
-	OpusBytes.SetNum(CompressedSize);
-
-	return OpusBytes;
 }
 
 
@@ -215,12 +167,12 @@ TArray<uint8> UCoreUtilityBPLibrary::Conv_WavBytesToOpus(const TArray<uint8>& In
 	TArray<uint8> PCMBytes;
 	PCMBytes.Append(WaveInfo.SampleDataStart, WaveInfo.SampleDataSize);
 
-	OpusEncoder *Encoder;
-	int32 err;
+	OpusEncoder* Encoder;
+	int32 OpusErr;
 
-	Encoder = opus_encoder_create(*WaveInfo.pSamplesPerSec, *WaveInfo.pChannels, OPUS_APPLICATION_AUDIO, &err);
+	Encoder = opus_encoder_create(*WaveInfo.pSamplesPerSec, *WaveInfo.pChannels, OPUS_APPLICATION_AUDIO, &OpusErr);
 
-	if (err < 0)
+	if (OpusErr < 0)
 	{
 		UE_LOG(LogTemp, Warning, TEXT("opus_encoder_create err"));
 		return OpusBytes;
@@ -236,9 +188,7 @@ TArray<uint8> UCoreUtilityBPLibrary::Conv_WavBytesToOpus(const TArray<uint8>& In
 	
 	const int32 MaxPacketSize = (3 * 1276);
 
-	
-
-	err = opus_encoder_ctl(Encoder, OPUS_SET_BITRATE(BitRate));
+	OpusErr = opus_encoder_ctl(Encoder, OPUS_SET_BITRATE(BitRate));
 
 	//This needs to loop until we're done
 	

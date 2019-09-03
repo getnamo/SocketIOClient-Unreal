@@ -40,7 +40,6 @@ public class CoreUtility : ModuleRules
 				"RHI",
 				"RenderCore",
 				"libOpus",
-				"Voice",
 				"UEOgg",
 			}
             );
