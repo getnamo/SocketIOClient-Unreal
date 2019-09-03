@@ -69,9 +69,21 @@ public:
 	UFUNCTION(BlueprintPure, meta = (DisplayName = "To Texture2D (Bytes)", BlueprintAutocast), Category = "CoreUtility|Conversion")
 	static UTexture2D* Conv_BytesToTexture(const TArray<uint8>& InBytes);
 
+	//Convert opus to pcm
+	UFUNCTION(BlueprintCallable, meta = (DisplayName = "To Wav Bytes (Opus Bytes)", BlueprintAutocast), Category = "CoreUtility|Conversion")
+	static TArray<uint8> Conv_OpusBytesToWav(const TArray<uint8>& InBytes);
+
+	//Convert wav to opus
+	UFUNCTION(BlueprintCallable, meta = (DisplayName = "To Opus Bytes (Wav Bytes)", BlueprintAutocast), Category = "CoreUtility|Conversion")
+	static TArray<uint8> Conv_WavBytesToOpus(const TArray<uint8>& InBytes);
+
 	//Assumes .wav chunks - handles async alloc, callable from any thread
 	UFUNCTION(BlueprintPure, meta = (DisplayName = "To SoundWave (Wav Bytes)", BlueprintAutocast), Category = "CoreUtility|Conversion")
 	static USoundWave* Conv_WavBytesToSoundWave(const TArray<uint8>& InBytes);
+
+	//convert a soundwave into wav bytes
+	UFUNCTION(BlueprintPure, meta = (DisplayName = "To Bytes (SoundWave)", BlueprintAutocast), Category = "CoreUtility|Conversion")
+	static TArray<uint8> Conv_SoundWaveToWavBytes(USoundWave* SoundWave);
 
 	//Sets and updates soundwave if needed from incoming bytes. Callable on background threads
 	UFUNCTION(BlueprintCallable, Category = "CoreUtility|Conversion")
@@ -85,13 +97,13 @@ public:
 	static bool Conv_TextureToBytes(UTexture2D* Texture, TArray<uint8>& OutBuffer, EImageFormatBPType Format = EImageFormatBPType::PNG);
 
 	//Current UTC time in string format
-	UFUNCTION(BlueprintPure, Category = "CoreUtility|Conversion")
+	UFUNCTION(BlueprintPure, Category = "CoreUtility|Misc")
 	static FString NowUTCString();
 
 	//Hardware ID
-	UFUNCTION(BlueprintPure, Category = "CoreUtility|Conversion")
+	UFUNCTION(BlueprintPure, Category = "CoreUtility|Misc")
 	static FString GetLoginId();
 
-	UFUNCTION(BlueprintCallable, Category = "CoreUtility|Conversion", meta = (WorldContext = "WorldContextObject"))
+	UFUNCTION(BlueprintCallable, Category = "CoreUtility|Threading", meta = (WorldContext = "WorldContextObject"))
 	static void CallFunctionOnThread(const FString& Function, ESIOCallbackType ThreadType, UObject* WorldContextObject = nullptr);
 };

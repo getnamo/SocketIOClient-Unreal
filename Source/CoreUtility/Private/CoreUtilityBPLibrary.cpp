@@ -11,8 +11,17 @@
 #include "Runtime/Core/Public/HAL/ThreadSafeBool.h"
 #include "Runtime/RHI/Public/RHI.h"
 #include "Runtime/Core/Public/Misc/FileHelper.h"
+#include "Runtime/Engine/Public/OpusAudioInfo.h"
+#include "Developer/TargetPlatform/Public/Interfaces/IAudioFormat.h"
 #include "CoreMinimal.h"
 #include "Engine/Engine.h"
+
+#define WITH_OPUS (PLATFORM_WINDOWS || PLATFORM_MAC || PLATFORM_UNIX || PLATFORM_XBOXONE || PLATFORM_ANDROID)
+
+#if WITH_OPUS
+#include "opus.h"
+#endif
+
 
 #pragma warning( push )
 #pragma warning( disable : 5046)
@@ -95,6 +104,52 @@ UTexture2D* UCoreUtilityBPLibrary::Conv_BytesToTexture(const TArray<uint8>& InBy
 	return Texture;
 }
 
+TSharedPtr<IStreamedCompressedInfo> Coder;
+
+TArray<uint8> UCoreUtilityBPLibrary::Conv_OpusBytesToWav(const TArray<uint8>& InBytes)
+{
+	TArray<uint8> RawBytes;
+
+	if (!Coder.IsValid())
+	{
+		Coder = MakeShareable(new FOpusAudioInfo());
+		
+	}
+
+	Coder->CreateDecoder();
+	FSoundQualityInfo Info;
+	Coder->ParseHeader(InBytes.GetData(), InBytes.Num(), &Info);
+	RawBytes.SetNumUninitialized(200000);
+	FDecodeResult Result = Coder->Decode(InBytes.GetData(), InBytes.Num(), RawBytes.GetData(), RawBytes.Num());
+
+	UE_LOG(LogTemp, Log, TEXT("Result: %d"), Result.NumPcmBytesProduced);
+
+
+	return RawBytes;
+}
+
+TArray<uint8> UCoreUtilityBPLibrary::Conv_WavBytesToOpus(const TArray<uint8>& InBytes)
+{
+	TArray<uint8> RawBytes;
+
+	if (!Coder.IsValid())
+	{
+		Coder = MakeShareable(new FOpusAudioInfo());
+	}
+
+
+	//FSoundQualityInfo Info;
+	//Coder->ReadCompressedInfo(InBytes.GetData(), InBytes.Num(), &Info);
+	//RawBytes.SetNumUninitialized(Info.SampleDataSize);
+
+	//Coder->(RawBytes.GetData(), false, RawBytes.Num());
+	//.Decode(InBytes.GetData(), InBytes.Num(), RawBytes.GetData())
+
+	//FAudioCaptureSynth 
+
+	return RawBytes;
+}
+
 USoundWave* UCoreUtilityBPLibrary::Conv_WavBytesToSoundWave(const TArray<uint8>& InBytes)
 {
 	USoundWave* SoundWave;
@@ -127,6 +182,23 @@ USoundWave* UCoreUtilityBPLibrary::Conv_WavBytesToSoundWave(const TArray<uint8>&
 	}
 
 	return SoundWave;
+}
+
+TArray<uint8> UCoreUtilityBPLibrary::Conv_SoundWaveToWavBytes(USoundWave* SoundWave)
+{
+	TArray<uint8> PCMBytes;
+	TArray<uint8> WavBytes;
+
+	//memcpy raw data from soundwave, hmm this won't work for procedurals...
+	const void* LockedData = SoundWave->RawData.LockReadOnly();
+	PCMBytes.SetNumUninitialized(SoundWave->RawData.GetBulkDataSize());
+	FMemory::Memcpy(PCMBytes.GetData(), LockedData, PCMBytes.Num());
+	SoundWave->RawData.Unlock();
+
+	//add wav header
+	SerializeWaveFile(WavBytes, PCMBytes.GetData(), PCMBytes.Num(), SoundWave->NumChannels, SoundWave->GetSampleRateForCurrentPlatform());
+
+	return WavBytes;
 }
 
 void UCoreUtilityBPLibrary::SetSoundWaveFromWavBytes(USoundWaveProcedural* InSoundWave, const TArray<uint8>& InBytes)
