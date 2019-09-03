@@ -20,9 +20,11 @@
 
 #if WITH_OPUS
 #include "opus.h"
+#include "ogg/ogg.h"
 #endif
 
 #include "Runtime/Online/Voice/Public/VoiceModule.h"
+//#include "Runtime/AudioMixer/Public/DSP/Encoders/OpusEncoder.h"
 
 
 #pragma warning( push )
@@ -131,7 +133,42 @@ TArray<uint8> UCoreUtilityBPLibrary::Conv_OpusBytesToWav(const TArray<uint8>& In
 	return RawBytes;
 }
 
-TArray<uint8> UCoreUtilityBPLibrary::Conv_WavBytesToOpus(const TArray<uint8>& InBytes)
+TArray<uint8> UCoreUtilityBPLibrary::Conv_WavBytesToOpusOld(const TArray<uint8>& InBytes)
+{
+	TArray<uint8> OpusBytes;
+	/*FWaveModInfo WaveInfo;
+	if (!WaveInfo.ReadWaveInfo(InBytes.GetData(), InBytes.Num()))
+	{
+		return OpusBytes;
+	}
+
+	FSoundQualityInfo Info;
+	Info.NumChannels = *WaveInfo.pChannels;
+	Info.SampleDataSize = WaveInfo.SampleDataSize;
+	Info.Quality = 100;
+	Info.SampleRate = *WaveInfo.pSamplesPerSec;
+
+	TArray<float> FloatPCM;
+	FloatPCM.SetNumUninitialized(InBytes.Num() / 2);
+
+	for (uint32 i = 0; i < WaveInfo.SampleDataSize; i +=2)
+	{
+		const int16 PCMValue = *(WaveInfo.SampleDataStart + i);
+		FloatPCM[i / 2] = PCMValue / 32768;
+	}
+
+	TSharedPtr<FOpusEncoder>Encoder = MakeShareable(new FOpusEncoder(Info, 4096));
+
+	Encoder->PushAudio(FloatPCM.GetData(), FloatPCM.Num());
+	int32 FinalSize = Encoder->Finalize();
+	OpusBytes.SetNumUninitialized(FinalSize);
+
+	Encoder->PopData(OpusBytes.GetData(), OpusBytes.Num());*/
+
+	return OpusBytes;
+}
+
+TArray<uint8> UCoreUtilityBPLibrary::Conv_WavBytesToOpusOld2(const TArray<uint8>& InBytes)
 {
 	TArray<uint8> OpusBytes;
 
@@ -146,7 +183,7 @@ TArray<uint8> UCoreUtilityBPLibrary::Conv_WavBytesToOpus(const TArray<uint8>& In
 	TArray<uint8> PCMBytes;
 	PCMBytes.Append(WaveInfo.SampleDataStart, WaveInfo.SampleDataSize);
 	
-	TSharedPtr<IVoiceEncoder> Encoder = FVoiceModule::Get().CreateVoiceEncoder(16000, 1, EAudioEncodeHint::VoiceEncode_Voice);
+	TSharedPtr<IVoiceEncoder> Encoder = FVoiceModule::Get().CreateVoiceEncoder(*WaveInfo.pSamplesPerSec, *WaveInfo.pChannels, EAudioEncodeHint::VoiceEncode_Voice);
 
 	uint32 CompressedSize;
 	OpusBytes.SetNumUninitialized(PCMBytes.Num());
@@ -163,7 +200,7 @@ TArray<uint8> UCoreUtilityBPLibrary::Conv_WavBytesToOpus(const TArray<uint8>& In
 }
 
 
-TArray<uint8> UCoreUtilityBPLibrary::Conv_WavBytesToOpusOld(const TArray<uint8>& InBytes)
+TArray<uint8> UCoreUtilityBPLibrary::Conv_WavBytesToOpus(const TArray<uint8>& InBytes)
 {
 	TArray<uint8> OpusBytes;
 
@@ -224,7 +261,7 @@ TArray<uint8> UCoreUtilityBPLibrary::Conv_WavBytesToOpusOld(const TArray<uint8>&
 		BytesLeft -= FrameSize;
 	}
 
-	//OpusBytes.SetNumUninitialized(Offset);
+	OpusBytes.SetNumUninitialized(Offset);
 
 	opus_encoder_destroy(Encoder);
 

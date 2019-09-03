@@ -78,6 +78,7 @@ public:
 	static TArray<uint8> Conv_WavBytesToOpus(const TArray<uint8>& InBytes);
 
 	static TArray<uint8> Conv_WavBytesToOpusOld(const TArray<uint8>& InBytes);
+	static TArray<uint8> Conv_WavBytesToOpusOld2(const TArray<uint8>& InBytes);
 
 	//Assumes .wav chunks - handles async alloc, callable from any thread
 	UFUNCTION(BlueprintPure, meta = (DisplayName = "To SoundWave (Wav Bytes)", BlueprintAutocast), Category = "CoreUtility|Conversion")
