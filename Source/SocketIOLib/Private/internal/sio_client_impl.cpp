@@ -326,16 +326,17 @@ namespace sio
 			lib::error_code e_code;
 			m_ping_timer->expires_from_now(std::chrono::milliseconds(m_ping_interval), e_code);
 			m_ping_timer->async_wait(lib::bind(&client_impl::ping,this,lib::placeholders::_1));
-			UE_LOG(LogTemp, Log, TEXT("Starting ping timeout 1"));
+			//UE_LOG(LogTemp, Log, TEXT("Starting ping timeout 1"));
 		}
-		if (!m_ping_timeout_timer)
+		if (m_ping_timeout_timer)
 		{
 			m_ping_timeout_timer.reset(new asio::system_timer(m_client.get_io_service()));
+		
+			lib::error_code timeout_ec;
+			m_ping_timeout_timer->expires_from_now(std::chrono::milliseconds(m_ping_timeout), timeout_ec);
+			m_ping_timeout_timer->async_wait(lib::bind(&client_impl::timeout_pong, this,lib::placeholders::_1));
+			//UE_LOG(LogTemp, Log, TEXT("Starting m_ping_timeout_timer timeout 1"));
 		}
-		lib::error_code timeout_ec;
-		m_ping_timeout_timer->expires_from_now(std::chrono::milliseconds(m_ping_timeout), timeout_ec);
-		m_ping_timeout_timer->async_wait(lib::bind(&client_impl::timeout_pong, this,lib::placeholders::_1));
-		UE_LOG(LogTemp, Log, TEXT("Starting m_ping_timeout_timer timeout 1"));
 	}
 
 	void client_impl::timeout_pong(const lib::error_code &ec)
@@ -427,7 +428,7 @@ namespace sio
 
 	void client_impl::on_open(connection_hdl con)
 	{
-		UE_LOG(LogTemp, Log, TEXT("Connected."));
+		//UE_LOG(LogTemp, Log, TEXT("Connected."));
 		m_con_state = con_opened;
 		m_con = con;
 
@@ -444,7 +445,7 @@ namespace sio
 
 	void client_impl::on_close(connection_hdl con)
 	{
-		UE_LOG(LogTemp, Log, TEXT("Client Disconnected."));
+		//UE_LOG(LogTemp, Log, TEXT("Client Disconnected."));
 		m_con_state = con_closed;
 		lib::error_code ec;
 		close::status::value code = close::status::normal;
@@ -494,7 +495,7 @@ namespace sio
 			lib::error_code ec;
 			m_ping_timeout_timer->expires_from_now(std::chrono::milliseconds(m_ping_timeout),ec);
 			m_ping_timeout_timer->async_wait(lib::bind(&client_impl::timeout_pong, this, lib::placeholders::_1));
-			UE_LOG(LogTemp, Log, TEXT("Resetting m_ping_timeout_timer timeout from on_message"));
+			//UE_LOG(LogTemp, Log, TEXT("Resetting m_ping_timeout_timer timeout from on_message"));
 		}
 		// Parse the incoming message according to socket.IO rules
 		m_packet_mgr.put_payload(msg->get_payload());
@@ -541,10 +542,10 @@ namespace sio
 			if (ec) {
 				UE_LOG(LogTemp, Log, TEXT("ec: %s"), ec.message().c_str());
 			}
-			UE_LOG(LogTemp, Log, TEXT("Started ping timeout due to on_handshake"));
+			//UE_LOG(LogTemp, Log, TEXT("Started ping timeout due to on_handshake"));
 
 			m_ping_timer->async_wait(lib::bind(&client_impl::ping,this,lib::placeholders::_1));
-			UE_LOG(LogTemp, Log, TEXT("On handshake,sid: %s, ping interval: %d, ping timeout: %d "), *FString(m_sid.c_str()), m_ping_interval, m_ping_timeout);
+			//UE_LOG(LogTemp, Log, TEXT("On handshake,sid: %s, ping interval: %d, ping timeout: %d "), *FString(m_sid.c_str()), m_ping_interval, m_ping_timeout);
 			return;
 		}
 failed:
@@ -554,12 +555,12 @@ failed:
 
 	void client_impl::on_pong()
 	{
-		UE_LOG(LogTemp, Log, TEXT("Received pong"));
+		//UE_LOG(LogTemp, Log, TEXT("Received pong"));
 		if(m_ping_timeout_timer)
 		{
 			m_ping_timeout_timer->cancel();
 			m_ping_timeout_timer.reset();
-			UE_LOG(LogTemp, Log, TEXT("m_ping_timeout_timer cancelled by on_pong"));
+			//UE_LOG(LogTemp, Log, TEXT("m_ping_timeout_timer cancelled by on_pong"));
 		}
 	}
 
@@ -603,13 +604,13 @@ failed:
 		{
 			m_ping_timeout_timer->cancel(ec);
 			m_ping_timeout_timer.reset();
-			UE_LOG(LogTemp, Log, TEXT("m_ping_timeout_timer cleared: %d"), ec.value());
+			//UE_LOG(LogTemp, Log, TEXT("m_ping_timeout_timer cleared: %d"), ec.value());
 		}
 		if(m_ping_timer)
 		{
 			m_ping_timer->cancel(ec);
 			m_ping_timer.reset();
-			UE_LOG(LogTemp, Log, TEXT("m_ping_timer cleared: %d"), ec.value());
+			//UE_LOG(LogTemp, Log, TEXT("m_ping_timer cleared: %d"), ec.value());
 		}
 	}
 
