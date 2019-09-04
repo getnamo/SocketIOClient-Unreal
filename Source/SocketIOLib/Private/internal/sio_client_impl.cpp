@@ -301,7 +301,7 @@ namespace sio
 			m_client.send(m_con,*payload_ptr,opcode,ec);
 			if(ec)
 			{
-				UE_LOG(LogTemp, Log, TEXT("Send failed,reason: %s"), *FString(ec.message().c_str()));
+				UE_LOG(LogTemp, Warning, TEXT("Send failed,reason: %s"), *FString(ec.message().c_str()));
 			}
 		}
 	}
@@ -365,7 +365,7 @@ namespace sio
 			m_con_state = con_opening;
 			m_reconn_made++;
 			this->reset_states();
-			UE_LOG(LogTemp, Log, TEXT("Reconnecting..."));
+			//UE_LOG(LogTemp, Log, TEXT("Reconnecting..."));
 			if(m_reconnecting_listener) m_reconnecting_listener();
 			m_client.get_io_service().dispatch(lib::bind(&client_impl::connect_impl, this, m_base_url, m_query_string));
 		}
@@ -471,7 +471,7 @@ namespace sio
 			this->sockets_invoke_void(&sio::socket::on_disconnect);
 			if(m_reconn_made<m_reconn_attempts)
 			{
-				UE_LOG(LogTemp, Log, TEXT("Reconnect for attempt: %d"), m_reconn_made);
+				//UE_LOG(LogTemp, Log, TEXT("Reconnect for attempt: %d"), m_reconn_made);
 				unsigned delay = this->next_delay();
 				if(m_reconnect_listener) m_reconnect_listener(m_reconn_made,delay);
 				m_reconn_timer.reset(new asio::system_timer(m_client.get_io_service()));
@@ -540,7 +540,7 @@ namespace sio
 			lib::error_code ec;
 			m_ping_timer->expires_from_now(std::chrono::milliseconds(m_ping_interval), ec);
 			if (ec) {
-				UE_LOG(LogTemp, Log, TEXT("ec: %s"), ec.message().c_str());
+				UE_LOG(LogTemp, Log, TEXT("on_handshake ec: %s"), ec.message().c_str());
 			}
 			//UE_LOG(LogTemp, Log, TEXT("Started ping timeout due to on_handshake"));
 
@@ -598,7 +598,7 @@ failed:
 
 	void client_impl::clear_timers()
 	{
-		UE_LOG(LogTemp, Log, TEXT("clear timers"));
+		//UE_LOG(LogTemp, Log, TEXT("clear timers"));
 		lib::error_code ec;
 		if(m_ping_timeout_timer)
 		{
