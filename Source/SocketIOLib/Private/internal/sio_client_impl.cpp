@@ -345,7 +345,7 @@ namespace sio
 		{
 			if (ec != asio::error::operation_aborted)
 			{
-				UE_LOG(LogTemp, Log, TEXT("timeout_pong err: %d"), ec.value());
+				UE_LOG(LogTemp, Warning, TEXT("timeout_pong err: %d"), ec.value());
 			}
 			return;
 		}
@@ -409,10 +409,10 @@ namespace sio
 		m_con.reset();
 		m_con_state = con_closed;
 		this->sockets_invoke_void(&sio::socket::on_disconnect);
-		UE_LOG(LogTemp, Log, TEXT("Connection failed."));
+		//UE_LOG(LogTemp, Log, TEXT("Connection failed."));
 		if(m_reconn_made<m_reconn_attempts)
 		{
-			UE_LOG(LogTemp, Log, TEXT("Reconnect for attempt:%d"), m_reconn_made);
+			//UE_LOG(LogTemp, Log, TEXT("Reconnect for attempt:%d"), m_reconn_made);
 			unsigned delay = this->next_delay();
 			if(m_reconnect_listener) m_reconnect_listener(m_reconn_made,delay);
 			m_reconn_timer.reset(new asio::system_timer(m_client.get_io_service()));
