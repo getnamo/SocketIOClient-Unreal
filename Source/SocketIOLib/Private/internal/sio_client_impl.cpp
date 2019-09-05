@@ -31,11 +31,11 @@
 #include <cmath>
 
 // Comment this out to disable handshake logging to stdout
-#define DEBUG 1
+#define SIO_LIB_DEBUG 0
 
 using namespace std;
 
-#if defined(DEBUG) && DEBUG
+#if defined(SIO_LIB_DEBUG) && SIO_LIB_DEBUG
 #define DEBUG_LOG(CategoryName, Verbosity, Format, ...) UE_LOG(CategoryName, Verbosity, Format, ##__VA_ARGS__)
 #else
 #define DEBUG_LOG(CategoryName, Verbosity, Format, ...)
