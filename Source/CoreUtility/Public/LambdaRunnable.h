@@ -2,7 +2,8 @@
 
 
 #pragma once
-#include "LatentActions.h"
+#include "Runtime/Engine/Classes/Engine/LatentActionManager.h"
+#include "Runtime/Engine/Public/LatentActions.h"
 #include "Runtime/Core/Public/Async/TaskGraphInterfaces.h"
 
 //A simpler latent action where we don't hold the value
