@@ -365,17 +365,8 @@ void FOpusCoder::DebugLogFrame(const uint8* PacketData, uint32 PacketLength, uin
 	int32 payload_offset = 0;
 	int32 NumFramesParsed = opus_packet_parse(PacketData, PacketLength, &TOC, frames, size, &payload_offset);
 
-	
 	int32 TOCEncoding = (TOC & 0xf8) >> 3;
-
-	// Number of channels
 	bool TOCStereo = (TOC & 0x4) != 0 ? true : false;
-
-	// Number of frames and their configuration
-	// 0: 1 frame in the packet
-	// 1: 2 frames in the packet, each with equal compressed size
-	// 2: 2 frames in the packet, with different compressed sizes
-	// 3: an arbitrary number of frames in the packet
 	int32 TOCMode = TOC & 0x3;
 
 	if (bEncode)

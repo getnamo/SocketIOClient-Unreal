@@ -69,11 +69,11 @@ public:
 	UFUNCTION(BlueprintPure, meta = (DisplayName = "To Texture2D (Bytes)", BlueprintAutocast), Category = "CoreUtility|Conversion")
 	static UTexture2D* Conv_BytesToTexture(const TArray<uint8>& InBytes);
 
-	//Convert opus to pcm
+	//Audio compression - Convert opus (currently raw serialized) to pcm
 	UFUNCTION(BlueprintCallable, meta = (DisplayName = "To Wav Bytes (Opus Bytes)", BlueprintAutocast), Category = "CoreUtility|Conversion")
 	static TArray<uint8> Conv_OpusBytesToWav(const TArray<uint8>& InBytes);
 
-	//Convert wav to opus
+	//Audio decompression - Convert wav to opus (currently raw serialized)
 	UFUNCTION(BlueprintCallable, meta = (DisplayName = "To Opus Bytes (Wav Bytes)", BlueprintAutocast), Category = "CoreUtility|Conversion")
 	static TArray<uint8> Conv_WavBytesToOpus(const TArray<uint8>& InBytes);
 
