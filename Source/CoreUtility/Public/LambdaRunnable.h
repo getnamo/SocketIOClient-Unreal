@@ -7,12 +7,12 @@
 #include "Runtime/Core/Public/Async/TaskGraphInterfaces.h"
 
 //A simpler latent action where we don't hold the value
-class COREUTILITY_API FSIOPendingLatentAction : public FPendingLatentAction
+class COREUTILITY_API FCorePendingLatentAction : public FPendingLatentAction
 {
 public:
 	TFunction<void()> OnCancelNotification = nullptr;
 
-	FSIOPendingLatentAction(const FLatentActionInfo& LatentInfo) :
+	FCorePendingLatentAction(const FLatentActionInfo& LatentInfo) :
 		ExecutionFunction(LatentInfo.ExecutionFunction),
 		OutputLink(LatentInfo.Linkage),
 		CallbackTarget(LatentInfo.CallbackTarget),

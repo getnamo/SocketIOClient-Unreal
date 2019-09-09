@@ -21,7 +21,7 @@ public:
 	void SetSampleRate(int32 InSampleRate);
 	void SetChannels(int32 Channels);
 	void SetBitrate(int32 Bitrate);
-	void SetFrameSizeMs(int32 Ms);
+	void SetFrameSizeMs(int32 FrameSizeInMs);
 
 	/** Expects raw PCM data, outputs compressed raw opus data along with compressed frame sizes*/
 	bool EncodeStream(const TArray<uint8>& InPCMBytes, TArray<uint8>& OutCompressed, TArray<int32>& OutCompressedFrameSizes);
