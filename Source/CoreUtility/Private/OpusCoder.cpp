@@ -47,6 +47,7 @@ void FOpusCoder::SetFrameSizeMs(int32 Ms)
 {
 	FrameSize = Ms;
 	FrameSize = (SampleRate * FrameSizeMs) / 1000;
+	MaxFrameSize = FrameSize * 6;
 }
 
 bool FOpusCoder::EncodeStream(const TArray<uint8>& InPCMBytes, TArray<uint8>& OutCompressed)
@@ -129,7 +130,6 @@ bool FOpusCoder::DecodeStream(const TArray<uint8>& InCompressedFrame, TArray<uin
 		}
 	}
 
-	const int32 MaxFrameSize = 6 * FrameSize;
 	bool bLittleEndian = FGenericPlatformProperties::IsLittleEndian(); //technically endian is defined by data not platform, but this is an ok fallback
 
 	Decoder = opus_decoder_create(SampleRate, Channels, &ErrorCode);
@@ -207,5 +207,133 @@ bool FOpusCoder::EncodeFrame(const TArray<uint8>& InPCMFrame, TArray<uint8>& Out
 bool FOpusCoder::DecodeFrame(const TArray<uint8>& InCompressedFrame, TArray<uint8>& OutPCMFrame)
 {
 	return false;
+}
+
+
+//Debug utilities from VoiceCodecOpus
+void FOpusCoder::DebugLogEncoder()
+{
+	int32 ErrCode = 0;
+
+	int32 BitRateLocal = 0;
+	ErrCode = opus_encoder_ctl(Encoder, OPUS_GET_BITRATE(&BitRateLocal));
+
+	int32 Vbr = 0;
+	ErrCode = opus_encoder_ctl(Encoder, OPUS_GET_VBR(&Vbr));
+
+	int32 SampleRateLocal = 0;
+	ErrCode = opus_encoder_ctl(Encoder, OPUS_GET_SAMPLE_RATE(&SampleRateLocal));
+
+	int32 Application = 0;
+	ErrCode = opus_encoder_ctl(Encoder, OPUS_GET_APPLICATION(&Application));
+
+	int32 Signal = 0;
+	ErrCode = opus_encoder_ctl(Encoder, OPUS_GET_SIGNAL(&Signal));
+
+	int32 Complexity = 0;
+	ErrCode = opus_encoder_ctl(Encoder, OPUS_GET_COMPLEXITY(&Complexity));
+
+	UE_LOG(LogTemp, Display, TEXT("Opus Encoder Details"));
+	UE_LOG(LogTemp, Display, TEXT("- Application: %d"), Application);
+	UE_LOG(LogTemp, Display, TEXT("- Signal: %d"), Signal);
+	UE_LOG(LogTemp, Display, TEXT("- BitRate: %d"), BitRateLocal);
+	UE_LOG(LogTemp, Display, TEXT("- SampleRate: %d"), SampleRateLocal);
+	UE_LOG(LogTemp, Display, TEXT("- Vbr: %d"), Vbr);
+	UE_LOG(LogTemp, Display, TEXT("- Complexity: %d"), Complexity);
+}
+
+void FOpusCoder::DebugLogDecoder()
+{
+	int32 ErrCode = 0;
+
+	int32 Gain = 0;
+	ErrCode = opus_decoder_ctl(Decoder, OPUS_GET_GAIN(&Gain));
+
+	int32 Pitch = 0;
+	ErrCode = opus_decoder_ctl(Decoder, OPUS_GET_PITCH(&Pitch));
+
+	UE_LOG(LogTemp, Display, TEXT("Opus Decoder Details"));
+	UE_LOG(LogTemp, Display, TEXT("- Gain: %d"), Gain);
+	UE_LOG(LogTemp, Display, TEXT("- Pitch: %d"), Pitch);
+}
+
+void FOpusCoder::DebugLogFrame(const uint8* PacketData, uint32 PacketLength, uint32 InSampleRate, bool bEncode)
+{
+	int32 NumFrames = opus_packet_get_nb_frames(PacketData, PacketLength);
+	if (NumFrames == OPUS_BAD_ARG || NumFrames == OPUS_INVALID_PACKET)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("opus_packet_get_nb_frames: Invalid voice packet data!"));
+	}
+
+	int32 NumSamples = opus_packet_get_nb_samples(PacketData, PacketLength, InSampleRate);
+	if (NumSamples == OPUS_BAD_ARG || NumSamples == OPUS_INVALID_PACKET)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("opus_packet_get_nb_samples: Invalid voice packet data!"));
+	}
+
+	int32 NumSamplesPerFrame = opus_packet_get_samples_per_frame(PacketData, InSampleRate);
+	int32 Bandwidth = opus_packet_get_bandwidth(PacketData);
+
+	const TCHAR* BandwidthStr = nullptr;
+	switch (Bandwidth)
+	{
+	case OPUS_BANDWIDTH_NARROWBAND: // Narrowband (4kHz bandpass)
+		BandwidthStr = TEXT("NB");
+		break;
+	case OPUS_BANDWIDTH_MEDIUMBAND: // Mediumband (6kHz bandpass)
+		BandwidthStr = TEXT("MB");
+		break;
+	case OPUS_BANDWIDTH_WIDEBAND: // Wideband (8kHz bandpass)
+		BandwidthStr = TEXT("WB");
+		break;
+	case OPUS_BANDWIDTH_SUPERWIDEBAND: // Superwideband (12kHz bandpass)
+		BandwidthStr = TEXT("SWB");
+		break;
+	case OPUS_BANDWIDTH_FULLBAND: // Fullband (20kHz bandpass)
+		BandwidthStr = TEXT("FB");
+		break;
+	case OPUS_INVALID_PACKET:
+	default:
+		BandwidthStr = TEXT("Invalid");
+		break;
+	}
+
+	/*
+	 *	0
+	 *	0 1 2 3 4 5 6 7
+	 *	+-+-+-+-+-+-+-+-+
+	 *	| config  |s| c |
+	 *	+-+-+-+-+-+-+-+-+
+	 */
+	uint8 TOC = 0;
+	// (max 48 x 2.5ms frames in a packet = 120ms)
+	const uint8* frames[48];
+	int16 size[48];
+	int32 payload_offset = 0;
+	int32 NumFramesParsed = opus_packet_parse(PacketData, PacketLength, &TOC, frames, size, &payload_offset);
+
+	// Frame Encoding see http://tools.ietf.org/html/rfc6716#section-3.1
+	int32 TOCEncoding = (TOC & 0xf8) >> 3;
+
+	// Number of channels
+	bool TOCStereo = (TOC & 0x4) != 0 ? true : false;
+
+	// Number of frames and their configuration
+	// 0: 1 frame in the packet
+	// 1: 2 frames in the packet, each with equal compressed size
+	// 2: 2 frames in the packet, with different compressed sizes
+	// 3: an arbitrary number of frames in the packet
+	int32 TOCMode = TOC & 0x3;
+
+	if (bEncode)
+	{
+		UE_LOG(LogTemp, Verbose, TEXT("PacketLength: %d NumFrames: %d NumSamples: %d Bandwidth: %s Encoding: %d Stereo: %d FrameDesc: %d"),
+			PacketLength, NumFrames, NumSamples, BandwidthStr, TOCEncoding, TOCStereo, TOCMode);
+	}
+	else
+	{
+		UE_LOG(LogTemp, Verbose, TEXT("PacketLength: %d NumFrames: %d NumSamples: %d Bandwidth: %s Encoding: %d Stereo: %d FrameDesc: %d"),
+			PacketLength, NumFrames, NumSamples, BandwidthStr, TOCEncoding, TOCStereo, TOCMode);
+	}
 }
 

@@ -36,6 +36,8 @@ protected:
 	//Handle each frame
 	bool EncodeFrame(const TArray<uint8>& InPCMFrame, TArray<uint8>& OutCompressed);
 	bool DecodeFrame(const TArray<uint8>& InCompressedFrame, TArray<uint8>& OutPCMFrame);
+
+
 private:
 	OpusEncoder* Encoder;
 	OpusDecoder* Decoder;
@@ -44,5 +46,11 @@ private:
 	int32 MaxPacketSize;
 	int32 FrameSizeMs;
 	int32 FrameSize;
+	int32 MaxFrameSize;
 	bool bApplicationVoip;
+
+	//From VoiceCodecOpus for debugging
+	void DebugLogEncoder();
+	void DebugLogDecoder();
+	void DebugLogFrame(const uint8* PacketData, uint32 PacketLength, uint32 SampleRate, bool bEncode);
 };
