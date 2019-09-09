@@ -100,7 +100,7 @@ UTexture2D* UCoreUtilityBPLibrary::Conv_BytesToTexture(const TArray<uint8>& InBy
 	return Texture;
 }
 
-//one static coder
+//one static coder, created based on need
 TSharedPtr<FOpusCoder> OpusCoder;
 
 TArray<uint8> UCoreUtilityBPLibrary::Conv_OpusBytesToWav(const TArray<uint8>& InBytes)
@@ -159,10 +159,10 @@ USoundWave* UCoreUtilityBPLibrary::Conv_WavBytesToSoundWave(const TArray<uint8>&
 		TArray<uint8> CopiedBytes = InBytes;
 		FThreadSafeBool bAllocationComplete = false;
 		AsyncTask(ENamedThreads::GameThread, [&bAllocationComplete, &SoundWave]
-			{
-				SoundWave = NewObject<USoundWaveProcedural>(USoundWaveProcedural::StaticClass());
-				bAllocationComplete = true;
-			});
+		{
+			SoundWave = NewObject<USoundWaveProcedural>(USoundWaveProcedural::StaticClass());
+			bAllocationComplete = true;
+		});
 
 		//block while not complete
 		while (!bAllocationComplete)

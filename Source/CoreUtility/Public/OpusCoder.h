@@ -10,7 +10,7 @@
 #endif
 
 
-//Symmetric coder for e.g. voip
+//Symmetric coder for e.g. voip written from raw libopus due to how hidden the opus coder is in the engine (requires online subsystem)
 class FOpusCoder
 {
 public:
@@ -26,6 +26,8 @@ public:
 	/** Expects raw PCM data, outputs compressed raw opus data*/
 	bool EncodeStream(const TArray<uint8>& InPCMBytes, TArray<uint8>& OutCompressed);
 	bool DecodeStream(const TArray<uint8>& InCompressedBytes, TArray<uint8>& OutPCMFrame);
+
+	//Todo: add ogg file format wrapper for raw opus bytes
 
 	int32 Channels;
 	int32 SampleRate;
