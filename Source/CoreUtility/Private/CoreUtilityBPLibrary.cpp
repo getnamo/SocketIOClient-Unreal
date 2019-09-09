@@ -15,13 +15,9 @@
 #include "Developer/TargetPlatform/Public/Interfaces/IAudioFormat.h"
 #include "CoreMinimal.h"
 #include "Engine/Engine.h"
+#include "OpusCoder.h"
 
-#define WITH_OPUS (PLATFORM_WINDOWS || PLATFORM_MAC || PLATFORM_UNIX || PLATFORM_XBOXONE || PLATFORM_ANDROID)
 
-#if WITH_OPUS
-#include "opus.h"
-#include "ogg/ogg.h"
-#endif
 
 #pragma warning( push )
 #pragma warning( disable : 5046)
@@ -104,98 +100,24 @@ UTexture2D* UCoreUtilityBPLibrary::Conv_BytesToTexture(const TArray<uint8>& InBy
 	return Texture;
 }
 
-//TSharedPtr<IStreamedCompressedInfo> Coder;
-
+//one static coder
+TSharedPtr<FOpusCoder> OpusCoder;
 
 TArray<uint8> UCoreUtilityBPLibrary::Conv_OpusBytesToWav(const TArray<uint8>& InBytes)
 {
-	TArray<uint8> RawBytes;
-
-	OpusDecoder* Decoder;
-	int32 OpusErr;
-
-	// Frame size must be one of 2.5, 5, 10, 20, 40 or 60 ms
-	const int32 FrameSizeMs = 60;
-	const int32 SampleRate = 16000;
-	const int32 Channels = 1;
-	int32 FrameSize = (SampleRate * FrameSizeMs) / 1000;
-	const int32 BitRate = 24000;	//voip bitrate (64kbs for mp3 if used)
-
-	const int32 MaxFrameSize = 6 * FrameSize;
-	const int32 MaxPacketSize = (3 * 1276);
-	bool bLittleEndian = FGenericPlatformProperties::IsLittleEndian(); //technically endian is defined by data not platform, but this is an ok fallback
-
-	Decoder = opus_decoder_create(SampleRate, Channels, &OpusErr);
-
-	TArray<opus_int16> In;
-	In.AddUninitialized(Channels*FrameSize);
-
-	TArray<uint8> TempBuffer;
-	TempBuffer.SetNum(MaxFrameSize);
-
-	int32 Offset = 0;
-
-	while (Offset<InBytes.Num())
+	if (!OpusCoder)
 	{
-		//todo: correct for endian
-		//convert from little-endian
-		if (bLittleEndian)
-		{
-			for (int i = 0; i < Channels*FrameSize; i++)
-			{
-				//In[i] = PCMBytes[2 * i + 1] << 8 | PCMBytes[2 * i];
-			}
-		}
-
-		int32 DecodedSamples = opus_decode(Decoder, InBytes.GetData() + Offset, FrameSize, (opus_int16*)TempBuffer.GetData(), MaxFrameSize, 0);
-		
-
-		if (DecodedSamples > 0)
-		{
-			RawBytes.Append(TempBuffer.GetData(), DecodedSamples);
-		}
-		else if (DecodedSamples < 0)
-		{
-			switch (DecodedSamples)
-			{
-			case OPUS_BAD_ARG:
-				UE_LOG(LogTemp, Warning, TEXT("opus_decode err: OPUS_BAD_ARG, One or more invalid/out of range arguments"));
-				break;
-			case OPUS_BUFFER_TOO_SMALL:
-				UE_LOG(LogTemp, Warning, TEXT("opus_decode err: OPUS_BUFFER_TOO_SMALL, The mode struct passed is invalid"));
-				break;
-			case OPUS_INTERNAL_ERROR:
-				UE_LOG(LogTemp, Warning, TEXT("opus_decode err: OPUS_INTERNAL_ERROR,  An internal error was detected"));
-				break;
-			case OPUS_INVALID_PACKET:
-				UE_LOG(LogTemp, Warning, TEXT("opus_decode err: OPUS_INVALID_PACKET, The compressed data passed is corrupted (Offset: %d, FrameSize: %d)"), Offset, FrameSize);
-				break;
-			case OPUS_UNIMPLEMENTED:
-				UE_LOG(LogTemp, Warning, TEXT("opus_decode err: OPUS_UNIMPLEMENTED, Invalid/unsupported request number"));
-				break;
-			case OPUS_ALLOC_FAIL:
-				UE_LOG(LogTemp, Warning, TEXT("opus_decode err: OPUS_ALLOC_FAIL, Memory allocation has failed"));
-				break;
-			case OPUS_INVALID_STATE:
-				UE_LOG(LogTemp, Warning, TEXT("opus_decode err: OPUS_INVALID_STATE, An encoder or decoder structure is invalid or already freed"));
-				break;
-			default:
-				UE_LOG(LogTemp, Warning, TEXT("opus_decode err: %d"), FrameSize);
-				break;
-			}
-			
-			return RawBytes;
-		}
-
-		Offset += FrameSize;
+		OpusCoder = MakeShareable(new FOpusCoder());
 	}
 
+	TArray<uint8> PCMBytes;
+	OpusCoder->DecodeStream(InBytes, PCMBytes);
+
 	TArray<uint8> WavBytes;
-	SerializeWaveFile(WavBytes, RawBytes.GetData(), RawBytes.Num(), Channels, SampleRate);
+	SerializeWaveFile(WavBytes, PCMBytes.GetData(), PCMBytes.Num(), OpusCoder->Channels, OpusCoder->SampleRate);
 
 	return WavBytes;
 }
-
 
 TArray<uint8> UCoreUtilityBPLibrary::Conv_WavBytesToOpus(const TArray<uint8>& InBytes)
 {
@@ -209,71 +131,15 @@ TArray<uint8> UCoreUtilityBPLibrary::Conv_WavBytesToOpus(const TArray<uint8>& In
 		return OpusBytes;
 	}
 
+	if (!OpusCoder)
+	{
+		OpusCoder = MakeShareable(new FOpusCoder());
+	}
+
 	TArray<uint8> PCMBytes;
 	PCMBytes.Append(WaveInfo.SampleDataStart, WaveInfo.SampleDataSize);
 
-	OpusEncoder* Encoder;
-	int32 OpusErr;
-	const int32 Channels = *WaveInfo.pChannels;
-
-	Encoder = opus_encoder_create(*WaveInfo.pSamplesPerSec, Channels, OPUS_APPLICATION_AUDIO, &OpusErr);
-
-	if (OpusErr < 0)
-	{
-		UE_LOG(LogTemp, Warning, TEXT("opus_encoder_create err"));
-		return OpusBytes;
-	}
-
-	// Frame size must be one of 2.5, 5, 10, 20, 40 or 60 ms
-	const int32 FrameSizeMs = 60;
-
-	// Calculate frame size required by Opus
-	const int32 FrameSize = (*WaveInfo.pSamplesPerSec * FrameSizeMs) / 1000;
-
-	const int32 BitRate = 64000;	//voip bitrate (64kbs for mp3 if used)
-	const int32 MaxPacketSize = (3 * 1276);
-	bool bLittleEndian = FGenericPlatformProperties::IsLittleEndian();
-
-	TArray<opus_int16> In;
-	In.AddUninitialized(Channels*FrameSize);
-
-	OpusErr = opus_encoder_ctl(Encoder, OPUS_SET_BITRATE(BitRate));
-
-	//This needs to loop until we're done
-	
-	int32 BytesLeft = WaveInfo.SampleDataSize;
-	int32 Offset = 0;
-
-	while (BytesLeft > 0)
-	{
-		if (OpusBytes.Num() < Offset + MaxPacketSize)
-		{
-			OpusBytes.AddUninitialized(MaxPacketSize);
-		}
-		//endian flip
-		if (bLittleEndian)
-		{
-			//convert from little-endian
-			for (int i = 0; i < *WaveInfo.pChannels*FrameSize; i++)
-			{
-				In[i] = PCMBytes[2 * i + 1] << 8 | PCMBytes[2 * i];
-			}
-		}
-
-		int32 BytesWritten = opus_encode(Encoder, In.GetData(), FrameSize, OpusBytes.GetData(), MaxPacketSize);
-		if (BytesWritten < 0)
-		{
-			UE_LOG(LogTemp, Warning, TEXT("opus_encode err"));
-			return OpusBytes;
-		}
-		Offset += BytesWritten;
-		BytesLeft -= FrameSize;
-	}
-
-	OpusBytes.SetNumUninitialized(Offset);
-
-	opus_encoder_destroy(Encoder);
-
+	OpusCoder->EncodeStream(PCMBytes, OpusBytes);
 	return OpusBytes;
 }
 
