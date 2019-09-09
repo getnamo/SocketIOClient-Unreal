@@ -276,86 +276,50 @@ void FOpusCoder::ResetCoderIfInitialized()
 	}
 }
 
-void FOpusCoder::DebugLogErrorCode(int32 ErrorCode)
-{
-	switch (ErrorCode)
-	{
-	case OPUS_BAD_ARG:
-		UE_LOG(LogTemp, Warning, TEXT("opus_decode err: OPUS_BAD_ARG, One or more invalid/out of range arguments"));
-		break;
-	case OPUS_BUFFER_TOO_SMALL:
-		UE_LOG(LogTemp, Warning, TEXT("opus_decode err: OPUS_BUFFER_TOO_SMALL, The mode struct passed is invalid"));
-		break;
-	case OPUS_INTERNAL_ERROR:
-		UE_LOG(LogTemp, Warning, TEXT("opus_decode err: OPUS_INTERNAL_ERROR,  An internal error was detected"));
-		break;
-	case OPUS_INVALID_PACKET:
-		UE_LOG(LogTemp, Warning, TEXT("opus_decode err: OPUS_INVALID_PACKET, The compressed data passed is corrupted"));
-		break;
-	case OPUS_UNIMPLEMENTED:
-		UE_LOG(LogTemp, Warning, TEXT("opus_decode err: OPUS_UNIMPLEMENTED, Invalid/unsupported request number"));
-		break;
-	case OPUS_ALLOC_FAIL:
-		UE_LOG(LogTemp, Warning, TEXT("opus_decode err: OPUS_ALLOC_FAIL, Memory allocation has failed"));
-		break;
-	case OPUS_INVALID_STATE:
-		UE_LOG(LogTemp, Warning, TEXT("opus_decode err: OPUS_INVALID_STATE, An encoder or decoder structure is invalid or already freed"));
-		break;
-	default:
-		UE_LOG(LogTemp, Warning, TEXT("opus_decode err: %d"), FrameSize);
-		break;
-	}
-}
-
-//Debug utilities from VoiceCodecOpus
+//Debug utilities
 void FOpusCoder::DebugLogEncoder()
 {
 	int32 ErrCode = 0;
-
 	int32 BitRateLocal = 0;
-	ErrCode = opus_encoder_ctl(Encoder, OPUS_GET_BITRATE(&BitRateLocal));
-
 	int32 Vbr = 0;
-	ErrCode = opus_encoder_ctl(Encoder, OPUS_GET_VBR(&Vbr));
-
 	int32 SampleRateLocal = 0;
-	ErrCode = opus_encoder_ctl(Encoder, OPUS_GET_SAMPLE_RATE(&SampleRateLocal));
-
 	int32 Application = 0;
-	ErrCode = opus_encoder_ctl(Encoder, OPUS_GET_APPLICATION(&Application));
-
 	int32 Signal = 0;
-	ErrCode = opus_encoder_ctl(Encoder, OPUS_GET_SIGNAL(&Signal));
-
 	int32 Complexity = 0;
+
+	ErrCode = opus_encoder_ctl(Encoder, OPUS_GET_BITRATE(&BitRateLocal));
+	ErrCode = opus_encoder_ctl(Encoder, OPUS_GET_VBR(&Vbr));
+	ErrCode = opus_encoder_ctl(Encoder, OPUS_GET_SAMPLE_RATE(&SampleRateLocal));	
+	ErrCode = opus_encoder_ctl(Encoder, OPUS_GET_APPLICATION(&Application));
+	ErrCode = opus_encoder_ctl(Encoder, OPUS_GET_SIGNAL(&Signal));
 	ErrCode = opus_encoder_ctl(Encoder, OPUS_GET_COMPLEXITY(&Complexity));
 
-	UE_LOG(LogTemp, Display, TEXT("Opus Encoder Details"));
-	UE_LOG(LogTemp, Display, TEXT("- Application: %d"), Application);
-	UE_LOG(LogTemp, Display, TEXT("- Signal: %d"), Signal);
-	UE_LOG(LogTemp, Display, TEXT("- BitRate: %d"), BitRateLocal);
-	UE_LOG(LogTemp, Display, TEXT("- SampleRate: %d"), SampleRateLocal);
-	UE_LOG(LogTemp, Display, TEXT("- Vbr: %d"), Vbr);
-	UE_LOG(LogTemp, Display, TEXT("- Complexity: %d"), Complexity);
+	UE_LOG(LogTemp, Log, TEXT("Opus Encoder Details"));
+	UE_LOG(LogTemp, Log, TEXT("- Application: %d"), Application);
+	UE_LOG(LogTemp, Log, TEXT("- Signal: %d"), Signal);
+	UE_LOG(LogTemp, Log, TEXT("- BitRate: %d"), BitRateLocal);
+	UE_LOG(LogTemp, Log, TEXT("- SampleRate: %d"), SampleRateLocal);
+	UE_LOG(LogTemp, Log, TEXT("- Vbr: %d"), Vbr);
+	UE_LOG(LogTemp, Log, TEXT("- Complexity: %d"), Complexity);
 }
 
 void FOpusCoder::DebugLogDecoder()
 {
 	int32 ErrCode = 0;
-
 	int32 Gain = 0;
-	ErrCode = opus_decoder_ctl(Decoder, OPUS_GET_GAIN(&Gain));
-
 	int32 Pitch = 0;
+
+	ErrCode = opus_decoder_ctl(Decoder, OPUS_GET_GAIN(&Gain));
 	ErrCode = opus_decoder_ctl(Decoder, OPUS_GET_PITCH(&Pitch));
 
-	UE_LOG(LogTemp, Display, TEXT("Opus Decoder Details"));
-	UE_LOG(LogTemp, Display, TEXT("- Gain: %d"), Gain);
-	UE_LOG(LogTemp, Display, TEXT("- Pitch: %d"), Pitch);
+	UE_LOG(LogTemp, Log, TEXT("Opus Decoder Details"));
+	UE_LOG(LogTemp, Log, TEXT("- Gain: %d"), Gain);
+	UE_LOG(LogTemp, Log, TEXT("- Pitch: %d"), Pitch);
 }
 
 void FOpusCoder::DebugLogFrame(const uint8* PacketData, uint32 PacketLength, uint32 InSampleRate, bool bEncode)
 {
+	// Frame Encoding see http://tools.ietf.org/html/rfc6716#section-3.1
 	int32 NumFrames = opus_packet_get_nb_frames(PacketData, PacketLength);
 	if (NumFrames == OPUS_BAD_ARG || NumFrames == OPUS_INVALID_PACKET)
 	{
@@ -395,21 +359,13 @@ void FOpusCoder::DebugLogFrame(const uint8* PacketData, uint32 PacketLength, uin
 		break;
 	}
 
-	/*
-	 *	0
-	 *	0 1 2 3 4 5 6 7
-	 *	+-+-+-+-+-+-+-+-+
-	 *	| config  |s| c |
-	 *	+-+-+-+-+-+-+-+-+
-	 */
 	uint8 TOC = 0;
-	// (max 48 x 2.5ms frames in a packet = 120ms)
 	const uint8* frames[48];
 	int16 size[48];
 	int32 payload_offset = 0;
 	int32 NumFramesParsed = opus_packet_parse(PacketData, PacketLength, &TOC, frames, size, &payload_offset);
 
-	// Frame Encoding see http://tools.ietf.org/html/rfc6716#section-3.1
+	
 	int32 TOCEncoding = (TOC & 0xf8) >> 3;
 
 	// Number of channels
