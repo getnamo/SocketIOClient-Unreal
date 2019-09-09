@@ -69,15 +69,28 @@ bool FOpusCoder::EncodeStream(const TArray<uint8>& InPCMBytes, TArray<uint8>& Ou
 
 	int32 BytesLeft = InPCMBytes.Num();
 	int32 Offset = 0;
-	int32 PacketCount = 0;
 	int32 BytesWritten = 0;
 	const int32 BytesPerFrame = FrameSize * Channels * sizeof(opus_int16);
 	TArray<uint8> TempBuffer;
-	TempBuffer.AddUninitialized(MaxPacketSize);
+	TArray<uint8> FinalPacket;
+	TempBuffer.SetNumUninitialized(MaxPacketSize);
+	int32 EncodedBytes = 0;
+	opus_int16* PCMDataPtr = 0;
 
 	while (BytesLeft > 0)
 	{
-		int32 EncodedBytes = opus_encode(Encoder, (const opus_int16*)InPCMBytes.GetData() + Offset, FrameSize, TempBuffer.GetData(), MaxPacketSize);
+		//Final packet requires zero padding
+		if(BytesLeft<BytesPerFrame)
+		{
+			FinalPacket.Append(InPCMBytes.GetData() + Offset, BytesLeft);
+			FinalPacket.AddZeroed(BytesPerFrame - BytesLeft);
+			PCMDataPtr = (opus_int16*)FinalPacket.GetData();
+		}
+		else
+		{
+			PCMDataPtr = (opus_int16*)(InPCMBytes.GetData() + Offset);
+		}
+		EncodedBytes = opus_encode(Encoder, (const opus_int16*)PCMDataPtr, FrameSize, TempBuffer.GetData(), MaxPacketSize);
 
 #if DEBUG_OPUS_LOG
 		DebugLogFrame(TempBuffer.GetData(), EncodedBytes, SampleRate, true);
@@ -85,7 +98,7 @@ bool FOpusCoder::EncodeStream(const TArray<uint8>& InPCMBytes, TArray<uint8>& Ou
 
 		if (EncodedBytes < 0)
 		{
-			UE_LOG(LogTemp, Warning, TEXT("opus_encode err"));
+			UE_LOG(LogTemp, Warning, TEXT("opus_encode err: %s"), opus_strerror(EncodedBytes));
 			return false;
 		}
 		OutCompressed.Append(TempBuffer.GetData(), EncodedBytes);
@@ -93,12 +106,11 @@ bool FOpusCoder::EncodeStream(const TArray<uint8>& InPCMBytes, TArray<uint8>& Ou
 		OutCompressedFrameSizes.Add(EncodedBytes);
 		Offset += BytesPerFrame;
 		BytesLeft -= BytesPerFrame;
-		PacketCount++;
 		BytesWritten += EncodedBytes;
 	}
 
 #if DEBUG_OPUS_LOG
-	UE_LOG(LogTemp, Log, TEXT("Total packets encoded: %d, total bytes: %d=%d"), PacketCount, BytesWritten, OutCompressed.Num());
+	UE_LOG(LogTemp, Log, TEXT("Total packets encoded: %d, total bytes: %d=%d"), OutCompressedFrameSizes.Num(), BytesWritten, OutCompressed.Num());
 #endif
 
 	return true;
@@ -121,15 +133,13 @@ bool FOpusCoder::DecodeStream(const TArray<uint8>& InCompressedBytes, const TArr
 	TempBuffer.SetNum(MaxFrameSize);
 
 	int32 CompressedOffset = 0;
-	int32 FrameIndex = 0;
 
-	while (CompressedOffset < InCompressedBytes.Num())
+	for (int FrameIndex = 0; CompressedOffset < InCompressedBytes.Num(); FrameIndex++)
 	{
-
 #if DEBUG_OPUS_LOG
 		DebugLogFrame(InCompressedBytes.GetData(), CompressedFrameSizes[FrameIndex], SampleRate, false);
 #endif
-		int32 DecodedSamples = opus_decode(Decoder, InCompressedBytes.GetData() + CompressedOffset, CompressedFrameSizes[FrameIndex], (opus_int16*)TempBuffer.GetData(), MaxFrameSize, 0);
+		int32 DecodedSamples = opus_decode(Decoder, InCompressedBytes.GetData() + CompressedOffset, CompressedFrameSizes[FrameIndex], (opus_int16*)TempBuffer.GetData(), FrameSize, 0);
 
 		UE_LOG(LogTemp, Log, TEXT("Decoded Samples: %d"), DecodedSamples);
 
@@ -144,7 +154,6 @@ bool FOpusCoder::DecodeStream(const TArray<uint8>& InCompressedBytes, const TArr
 		}
 
 		CompressedOffset += CompressedFrameSizes[FrameIndex];
-		FrameIndex++;
 	}
 
 #if DEBUG_OPUS_LOG
@@ -184,7 +193,7 @@ bool FOpusCoder::InitEncoderIfNeeded()
 			}
 
 			//Turn on some settings
-			opus_encoder_ctl(Encoder, OPUS_SET_BITRATE(BitRate));
+			//opus_encoder_ctl(Encoder, OPUS_SET_BITRATE(BitRate));
 			/*opus_encoder_ctl(Encoder, OPUS_SET_VBR(1));				//variable bit rate encoding
 			opus_encoder_ctl(Encoder, OPUS_SET_VBR_CONSTRAINT(0));	//constrained VBR
 			opus_encoder_ctl(Encoder, OPUS_SET_COMPLEXITY(1));		//complexity
