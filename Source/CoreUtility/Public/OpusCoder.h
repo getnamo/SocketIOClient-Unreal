@@ -23,9 +23,13 @@ public:
 	void SetBitrate(int32 Bitrate);
 	void SetFrameSizeMs(int32 Ms);
 
-	/** Expects raw PCM data, outputs compressed raw opus data*/
+	/** Expects raw PCM data, outputs compressed raw opus data along with compressed frame sizes*/
 	bool EncodeStream(const TArray<uint8>& InPCMBytes, TArray<uint8>& OutCompressed, TArray<int32>& OutCompressedFrameSizes);
 	bool DecodeStream(const TArray<uint8>& InCompressedBytes, const TArray<int32>& CompressedFrameSizes, TArray<uint8>& OutPCMFrame);
+
+	//Handle a single frame
+	int32 EncodeFrame(const TArray<uint8>& InPCMFrame, TArray<uint8>& OutCompressed);
+	int32 DecodeFrame(const TArray<uint8>& InCompressedFrame, TArray<uint8>& OutPCMFrame);
 
 	//Todo: add ogg file format wrapper for raw opus bytes
 
@@ -33,17 +37,11 @@ public:
 	int32 Channels;
 	int32 SampleRate;
 
+protected:
 	//Call this if some settings need to be reflected (all setters all this)
 	void ResetCoderIfInitialized();
-
-protected:
-	//Handle each frame
-	bool EncodeFrame(const TArray<uint8>& InPCMFrame, TArray<uint8>& OutCompressed);
-	bool DecodeFrame(const TArray<uint8>& InCompressedFrame, TArray<uint8>& OutPCMFrame);
-
 	bool InitEncoderIfNeeded();
 	bool InitDecoderIfNeeded();
-
 
 private:
 	OpusEncoder* Encoder;

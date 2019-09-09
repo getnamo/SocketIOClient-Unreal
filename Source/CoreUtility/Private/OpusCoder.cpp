@@ -1,7 +1,7 @@
 #include "OpusCoder.h"
 #include "CoreMinimal.h"
 
-#define DEBUG_OPUS_LOG 1
+#define DEBUG_OPUS_LOG 0
 
 FOpusCoder::FOpusCoder()
 {
@@ -162,14 +162,14 @@ bool FOpusCoder::DecodeStream(const TArray<uint8>& InCompressedBytes, const TArr
 	return true;
 }
 
-bool FOpusCoder::EncodeFrame(const TArray<uint8>& InPCMFrame, TArray<uint8>& OutCompressed)
+int32 FOpusCoder::EncodeFrame(const TArray<uint8>& InPCMFrame, TArray<uint8>& OutCompressed)
 {
-	return false;
+	return opus_encode(Encoder, (const opus_int16*)InPCMFrame.GetData(), FrameSize, OutCompressed.GetData(), MaxPacketSize);
 }
 
-bool FOpusCoder::DecodeFrame(const TArray<uint8>& InCompressedFrame, TArray<uint8>& OutPCMFrame)
+int32 FOpusCoder::DecodeFrame(const TArray<uint8>& InCompressedFrame, TArray<uint8>& OutPCMFrame)
 {
-	return false;
+	return opus_decode(Decoder, InCompressedFrame.GetData(), InCompressedFrame.Num(), (opus_int16*)OutPCMFrame.GetData(), FrameSize, 0);
 }
 
 
