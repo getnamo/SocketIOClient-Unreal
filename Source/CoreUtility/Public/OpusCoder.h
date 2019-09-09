@@ -27,6 +27,10 @@ public:
 	bool EncodeStream(const TArray<uint8>& InPCMBytes, TArray<uint8>& OutCompressed, TArray<int32>& OutCompressedFrameSizes);
 	bool DecodeStream(const TArray<uint8>& InCompressedBytes, const TArray<int32>& CompressedFrameSizes, TArray<uint8>& OutPCMFrame);
 
+
+	bool SerializeMinimal(const TArray<uint8>& CompressedBytes, const TArray<int32>& CompressedFrameSizes, TArray<uint8>& OutSerializedBytes);
+	bool DeserializeMinimal(const TArray<uint8>& InSerializedMinimalBytes, TArray<uint8>& OutCompressedBytes, TArray<int32>& OutCompressedFrameSizes);
+
 	//Handle a single frame
 	int32 EncodeFrame(const TArray<uint8>& InPCMFrame, TArray<uint8>& OutCompressed);
 	int32 DecodeFrame(const TArray<uint8>& InCompressedFrame, TArray<uint8>& OutPCMFrame);
