@@ -111,7 +111,7 @@ TArray<uint8> UCoreUtilityBPLibrary::Conv_OpusBytesToWav(const TArray<uint8>& In
 	}
 
 	TArray<uint8> PCMBytes;
-	OpusCoder->DecodeStream(InBytes, PCMBytes);
+	//OpusCoder->DecodeStream(InBytes, PCMBytes);
 
 	TArray<uint8> WavBytes;
 	SerializeWaveFile(WavBytes, PCMBytes.GetData(), PCMBytes.Num(), OpusCoder->Channels, OpusCoder->SampleRate);
@@ -139,8 +139,18 @@ TArray<uint8> UCoreUtilityBPLibrary::Conv_WavBytesToOpus(const TArray<uint8>& In
 	TArray<uint8> PCMBytes;
 	PCMBytes.Append(WaveInfo.SampleDataStart, WaveInfo.SampleDataSize);
 
-	OpusCoder->EncodeStream(PCMBytes, OpusBytes);
-	return OpusBytes;
+	TArray<int32> CompressedFrameSizes;
+	OpusCoder->EncodeStream(PCMBytes, OpusBytes, CompressedFrameSizes);
+
+	//test decoding the stream again
+	PCMBytes.Empty();
+	OpusCoder->DecodeStream(OpusBytes, CompressedFrameSizes, PCMBytes);
+
+	TArray<uint8> WavBytes;
+	SerializeWaveFile(WavBytes, PCMBytes.GetData(), PCMBytes.Num(), OpusCoder->Channels, OpusCoder->SampleRate);
+
+	//try to test a re-encode
+	return WavBytes;
 }
 
 USoundWave* UCoreUtilityBPLibrary::Conv_WavBytesToSoundWave(const TArray<uint8>& InBytes)

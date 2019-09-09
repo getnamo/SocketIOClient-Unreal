@@ -24,18 +24,25 @@ public:
 	void SetFrameSizeMs(int32 Ms);
 
 	/** Expects raw PCM data, outputs compressed raw opus data*/
-	bool EncodeStream(const TArray<uint8>& InPCMBytes, TArray<uint8>& OutCompressed);
-	bool DecodeStream(const TArray<uint8>& InCompressedBytes, TArray<uint8>& OutPCMFrame);
+	bool EncodeStream(const TArray<uint8>& InPCMBytes, TArray<uint8>& OutCompressed, TArray<int32>& OutCompressedFrameSizes);
+	bool DecodeStream(const TArray<uint8>& InCompressedBytes, const TArray<int32>& CompressedFrameSizes, TArray<uint8>& OutPCMFrame);
 
 	//Todo: add ogg file format wrapper for raw opus bytes
 
+	//Intended to be Read-only
 	int32 Channels;
 	int32 SampleRate;
+
+	//Call this if some settings need to be reflected (all setters all this)
+	void ResetCoderIfInitialized();
 
 protected:
 	//Handle each frame
 	bool EncodeFrame(const TArray<uint8>& InPCMFrame, TArray<uint8>& OutCompressed);
 	bool DecodeFrame(const TArray<uint8>& InCompressedFrame, TArray<uint8>& OutPCMFrame);
+
+	bool InitEncoderIfNeeded();
+	bool InitDecoderIfNeeded();
 
 
 private:
@@ -50,6 +57,7 @@ private:
 	bool bApplicationVoip;
 
 	//From VoiceCodecOpus for debugging
+	void DebugLogErrorCode(int32 ErrorCode);
 	void DebugLogEncoder();
 	void DebugLogDecoder();
 	void DebugLogFrame(const uint8* PacketData, uint32 PacketLength, uint32 SampleRate, bool bEncode);
