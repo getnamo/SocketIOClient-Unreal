@@ -25,9 +25,7 @@
 				"Win32",
 				"Linux",
 				"Mac",
-				"Android",
-				"IOS",
-				"Lumin"
+				"Android"
 			]
 		},
 		{
@@ -39,9 +37,7 @@
 				"Win32",
 				"Linux",
 				"Mac",
-				"Android",
-				"IOS",
-				"Lumin"
+				"Android"
 			]
 		},
 		{
@@ -53,9 +49,7 @@
 				"Win32",
 				"Linux",
 				"Mac",
-				"Android",
-				"IOS",
-				"Lumin"
+				"Android"
 			]
 		},
 		{
@@ -68,8 +62,7 @@
 				"Linux",
 				"Mac",
 				"Android",
-				"IOS",
-				"Lumin"
+				"IOS"
 			]
 		},
 		{
