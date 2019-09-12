@@ -12,12 +12,11 @@
 #include "Runtime/RHI/Public/RHI.h"
 #include "Runtime/Core/Public/Misc/FileHelper.h"
 #include "Runtime/Engine/Public/OpusAudioInfo.h"
+#include "Runtime/Launch/Resources/Version.h"
 #include "Developer/TargetPlatform/Public/Interfaces/IAudioFormat.h"
 #include "CoreMinimal.h"
 #include "Engine/Engine.h"
 #include "OpusCoder.h"
-
-
 
 #pragma warning( push )
 #pragma warning( disable : 5046)

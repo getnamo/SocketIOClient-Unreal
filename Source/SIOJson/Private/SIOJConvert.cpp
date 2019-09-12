@@ -10,6 +10,7 @@
 #include "SIOJsonValue.h"
 #include "SIOJsonObject.h"
 #include "Runtime/JsonUtilities/Public/JsonObjectConverter.h"
+#include "Runtime/Core/Public/UObject/PropertyPortFlags.h"
 
 typedef TJsonWriterFactory< TCHAR, TCondensedJsonPrintPolicy<TCHAR> > FCondensedJsonStringWriterFactory;
 typedef TJsonWriter< TCHAR, TCondensedJsonPrintPolicy<TCHAR> > FCondensedJsonStringWriter;
