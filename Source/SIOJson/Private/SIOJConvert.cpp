@@ -3,6 +3,7 @@
 
 #include "SIOJConvert.h"
 //#include "Runtime/Json/Public/Json.h"
+#include "Runtime/CoreUObject/Public/UObject/TextProperty.h"
 #include "JsonGlobals.h"
 #include "Policies/CondensedJsonPrintPolicy.h"
 #include "Runtime/Core/Public/Misc/FileHelper.h"
