@@ -61,8 +61,7 @@
 				"Win32",
 				"Linux",
 				"Mac",
-				"Android",
-				"IOS"
+				"Android"
 			]
 		},
 		{
