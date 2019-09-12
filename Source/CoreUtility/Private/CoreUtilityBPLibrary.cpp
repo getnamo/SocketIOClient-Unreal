@@ -105,6 +105,12 @@ TSharedPtr<FOpusCoder> OpusCoder;
 
 TArray<uint8> UCoreUtilityBPLibrary::Conv_OpusBytesToWav(const TArray<uint8>& InBytes)
 {
+	TArray<uint8> WavBytes;
+	//Early exit condition
+	if (InBytes.Num() == 0) 
+	{
+		return WavBytes;
+	}
 	if (!OpusCoder)
 	{
 		OpusCoder = MakeShareable(new FOpusCoder());
@@ -116,7 +122,7 @@ TArray<uint8> UCoreUtilityBPLibrary::Conv_OpusBytesToWav(const TArray<uint8>& In
 	OpusCoder->DeserializeMinimal(InBytes, OpusBytes, CompressedFrameSizes);
 	OpusCoder->DecodeStream(OpusBytes, CompressedFrameSizes, PCMBytes);
 
-	TArray<uint8> WavBytes;
+	
 	SerializeWaveFile(WavBytes, PCMBytes.GetData(), PCMBytes.Num(), OpusCoder->Channels, OpusCoder->SampleRate);
 
 	return WavBytes;
@@ -148,14 +154,6 @@ TArray<uint8> UCoreUtilityBPLibrary::Conv_WavBytesToOpus(const TArray<uint8>& In
 	TArray<uint8> SerializedBytes;
 	OpusCoder->SerializeMinimal(OpusBytes, CompressedFrameSizes, SerializedBytes);
 
-	//test decoding the stream again
-	/*PCMBytes.Empty();
-	OpusCoder->DecodeStream(OpusBytes, CompressedFrameSizes, PCMBytes);
-
-	TArray<uint8> WavBytes;
-	SerializeWaveFile(WavBytes, PCMBytes.GetData(), PCMBytes.Num(), OpusCoder->Channels, OpusCoder->SampleRate);*/
-
-	//try to test a re-encode
 	return SerializedBytes;
 }
 
