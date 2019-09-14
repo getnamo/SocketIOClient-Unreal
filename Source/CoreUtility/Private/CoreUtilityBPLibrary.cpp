@@ -115,11 +115,10 @@ TArray<uint8> UCoreUtilityBPLibrary::Conv_OpusBytesToWav(const TArray<uint8>& In
 		OpusCoder = MakeShareable(new FOpusCoder());
 	}
 
-	TArray<uint8> OpusBytes;
 	TArray<uint8> PCMBytes;
-	TArray<int32> CompressedFrameSizes;
-	OpusCoder->DeserializeMinimal(InBytes, OpusBytes, CompressedFrameSizes);
-	OpusCoder->DecodeStream(OpusBytes, CompressedFrameSizes, PCMBytes);
+	FOpusMinimalStream OpusStream;
+	OpusCoder->DeserializeMinimal(InBytes, OpusStream);
+	OpusCoder->DecodeStream(OpusStream, PCMBytes);
 
 	
 	SerializeWaveFile(WavBytes, PCMBytes.GetData(), PCMBytes.Num(), OpusCoder->Channels, OpusCoder->SampleRate);
@@ -147,11 +146,11 @@ TArray<uint8> UCoreUtilityBPLibrary::Conv_WavBytesToOpus(const TArray<uint8>& In
 	TArray<uint8> PCMBytes;
 	PCMBytes.Append(WaveInfo.SampleDataStart, WaveInfo.SampleDataSize);
 
-	TArray<int32> CompressedFrameSizes;
-	OpusCoder->EncodeStream(PCMBytes, OpusBytes, CompressedFrameSizes);
+	FOpusMinimalStream OpusStream;
+	OpusCoder->EncodeStream(PCMBytes, OpusStream);
 
 	TArray<uint8> SerializedBytes;
-	OpusCoder->SerializeMinimal(OpusBytes, CompressedFrameSizes, SerializedBytes);
+	OpusCoder->SerializeMinimal(OpusStream, SerializedBytes);
 
 	return SerializedBytes;
 }

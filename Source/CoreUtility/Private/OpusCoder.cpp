@@ -56,7 +56,7 @@ void FOpusCoder::SetFrameSizeMs(int32 Ms)
 	ResetCoderIfInitialized();
 }
 
-bool FOpusCoder::EncodeStream(const TArray<uint8>& InPCMBytes, TArray<uint8>& OutCompressed, TArray<int32>& OutCompressedFrameSizes)
+bool FOpusCoder::EncodeStream(const TArray<uint8>& InPCMBytes, FOpusMinimalStream& OutStream)
 {
 	if (!InitEncoderIfNeeded())
 	{
@@ -101,9 +101,9 @@ bool FOpusCoder::EncodeStream(const TArray<uint8>& InPCMBytes, TArray<uint8>& Ou
 			UE_LOG(LogTemp, Warning, TEXT("opus_encode err: %s"), opus_strerror(EncodedBytes));
 			return false;
 		}
-		OutCompressed.Append(TempBuffer.GetData(), EncodedBytes);
+		OutStream.CompressedBytes.Append(TempBuffer.GetData(), EncodedBytes);
 
-		OutCompressedFrameSizes.Add(EncodedBytes);
+		OutStream.PacketSizes.Add(EncodedBytes);
 		Offset += BytesPerFrame;
 		BytesLeft -= BytesPerFrame;
 		BytesWritten += EncodedBytes;
@@ -116,7 +116,7 @@ bool FOpusCoder::EncodeStream(const TArray<uint8>& InPCMBytes, TArray<uint8>& Ou
 	return true;
 }
 
-bool FOpusCoder::DecodeStream(const TArray<uint8>& InCompressedBytes, const TArray<int32>& CompressedFrameSizes, TArray<uint8>& OutPCMFrame)
+bool FOpusCoder::DecodeStream(const FOpusMinimalStream& InStream, TArray<uint8>& OutPCMFrame)
 {	
 	if (!InitDecoderIfNeeded())
 	{
@@ -134,10 +134,10 @@ bool FOpusCoder::DecodeStream(const TArray<uint8>& InCompressedBytes, const TArr
 
 	int32 CompressedOffset = 0;
 
-	for (int FrameIndex = 0; CompressedOffset < InCompressedBytes.Num(); FrameIndex++)
+	for (int FrameIndex = 0; CompressedOffset < InStream.CompressedBytes.Num(); FrameIndex++)
 	{
 
-		int32 DecodedSamples = opus_decode(Decoder, InCompressedBytes.GetData() + CompressedOffset, CompressedFrameSizes[FrameIndex], (opus_int16*)TempBuffer.GetData(), FrameSize, 0);
+		int32 DecodedSamples = opus_decode(Decoder, InStream.CompressedBytes.GetData() + CompressedOffset, InStream.PacketSizes[FrameIndex], (opus_int16*)TempBuffer.GetData(), FrameSize, 0);
 
 #if DEBUG_OPUS_LOG
 		DebugLogFrame(InCompressedBytes.GetData(), CompressedFrameSizes[FrameIndex], SampleRate, false);
@@ -154,7 +154,7 @@ bool FOpusCoder::DecodeStream(const TArray<uint8>& InCompressedBytes, const TArr
 			return false;
 		}
 
-		CompressedOffset += CompressedFrameSizes[FrameIndex];
+		CompressedOffset += InStream.PacketSizes[FrameIndex];
 	}
 
 #if DEBUG_OPUS_LOG
@@ -171,34 +171,39 @@ static void WriteUInt32ToByteArrayLE(TArray<uint8>& InByteArray, int32& Index, c
 	InByteArray[Index++] = (uint8)(Value >> 24);
 }
 
-bool FOpusCoder::SerializeMinimal(const TArray<uint8>& CompressedBytes, const TArray<int32>& CompressedFrameSizes, TArray<uint8>& OutSerializedBytes)
+bool FOpusCoder::SerializeMinimal(const FOpusMinimalStream& InStream, TArray<uint8>& OutSerializedBytes)
 {
-	OutSerializedBytes.SetNumUninitialized(sizeof(int32) + (CompressedFrameSizes.Num() * sizeof(int32)) + CompressedBytes.Num());
+	//Preset array size
+	OutSerializedBytes.SetNumUninitialized(sizeof(int32) + (InStream.PacketSizes.Num() * sizeof(int16)) + InStream.CompressedBytes.Num());
 	
 	//Write total number of packets as int32 first
 	int32 Index = 0;
-	WriteUInt32ToByteArrayLE(OutSerializedBytes, Index, CompressedFrameSizes.Num());
+	WriteUInt32ToByteArrayLE(OutSerializedBytes, Index, InStream.PacketSizes.Num());
 
 	//write the compressed frame sizes
-	FMemory::Memcpy(&OutSerializedBytes[sizeof(int32)], CompressedFrameSizes.GetData(), CompressedFrameSizes.Num() * sizeof(int32));
+	int32 Offset = sizeof(int32);
+	FMemory::Memcpy(&OutSerializedBytes[Offset], InStream.PacketSizes.GetData(), InStream.PacketSizes.Num() * sizeof(int16));
 
 	//write the compressed bytes
-	FMemory::Memcpy(&OutSerializedBytes[sizeof(int32)*(1 + CompressedFrameSizes.Num())], CompressedBytes.GetData(), CompressedBytes.Num());
+	Offset += (InStream.PacketSizes.Num() * sizeof(int16));
+	FMemory::Memcpy(&OutSerializedBytes[Offset], InStream.CompressedBytes.GetData(), InStream.CompressedBytes.Num());
 
 	return true;
 }
 
-bool FOpusCoder::DeserializeMinimal(const TArray<uint8>& InSerializedMinimalBytes, TArray<uint8>& OutCompressedBytes, TArray<int32>& OutCompressedFrameSizes)
+bool FOpusCoder::DeserializeMinimal(const TArray<uint8>& InSerializedMinimalBytes, FOpusMinimalStream& OutStream)
 {
 	int32 PacketCount = InSerializedMinimalBytes[0];
 
 	//get our packet info
-	OutCompressedFrameSizes.SetNumUninitialized(PacketCount);
-	FMemory::Memcpy(OutCompressedFrameSizes.GetData(), &InSerializedMinimalBytes[sizeof(int32)], PacketCount*sizeof(int32));
+	OutStream.PacketSizes.SetNumUninitialized(PacketCount);
+	int32 Offset = sizeof(int32);
+	FMemory::Memcpy(OutStream.PacketSizes.GetData(), &InSerializedMinimalBytes[Offset], PacketCount*sizeof(int16));
 
 	//get our compressed data
-	int32 RemainingBytes = InSerializedMinimalBytes.Num() - ((PacketCount + 1) * sizeof(int32));
-	OutCompressedBytes.Append(&InSerializedMinimalBytes[(1 + PacketCount) * sizeof(int32)], RemainingBytes);
+	Offset += ((PacketCount) * sizeof(16));
+	int32 RemainingBytes = InSerializedMinimalBytes.Num() - Offset;
+	OutStream.CompressedBytes.Append(&InSerializedMinimalBytes[Offset], RemainingBytes);
 	
 	return true;
 }
