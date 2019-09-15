@@ -1,4 +1,5 @@
 #include "CUPreciseTimer.h"
+#include "Core.h"
 
 //Toggle to enable/disable code
 #define ENABLE_PRECISE_TIMER 1
