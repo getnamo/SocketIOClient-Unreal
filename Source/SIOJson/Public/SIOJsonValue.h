@@ -147,8 +147,8 @@ class SIOJSON_API USIOJsonValue : public UObject
 	UFUNCTION(BlueprintCallable, Category = "SIOJ|Json")
 	USIOJsonObject* AsObject();
 
-	//todo: add basic binary e.g. tarray<byte>
-	UFUNCTION(BlueprintCallable, Category = "SIOJ|Json")
+	//Convert message to binary data
+	UFUNCTION(BlueprintPure, Category = "SIOJ|Json")
 	TArray<uint8> AsBinary();
 
 	UFUNCTION(BlueprintCallable, Category = "SIOJ|Json")
