@@ -75,7 +75,7 @@ private:
 /*
 *	Convenience wrappers for common thread/task work flow. Run background task on thread, callback via task graph on game thread
 */
-class COREUTILITY_API FLambdaRunnable
+class COREUTILITY_API FCULambdaRunnable
 {
 public:
 

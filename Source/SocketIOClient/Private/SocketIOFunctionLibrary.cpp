@@ -1,7 +1,7 @@
 // Copyright 2019-current Getnamo. All Rights Reserved
 
 #include "SocketIOFunctionLibrary.h"
-#include "LambdaRunnable.h"
+#include "CULambdaRunnable.h"
 #include "Engine/Engine.h"
 
 USocketIOClientComponent* USocketIOFunctionLibrary::ConstructSocketIOComponent(UObject* WorldContextObject)
@@ -21,7 +21,7 @@ USocketIOClientComponent* USocketIOFunctionLibrary::ConstructSocketIOComponent(U
 		if (bOwnerHasValidWorld)
 		{
 			//Delay by 1 tick so that we can adjust bShouldAutoConnect/etc
-			FLambdaRunnable::RunShortLambdaOnGameThread([SpawnedComponent]()
+			FCULambdaRunnable::RunShortLambdaOnGameThread([SpawnedComponent]()
 			{
 				if (SpawnedComponent->IsValidLowLevel())
 				{

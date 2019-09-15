@@ -4,7 +4,6 @@
 #include "CoreUtilityBPLibrary.h"
 #include "IImageWrapper.h"
 #include "IImageWrapperModule.h"
-#include "LambdaRunnable.h"
 #include "Runtime/Core/Public/Modules/ModuleManager.h"
 #include "Runtime/Core/Public/Async/Async.h"
 #include "Runtime/Engine/Classes/Engine/Texture2D.h"
@@ -16,8 +15,9 @@
 #include "Developer/TargetPlatform/Public/Interfaces/IAudioFormat.h"
 #include "CoreMinimal.h"
 #include "Engine/Engine.h"
-#include "OpusCoder.h"
-#include "PreciseTimer.h"
+#include "CULambdaRunnable.h"
+#include "CUOpusCoder.h"
+#include "CUPreciseTimer.h"
 
 #pragma warning( push )
 #pragma warning( disable : 5046)
@@ -64,7 +64,7 @@ UTexture2D* UCoreUtilityBPLibrary::Conv_BytesToTexture(const TArray<uint8>& InBy
 		Texture->UpdateResource();
 
 		//Uncompress on a background thread pool
-		FLambdaRunnable::RunLambdaOnBackGroundThreadPool([ImageWrapper, Texture] {
+		FCULambdaRunnable::RunLambdaOnBackGroundThreadPool([ImageWrapper, Texture] {
 			const TArray<uint8>* UncompressedBGRA = nullptr;
 			if (ImageWrapper->GetRaw(ERGBFormat::BGRA, 8, UncompressedBGRA))
 			{
@@ -101,11 +101,11 @@ UTexture2D* UCoreUtilityBPLibrary::Conv_BytesToTexture(const TArray<uint8>& InBy
 }
 
 //one static coder, created based on need
-TSharedPtr<FOpusCoder> OpusCoder;
+TSharedPtr<FCUOpusCoder> OpusCoder;
 
 TArray<uint8> UCoreUtilityBPLibrary::Conv_OpusBytesToWav(const TArray<uint8>& InBytes)
 {
-	FPreciseTimer::Tick(TEXT("Conv_OpusBytesToWav"));
+	FCUPreciseTimer::Tick(TEXT("Conv_OpusBytesToWav"));
 	TArray<uint8> WavBytes;
 	//Early exit condition
 	if (InBytes.Num() == 0) 
@@ -114,11 +114,11 @@ TArray<uint8> UCoreUtilityBPLibrary::Conv_OpusBytesToWav(const TArray<uint8>& In
 	}
 	if (!OpusCoder)
 	{
-		OpusCoder = MakeShareable(new FOpusCoder());
+		OpusCoder = MakeShareable(new FCUOpusCoder());
 	}
 
 	TArray<uint8> PCMBytes;
-	FOpusMinimalStream OpusStream;
+	FCUOpusMinimalStream OpusStream;
 	OpusCoder->DeserializeMinimal(InBytes, OpusStream);
 	if (OpusCoder->DecodeStream(OpusStream, PCMBytes))
 	{
@@ -129,14 +129,14 @@ TArray<uint8> UCoreUtilityBPLibrary::Conv_OpusBytesToWav(const TArray<uint8>& In
 		UE_LOG(LogTemp, Warning, TEXT("OpusMinimal to Wave Failed. DecodeStream returned false"));
 	}
 
-	FPreciseTimer::Tock(TEXT("Conv_OpusBytesToWav"));
+	FCUPreciseTimer::Tock(TEXT("Conv_OpusBytesToWav"));
 
 	return WavBytes;
 }
 
 TArray<uint8> UCoreUtilityBPLibrary::Conv_WavBytesToOpus(const TArray<uint8>& InBytes)
 {
-	FPreciseTimer::Tick(TEXT("Conv_WavBytesToOpus"));
+	FCUPreciseTimer::Tick(TEXT("Conv_WavBytesToOpus"));
 
 	TArray<uint8> OpusBytes;
 
@@ -149,21 +149,24 @@ TArray<uint8> UCoreUtilityBPLibrary::Conv_WavBytesToOpus(const TArray<uint8>& In
 
 	if (!OpusCoder)
 	{
-		OpusCoder = MakeShareable(new FOpusCoder());
+		OpusCoder = MakeShareable(new FCUOpusCoder());
 	}
 
-	
+	TArray<uint8> PCMBytes = TArray<uint8>(WaveInfo.SampleDataStart, WaveInfo.SampleDataSize);
 
-	TArray<uint8> PCMBytes;
-	PCMBytes.Append(WaveInfo.SampleDataStart, WaveInfo.SampleDataSize);
+	FCUPreciseTimer::Tick(TEXT("Encode And Serialize"));
+	FCUPreciseTimer::Tick(TEXT("JustEncode"));
 
-	FOpusMinimalStream OpusStream;
+	FCUOpusMinimalStream OpusStream;
 	OpusCoder->EncodeStream(PCMBytes, OpusStream);
+
+	FCUPreciseTimer::Tock(TEXT("JustEncode"));
 
 	TArray<uint8> SerializedBytes;
 	OpusCoder->SerializeMinimal(OpusStream, SerializedBytes);
 
-	FPreciseTimer::Tock(TEXT("Conv_WavBytesToOpus"));
+	FCUPreciseTimer::Tock(TEXT("Encode And Serialize"));
+	FCUPreciseTimer::Tock(TEXT("Conv_WavBytesToOpus"));
 
 	return SerializedBytes;
 }
@@ -401,7 +404,7 @@ void UCoreUtilityBPLibrary::CallFunctionOnThread(const FString& FunctionName, ES
 		}
 		else
 		{
-			FLambdaRunnable::RunShortLambdaOnGameThread([Function, Target]
+			FCULambdaRunnable::RunShortLambdaOnGameThread([Function, Target]
 			{
 				if (Target->IsValidLowLevel())
 				{
@@ -411,7 +414,7 @@ void UCoreUtilityBPLibrary::CallFunctionOnThread(const FString& FunctionName, ES
 		}
 		break;
 	case CALLBACK_BACKGROUND_THREADPOOL:
-		FLambdaRunnable::RunLambdaOnBackGroundThreadPool([Function, Target]
+		FCULambdaRunnable::RunLambdaOnBackGroundThreadPool([Function, Target]
 		{
 			if (Target->IsValidLowLevel())
 			{
@@ -420,7 +423,7 @@ void UCoreUtilityBPLibrary::CallFunctionOnThread(const FString& FunctionName, ES
 		});
 		break;
 	case CALLBACK_BACKGROUND_TASKGRAPH:
-		FLambdaRunnable::RunShortLambdaOnBackGroundTask([Function, Target]
+		FCULambdaRunnable::RunShortLambdaOnBackGroundTask([Function, Target]
 		{
 			if (Target->IsValidLowLevel())
 			{

@@ -1,6 +1,6 @@
 #pragma once
 
-class FPreciseTimer
+class FCUPreciseTimer
 {
 public:
 	static void Tick(const FString& LogMsg = TEXT("TimeTaken"));
