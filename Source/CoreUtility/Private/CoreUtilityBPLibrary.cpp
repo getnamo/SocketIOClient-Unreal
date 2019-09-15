@@ -163,7 +163,7 @@ TArray<uint8> UCoreUtilityBPLibrary::Conv_WavBytesToOpus(const TArray<uint8>& In
 	TArray<uint8> SerializedBytes;
 	OpusCoder->SerializeMinimal(OpusStream, SerializedBytes);
 
-	FPreciseTimer::Tock(TEXT("Encode and Serialize"));
+	FPreciseTimer::Tock(TEXT("Conv_WavBytesToOpus"));
 
 	return SerializedBytes;
 }

@@ -12,6 +12,11 @@ void FPreciseTimer::Tick(const FString& LogMsg /*= TEXT("TimeTaken")*/)
 void FPreciseTimer::Tock(const FString& LogMsg /*= TEXT("TimeTaken")*/)
 {
 	double Now = FPlatformTime::Seconds();
+	if (!FPreciseTimerInternalMap.Contains(LogMsg))
+	{
+		UE_LOG(LogTemp, Warning, TEXT("FPreciseTimer::Tock error: <%s> no such category ticked."), *LogMsg);
+		return;
+	}
 	TSharedPtr<FPreciseTimer> Timer = FPreciseTimerInternalMap[LogMsg];
 	double Elapsed = (Now - Timer->Then) * 1000.0;
 	UE_LOG(LogTemp, Log, TEXT("%s %1.3f ms"), *LogMsg, Elapsed);
