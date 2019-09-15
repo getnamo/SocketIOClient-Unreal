@@ -12,7 +12,8 @@ FOpusCoder::FOpusCoder()
 	BitRate = 24000;
 	MaxPacketSize = (3 * 1276);
 	SetFrameSizeMs(60);
-	bApplicationVoip = false;
+	bApplicationVoip = true;
+	bResetBetweenEncoding = true;
 }
 
 FOpusCoder::~FOpusCoder()
@@ -58,6 +59,10 @@ void FOpusCoder::SetFrameSizeMs(int32 Ms)
 
 bool FOpusCoder::EncodeStream(const TArray<uint8>& InPCMBytes, FOpusMinimalStream& OutStream)
 {
+	if (bResetBetweenEncoding)
+	{
+		ResetCoderIfInitialized();
+	}
 	if (!InitEncoderIfNeeded())
 	{
 		return false;
@@ -110,7 +115,7 @@ bool FOpusCoder::EncodeStream(const TArray<uint8>& InPCMBytes, FOpusMinimalStrea
 	}
 
 #if DEBUG_OPUS_LOG
-	UE_LOG(LogTemp, Log, TEXT("Total packets encoded: %d, total bytes: %d=%d"), OutCompressedFrameSizes.Num(), BytesWritten, OutCompressed.Num());
+	UE_LOG(LogTemp, Log, TEXT("Total packets encoded: %d, total bytes: %d=%d"), OutStream.PacketSizes.Num(), BytesWritten, OutStream.CompressedBytes.Num());
 #endif
 
 	return true;
@@ -140,7 +145,7 @@ bool FOpusCoder::DecodeStream(const FOpusMinimalStream& InStream, TArray<uint8>&
 		int32 DecodedSamples = opus_decode(Decoder, InStream.CompressedBytes.GetData() + CompressedOffset, InStream.PacketSizes[FrameIndex], (opus_int16*)TempBuffer.GetData(), FrameSize, 0);
 
 #if DEBUG_OPUS_LOG
-		DebugLogFrame(InCompressedBytes.GetData(), CompressedFrameSizes[FrameIndex], SampleRate, false);
+		DebugLogFrame(InStream.CompressedBytes.GetData(), InStream.PacketSizes[FrameIndex], SampleRate, false);
 		UE_LOG(LogTemp, Log, TEXT("Decoded Samples: %d"), DecodedSamples);
 #endif
 
@@ -201,7 +206,7 @@ bool FOpusCoder::DeserializeMinimal(const TArray<uint8>& InSerializedMinimalByte
 	FMemory::Memcpy(OutStream.PacketSizes.GetData(), &InSerializedMinimalBytes[Offset], PacketCount*sizeof(int16));
 
 	//get our compressed data
-	Offset += ((PacketCount) * sizeof(16));
+	Offset += ((PacketCount) * sizeof(int16));
 	int32 RemainingBytes = InSerializedMinimalBytes.Num() - Offset;
 	OutStream.CompressedBytes.Append(&InSerializedMinimalBytes[Offset], RemainingBytes);
 	

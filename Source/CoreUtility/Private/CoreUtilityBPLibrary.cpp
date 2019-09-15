@@ -17,6 +17,7 @@
 #include "CoreMinimal.h"
 #include "Engine/Engine.h"
 #include "OpusCoder.h"
+#include "PreciseTimer.h"
 
 #pragma warning( push )
 #pragma warning( disable : 5046)
@@ -104,6 +105,7 @@ TSharedPtr<FOpusCoder> OpusCoder;
 
 TArray<uint8> UCoreUtilityBPLibrary::Conv_OpusBytesToWav(const TArray<uint8>& InBytes)
 {
+	FPreciseTimer::Tick(TEXT("Conv_OpusBytesToWav"));
 	TArray<uint8> WavBytes;
 	//Early exit condition
 	if (InBytes.Num() == 0) 
@@ -118,20 +120,27 @@ TArray<uint8> UCoreUtilityBPLibrary::Conv_OpusBytesToWav(const TArray<uint8>& In
 	TArray<uint8> PCMBytes;
 	FOpusMinimalStream OpusStream;
 	OpusCoder->DeserializeMinimal(InBytes, OpusStream);
-	OpusCoder->DecodeStream(OpusStream, PCMBytes);
+	if (OpusCoder->DecodeStream(OpusStream, PCMBytes))
+	{
+		SerializeWaveFile(WavBytes, PCMBytes.GetData(), PCMBytes.Num(), OpusCoder->Channels, OpusCoder->SampleRate);
+	}
+	else
+	{
+		UE_LOG(LogTemp, Warning, TEXT("OpusMinimal to Wave Failed. DecodeStream returned false"));
+	}
 
-	
-	SerializeWaveFile(WavBytes, PCMBytes.GetData(), PCMBytes.Num(), OpusCoder->Channels, OpusCoder->SampleRate);
+	FPreciseTimer::Tock(TEXT("Conv_OpusBytesToWav"));
 
 	return WavBytes;
 }
 
 TArray<uint8> UCoreUtilityBPLibrary::Conv_WavBytesToOpus(const TArray<uint8>& InBytes)
 {
+	FPreciseTimer::Tick(TEXT("Conv_WavBytesToOpus"));
+
 	TArray<uint8> OpusBytes;
 
 	FWaveModInfo WaveInfo;
-
 
 	if (!WaveInfo.ReadWaveInfo(InBytes.GetData(), InBytes.Num()))
 	{
@@ -143,6 +152,8 @@ TArray<uint8> UCoreUtilityBPLibrary::Conv_WavBytesToOpus(const TArray<uint8>& In
 		OpusCoder = MakeShareable(new FOpusCoder());
 	}
 
+	
+
 	TArray<uint8> PCMBytes;
 	PCMBytes.Append(WaveInfo.SampleDataStart, WaveInfo.SampleDataSize);
 
@@ -151,6 +162,8 @@ TArray<uint8> UCoreUtilityBPLibrary::Conv_WavBytesToOpus(const TArray<uint8>& In
 
 	TArray<uint8> SerializedBytes;
 	OpusCoder->SerializeMinimal(OpusStream, SerializedBytes);
+
+	FPreciseTimer::Tock(TEXT("Encode and Serialize"));
 
 	return SerializedBytes;
 }

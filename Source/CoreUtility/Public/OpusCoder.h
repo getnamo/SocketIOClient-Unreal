@@ -49,9 +49,13 @@ public:
 	int32 Channels;
 	int32 SampleRate;
 
+	//Whether we should reset the conder per stream
+	bool bResetBetweenEncoding;
+
+	void ResetCoderIfInitialized();
+
 protected:
 	//Call this if some settings need to be reflected (all setters all this)
-	void ResetCoderIfInitialized();
 	bool InitEncoderIfNeeded();
 	bool InitDecoderIfNeeded();
 
