@@ -38,11 +38,11 @@ double FCUPreciseTimer::Tock(const FString& LogMsg /*= TEXT("TimeTaken")*/, bool
 
 FCUScopeTimer::FCUScopeTimer(const FString& LogMsg)
 {
-	Category = LogMsg;
+	LogMessage = LogMsg;
 	FCUPreciseTimer::Tick(LogMsg);
 }
 
 FCUScopeTimer::~FCUScopeTimer()
 {
-	FCUPreciseTimer::Tock(Category);
+	FCUPreciseTimer::Tock(LogMessage);
 }

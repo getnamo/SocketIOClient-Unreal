@@ -16,7 +16,7 @@
 *	optionally get the result and handle logging manually
 *	double Elapsed = FCUPreciseTimer::Tock(TEXT("MyMeasurementCategory", false);
 */
-class FCUPreciseTimer
+class COREUTILITY_API FCUPreciseTimer
 {
 public:
 	/**
@@ -46,10 +46,11 @@ private:
 *	}
 *	It will log duration when you exit the scope
 */
-struct FCUScopeTimer
+class COREUTILITY_API FCUScopeTimer
 {
-	FCUScopeTimer(const FString& LogMsg);
+public:
+	FCUScopeTimer(const FString& InLogMsg);
 	~FCUScopeTimer();
 private:
-	FString Category;
+	FString LogMessage;
 };
