@@ -6,7 +6,7 @@
 #include "Kismet/BlueprintFunctionLibrary.h"
 #include "Runtime/Core/Public/Async/Future.h"
 #include "Runtime/Engine/Classes/Sound/SoundWaveProcedural.h"
-#include "CoreUtilityBPLibrary.generated.h"
+#include "CUBlueprintLibrary.generated.h"
 
 /* Wrapper for EImageFormat::Type for BP*/
 UENUM()
@@ -49,7 +49,7 @@ enum ESIOCallbackType
  * Useful generic blueprint functions, mostly conversion
  */
 UCLASS()
-class COREUTILITY_API UCoreUtilityBPLibrary : public UBlueprintFunctionLibrary
+class COREUTILITY_API UCUBlueprintLibrary : public UBlueprintFunctionLibrary
 {
 	GENERATED_BODY()
 

@@ -1,31 +1,31 @@
 // Copyright 2018-current Getnamo. All Rights Reserved
 
 
-#include "FileUtilityComponent.h"
+#include "CUFileComponent.h"
 #include "Runtime/Core/Public/HAL/PlatformFilemanager.h"
 
-UFileUtilityComponent::UFileUtilityComponent(const FObjectInitializer &init) : UActorComponent(init)
+UCUFileComponent::UCUFileComponent(const FObjectInitializer &init) : UActorComponent(init)
 {
 	bWantsInitializeComponent = true;
 	bAutoActivate = true;
 }
 
-FString UFileUtilityComponent::ProjectContentsDirectory()
+FString UCUFileComponent::ProjectContentsDirectory()
 {
 	return FPaths::ProjectContentDir();
 }
 
-FString UFileUtilityComponent::ProjectDirectory()
+FString UCUFileComponent::ProjectDirectory()
 {
 	return FPaths::ProjectDir();
 }
 
-FString UFileUtilityComponent::ProjectSavedDirectory()
+FString UCUFileComponent::ProjectSavedDirectory()
 {
 	return FPaths::ProjectSavedDir();
 }
 
-bool UFileUtilityComponent::SaveBytesToFile(const TArray<uint8>& Bytes, const FString& Directory, const FString& FileName)
+bool UCUFileComponent::SaveBytesToFile(const TArray<uint8>& Bytes, const FString& Directory, const FString& FileName)
 {
 	//bool AllowOverwriting = false;
 
@@ -43,7 +43,7 @@ bool UFileUtilityComponent::SaveBytesToFile(const TArray<uint8>& Bytes, const FS
 	return false;
 }
 
-bool UFileUtilityComponent::ReadBytesFromFile(const FString& Directory, const FString& FileName, TArray<uint8>& OutBytes)
+bool UCUFileComponent::ReadBytesFromFile(const FString& Directory, const FString& FileName, TArray<uint8>& OutBytes)
 {
 	// Get absolute file path
 	FString AbsoluteFilePath = Directory + "/" + FileName;

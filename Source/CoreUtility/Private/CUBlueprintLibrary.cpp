@@ -1,7 +1,7 @@
 // Copyright 2018-current Getnamo. All Rights Reserved
 
 
-#include "CoreUtilityBPLibrary.h"
+#include "CUBlueprintLibrary.h"
 #include "IImageWrapper.h"
 #include "IImageWrapperModule.h"
 #include "Runtime/Core/Public/Modules/ModuleManager.h"
@@ -32,21 +32,21 @@ struct FUpdateTextureData
 	TSharedPtr<IImageWrapper> Wrapper;	//to keep the uncompressed data alive
 };
 
-FString UCoreUtilityBPLibrary::Conv_BytesToString(const TArray<uint8>& InArray)
+FString UCUBlueprintLibrary::Conv_BytesToString(const TArray<uint8>& InArray)
 {
 	FString ResultString;
 	FFileHelper::BufferToString(ResultString, InArray.GetData(), InArray.Num());
 	return ResultString;
 }
 
-TArray<uint8> UCoreUtilityBPLibrary::Conv_StringToBytes(FString InString)
+TArray<uint8> UCUBlueprintLibrary::Conv_StringToBytes(FString InString)
 {
 	TArray<uint8> ResultBytes;
 	ResultBytes.Append((uint8*)TCHAR_TO_UTF8(*InString), InString.Len());
 	return ResultBytes;
 }
 
-UTexture2D* UCoreUtilityBPLibrary::Conv_BytesToTexture(const TArray<uint8>& InBytes)
+UTexture2D* UCUBlueprintLibrary::Conv_BytesToTexture(const TArray<uint8>& InBytes)
 {
 	//Convert the UTexture2D back to an image
 	UTexture2D* Texture = nullptr;
@@ -103,7 +103,7 @@ UTexture2D* UCoreUtilityBPLibrary::Conv_BytesToTexture(const TArray<uint8>& InBy
 //one static coder, created based on need
 TSharedPtr<FCUOpusCoder> OpusCoder;
 
-TArray<uint8> UCoreUtilityBPLibrary::Conv_OpusBytesToWav(const TArray<uint8>& InBytes)
+TArray<uint8> UCUBlueprintLibrary::Conv_OpusBytesToWav(const TArray<uint8>& InBytes)
 {
 	FCUPreciseTimer::Tick(TEXT("Conv_OpusBytesToWav"));
 	TArray<uint8> WavBytes;
@@ -134,7 +134,7 @@ TArray<uint8> UCoreUtilityBPLibrary::Conv_OpusBytesToWav(const TArray<uint8>& In
 	return WavBytes;
 }
 
-TArray<uint8> UCoreUtilityBPLibrary::Conv_WavBytesToOpus(const TArray<uint8>& InBytes)
+TArray<uint8> UCUBlueprintLibrary::Conv_WavBytesToOpus(const TArray<uint8>& InBytes)
 {
 	FCUPreciseTimer::Tick(TEXT("Conv_WavBytesToOpus"));
 
@@ -171,7 +171,7 @@ TArray<uint8> UCoreUtilityBPLibrary::Conv_WavBytesToOpus(const TArray<uint8>& In
 	return SerializedBytes;
 }
 
-USoundWave* UCoreUtilityBPLibrary::Conv_WavBytesToSoundWave(const TArray<uint8>& InBytes)
+USoundWave* UCUBlueprintLibrary::Conv_WavBytesToSoundWave(const TArray<uint8>& InBytes)
 {
 	USoundWave* SoundWave;
 
@@ -205,7 +205,7 @@ USoundWave* UCoreUtilityBPLibrary::Conv_WavBytesToSoundWave(const TArray<uint8>&
 	return SoundWave;
 }
 
-TArray<uint8> UCoreUtilityBPLibrary::Conv_SoundWaveToWavBytes(USoundWave* SoundWave)
+TArray<uint8> UCUBlueprintLibrary::Conv_SoundWaveToWavBytes(USoundWave* SoundWave)
 {
 	TArray<uint8> PCMBytes;
 	TArray<uint8> WavBytes;
@@ -222,7 +222,7 @@ TArray<uint8> UCoreUtilityBPLibrary::Conv_SoundWaveToWavBytes(USoundWave* SoundW
 	return WavBytes;
 }
 
-void UCoreUtilityBPLibrary::SetSoundWaveFromWavBytes(USoundWaveProcedural* InSoundWave, const TArray<uint8>& InBytes)
+void UCUBlueprintLibrary::SetSoundWaveFromWavBytes(USoundWaveProcedural* InSoundWave, const TArray<uint8>& InBytes)
 {
 	FWaveModInfo WaveInfo;
 
@@ -250,7 +250,7 @@ void UCoreUtilityBPLibrary::SetSoundWaveFromWavBytes(USoundWaveProcedural* InSou
 	}
 }
 
-TFuture<UTexture2D*> UCoreUtilityBPLibrary::Conv_BytesToTexture_Async(const TArray<uint8>& InBytes)
+TFuture<UTexture2D*> UCUBlueprintLibrary::Conv_BytesToTexture_Async(const TArray<uint8>& InBytes)
 {
 	//Running this on a background thread
 #if ENGINE_MINOR_VERSION < 23
@@ -341,7 +341,7 @@ TFuture<UTexture2D*> UCoreUtilityBPLibrary::Conv_BytesToTexture_Async(const TArr
 	});//End async
 }
 
-bool UCoreUtilityBPLibrary::Conv_TextureToBytes(UTexture2D* Texture, TArray<uint8>& OutBuffer, EImageFormatBPType Format /*= EImageFormatBPType::JPEG*/)
+bool UCUBlueprintLibrary::Conv_TextureToBytes(UTexture2D* Texture, TArray<uint8>& OutBuffer, EImageFormatBPType Format /*= EImageFormatBPType::JPEG*/)
 {
 	if (!Texture || !Texture->IsValidLowLevel())
 	{
@@ -368,17 +368,17 @@ bool UCoreUtilityBPLibrary::Conv_TextureToBytes(UTexture2D* Texture, TArray<uint
 	return true;
 }
 
-FString UCoreUtilityBPLibrary::NowUTCString()
+FString UCUBlueprintLibrary::NowUTCString()
 {
 	return FDateTime::UtcNow().ToString();
 }
 
-FString UCoreUtilityBPLibrary::GetLoginId()
+FString UCUBlueprintLibrary::GetLoginId()
 {
 	return FPlatformMisc::GetLoginId();
 }
 
-void UCoreUtilityBPLibrary::CallFunctionOnThread(const FString& FunctionName, ESIOCallbackType ThreadType, UObject* WorldContextObject /*= nullptr*/)
+void UCUBlueprintLibrary::CallFunctionOnThread(const FString& FunctionName, ESIOCallbackType ThreadType, UObject* WorldContextObject /*= nullptr*/)
 {
 	UObject* Target = WorldContextObject;
 
