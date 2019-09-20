@@ -378,6 +378,16 @@ FString UCUBlueprintLibrary::GetLoginId()
 	return FPlatformMisc::GetLoginId();
 }
 
+void UCUBlueprintLibrary::MeasureTimerStart(const FString& Category /*= TEXT("TimeTaken")*/)
+{
+	FCUPreciseTimer::Tick(Category);
+}
+
+float UCUBlueprintLibrary::MeasureTimerStop(const FString& Category /*= TEXT("TimeTaken")*/, bool bShouldLogResult /*= true*/)
+{
+	return (float) FCUPreciseTimer::Tock(Category, bShouldLogResult);
+}
+
 void UCUBlueprintLibrary::CallFunctionOnThread(const FString& FunctionName, ESIOCallbackType ThreadType, UObject* WorldContextObject /*= nullptr*/)
 {
 	UObject* Target = WorldContextObject;
