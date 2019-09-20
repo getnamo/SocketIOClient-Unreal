@@ -6,13 +6,13 @@
 #include "Runtime/Engine/Public/LatentActions.h"
 #include "Runtime/Core/Public/Async/TaskGraphInterfaces.h"
 
-//A simpler latent action where we don't hold the value
-class COREUTILITY_API FCorePendingLatentAction : public FPendingLatentAction
+//A simple latent action where we don't hold the value, expect capturing value in lambdas
+class COREUTILITY_API FCUPendingLatentAction : public FPendingLatentAction
 {
 public:
 	TFunction<void()> OnCancelNotification = nullptr;
 
-	FCorePendingLatentAction(const FLatentActionInfo& LatentInfo) :
+	FCUPendingLatentAction(const FLatentActionInfo& LatentInfo) :
 		ExecutionFunction(LatentInfo.ExecutionFunction),
 		OutputLink(LatentInfo.Linkage),
 		CallbackTarget(LatentInfo.CallbackTarget),
@@ -72,33 +72,36 @@ private:
 	bool Called;
 };
 
-/*
+/**
 *	Convenience wrappers for common thread/task work flow. Run background task on thread, callback via task graph on game thread
 */
 class COREUTILITY_API FCULambdaRunnable
 {
 public:
 
-	/*
-	Runs the passed lambda on the background thread, new thread per call
+	/**
+	*	Runs the passed lambda on the background thread, new thread per call
 	*/
 	static void RunLambdaOnBackGroundThread(TFunction< void()> InFunction);
 
-	/*
-	Runs the passed lambda on the background thread pool
+	/**
+	*	Runs the passed lambda on the background thread pool
 	*/
 	static void RunLambdaOnBackGroundThreadPool(TFunction< void()> InFunction);
 
-	/*
-	Runs a short lambda on the game thread via task graph system
+	/**
+	*	Runs a short lambda on the game thread via task graph system
 	*/
 	static FGraphEventRef RunShortLambdaOnGameThread(TFunction< void()> InFunction);
 
-	/*
-	Runs a short lambda on background thread via task graph system
+	/**
+	*	Runs a short lambda on background thread via task graph system
 	*/
 	static FGraphEventRef RunShortLambdaOnBackGroundTask(TFunction< void()> InFunction);
 
-	/** Runs a thread with idle for duration*/
-	static void SetTimeout(TFunction<void()>OnDone, float DurationInSec);
+	/** 
+	*	Runs a thread with idle for duration before calling back on game thread. 
+	*	Due to context cost recommended for >0.1sec durations.
+	*/
+	static void SetTimeout(TFunction<void()>OnDone, float DurationInSec, bool bCallbackOnGameThread = true);
 };

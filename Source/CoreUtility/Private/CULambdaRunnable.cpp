@@ -24,12 +24,19 @@ FGraphEventRef FCULambdaRunnable::RunShortLambdaOnBackGroundTask(TFunction< void
 	return FFunctionGraphTask::CreateAndDispatchWhenReady(InFunction, TStatId(), nullptr, ENamedThreads::AnyThread);
 }
 
-void FCULambdaRunnable::SetTimeout(TFunction<void()>OnDone, float DurationInSec)
+void FCULambdaRunnable::SetTimeout(TFunction<void()>OnDone, float DurationInSec, bool bCallbackOnGameThread /*=true*/)
 {
-	RunLambdaOnBackGroundThread([OnDone, DurationInSec]()
+	RunLambdaOnBackGroundThread([OnDone, DurationInSec, bCallbackOnGameThread]()
 	{
 		FPlatformProcess::Sleep(DurationInSec);
 
-		RunShortLambdaOnGameThread(OnDone);
+		if (bCallbackOnGameThread)
+		{
+			RunShortLambdaOnGameThread(OnDone);
+		}
+		else
+		{
+			OnDone();
+		}
 	});
 }

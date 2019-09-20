@@ -17,7 +17,10 @@ struct FCUOpusMinimalStream
 };
 
 
-//Symmetric coder for e.g. voip written from raw libopus due to how hidden the opus coder is in the engine (requires online subsystem)
+/** 
+Symmetric coder for e.g. voip written from raw libopus due to how hidden the opus 
+coder is in the engine (requires online subsystem)
+*/
 class FCUOpusCoder
 {
 public:

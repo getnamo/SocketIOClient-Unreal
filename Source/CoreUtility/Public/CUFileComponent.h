@@ -7,7 +7,7 @@
 #include "CUFileComponent.generated.h"
 
 /**
-*
+* Convenience component to save/load data from files
 */
 UCLASS(ClassGroup = "Utility", meta = (BlueprintSpawnableComponent))
 class COREUTILITY_API UCUFileComponent : public UActorComponent
