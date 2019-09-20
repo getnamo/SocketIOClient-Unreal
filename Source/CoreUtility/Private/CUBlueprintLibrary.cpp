@@ -105,7 +105,8 @@ TSharedPtr<FCUOpusCoder> OpusCoder;
 
 TArray<uint8> UCUBlueprintLibrary::Conv_OpusBytesToWav(const TArray<uint8>& InBytes)
 {
-	FCUPreciseTimer::Tick(TEXT("Conv_OpusBytesToWav"));
+	FCUScopeTimer Timer(TEXT("Conv_OpusBytesToWav"));
+
 	TArray<uint8> WavBytes;
 	//Early exit condition
 	if (InBytes.Num() == 0) 
@@ -129,15 +130,12 @@ TArray<uint8> UCUBlueprintLibrary::Conv_OpusBytesToWav(const TArray<uint8>& InBy
 		UE_LOG(LogTemp, Warning, TEXT("OpusMinimal to Wave Failed. DecodeStream returned false"));
 	}
 
-	FCUPreciseTimer::Tock(TEXT("Conv_OpusBytesToWav"));
-
 	return WavBytes;
 }
 
 TArray<uint8> UCUBlueprintLibrary::Conv_WavBytesToOpus(const TArray<uint8>& InBytes)
 {
-	FCUPreciseTimer::Tick(TEXT("Conv_WavBytesToOpus"));
-
+	FCUScopeTimer Timer(TEXT("Conv_WavBytesToOpus"));
 	TArray<uint8> OpusBytes;
 
 	FWaveModInfo WaveInfo;
@@ -154,19 +152,12 @@ TArray<uint8> UCUBlueprintLibrary::Conv_WavBytesToOpus(const TArray<uint8>& InBy
 
 	TArray<uint8> PCMBytes = TArray<uint8>(WaveInfo.SampleDataStart, WaveInfo.SampleDataSize);
 
-	FCUPreciseTimer::Tick(TEXT("Encode And Serialize"));
-	FCUPreciseTimer::Tick(TEXT("JustEncode"));
-
 	FCUOpusMinimalStream OpusStream;
-	OpusCoder->EncodeStream(PCMBytes, OpusStream);
 
-	FCUPreciseTimer::Tock(TEXT("JustEncode"));
+	OpusCoder->EncodeStream(PCMBytes, OpusStream);
 
 	TArray<uint8> SerializedBytes;
 	OpusCoder->SerializeMinimal(OpusStream, SerializedBytes);
-
-	FCUPreciseTimer::Tock(TEXT("Encode And Serialize"));
-	FCUPreciseTimer::Tock(TEXT("Conv_WavBytesToOpus"));
 
 	return SerializedBytes;
 }
