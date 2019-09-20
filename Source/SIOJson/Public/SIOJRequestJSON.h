@@ -11,7 +11,7 @@
 #include "Runtime/Json/Public/Dom/JsonObject.h"
 #include "Runtime/Json/Public/Dom/JsonValue.h"
 #include "LatentActions.h"
-#include "LambdaRunnable.h"
+#include "CULambdaRunnable.h"
 #include "Engine/LatentActionManager.h"
 #include "SIOJTypes.h"
 #include "SIOJRequestJSON.generated.h"

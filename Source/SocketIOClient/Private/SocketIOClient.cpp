@@ -3,7 +3,7 @@
 
 #include "SocketIOClient.h"
 #include "SocketIONative.h"
-#include "LambdaRunnable.h"
+#include "CULambdaRunnable.h"
 #include "Runtime/Core/Public/HAL/ThreadSafeBool.h"
 
 #define LOCTEXT_NAMESPACE "FSocketIOClientModule"
@@ -123,7 +123,7 @@ void FSocketIOClientModule::ReleaseNativePointer(TSharedPtr<FSocketIONative> Poi
 	}
 
 	//Release the pointer on the background thread pool, this can take ~ 1 sec per connection
-	FLambdaRunnable::RunLambdaOnBackGroundThreadPool([PointerToRelease, this]
+	FCULambdaRunnable::RunLambdaOnBackGroundThreadPool([PointerToRelease, this]
 	{
 		if (PointerToRelease.IsValid())
 		{

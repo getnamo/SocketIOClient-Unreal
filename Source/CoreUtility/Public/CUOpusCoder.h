@@ -9,13 +9,20 @@
 #include "ogg/ogg.h"
 #endif
 
+//Bare minimum struct for transferring opus bytes.
+struct FCUOpusMinimalStream
+{
+	TArray<int16> PacketSizes;  // Maximum packet size is 32768 (much larger than typical packet)
+	TArray<uint8> CompressedBytes;
+};
+
 
 //Symmetric coder for e.g. voip written from raw libopus due to how hidden the opus coder is in the engine (requires online subsystem)
-class FOpusCoder
+class FCUOpusCoder
 {
 public:
-	FOpusCoder();
-	~FOpusCoder();
+	FCUOpusCoder();
+	~FCUOpusCoder();
 
 	/** Set Encoder and Decoder Samples per sec */
 	void SetSampleRate(int32 InSampleRate);
@@ -24,12 +31,13 @@ public:
 	void SetFrameSizeMs(int32 FrameSizeInMs);
 
 	/** Expects raw PCM data, outputs compressed raw opus data along with compressed frame sizes*/
-	bool EncodeStream(const TArray<uint8>& InPCMBytes, TArray<uint8>& OutCompressed, TArray<int32>& OutCompressedFrameSizes);
-	bool DecodeStream(const TArray<uint8>& InCompressedBytes, const TArray<int32>& CompressedFrameSizes, TArray<uint8>& OutPCMFrame);
+	bool EncodeStream(const TArray<uint8>& InPCMBytes, FCUOpusMinimalStream& OutStream);
+	bool DecodeStream(const FCUOpusMinimalStream& InStream, TArray<uint8>& OutPCMFrame);
 
 
-	bool SerializeMinimal(const TArray<uint8>& CompressedBytes, const TArray<int32>& CompressedFrameSizes, TArray<uint8>& OutSerializedBytes);
-	bool DeserializeMinimal(const TArray<uint8>& InSerializedMinimalBytes, TArray<uint8>& OutCompressedBytes, TArray<int32>& OutCompressedFrameSizes);
+	//Format: PacketCount, PacketSizes, CompressedOpusBytes. Expects settings set in a different stream
+	bool SerializeMinimal(const FCUOpusMinimalStream& InStream, TArray<uint8>& OutSerializedBytes);
+	bool DeserializeMinimal(const TArray<uint8>& InSerializedMinimalBytes, FCUOpusMinimalStream& OutStream);
 
 	//Handle a single frame
 	int32 EncodeFrame(const TArray<uint8>& InPCMFrame, TArray<uint8>& OutCompressed);
@@ -41,9 +49,15 @@ public:
 	int32 Channels;
 	int32 SampleRate;
 
+	//Whether we should reset the coder per stream to keep byte size small. Costs ~0.01ms
+	bool bResetBetweenEncoding;
+	bool bApplicationVoip;			
+	bool bLowestPossibleLatency;	//trade-off is compression size; ~3ms/sec of audio if on, ~10ms/sec if off. For ~ 33% more bytes.
+
+	void ResetCoderIfInitialized();
+
 protected:
 	//Call this if some settings need to be reflected (all setters all this)
-	void ResetCoderIfInitialized();
 	bool InitEncoderIfNeeded();
 	bool InitDecoderIfNeeded();
 
@@ -56,7 +70,7 @@ private:
 	int32 FrameSizeMs;
 	int32 FrameSize;
 	int32 MaxFrameSize;
-	bool bApplicationVoip;
+
 
 	//Debug utilities
 	void DebugLogEncoder();
