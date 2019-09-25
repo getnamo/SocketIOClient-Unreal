@@ -83,6 +83,8 @@ namespace sio
 
         std::string const& get_sessionid() const;
 
+		std::string const& get_url() const;
+
     private:
         //disable copy constructor and assign operator.
         client(client const& cl){}

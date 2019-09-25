@@ -53,12 +53,22 @@ void FSocketIONative::Connect(const FString& InAddressAndPort, const TSharedPtr<
 		PrivateClient->set_reconnect_attempts(MaxReconnectionAttempts);
 		PrivateClient->set_reconnect_delay(ReconnectionDelay);
 
+		//close and reconnect if different url
 		if(PrivateClient->opened())
 		{
+			if (PrivateClient->get_url() != StdAddressString)
+			{
+				//sync close to re-open
+				PrivateClient->sync_close();
+			}
+			else
+			{
+				//we're already connected to the correct endpoint, ignore request
+				UE_LOG(SocketIOLog, Warning, TEXT("Attempted to connect to %s when we're already connected. Request ignored."), UTF8_TO_TCHAR(StdAddressString.c_str()));
+				return;
+			}
 		}
-
 		PrivateClient->connect(StdAddressString, QueryMap, HeadersMap);
-
 	});
 
 }
