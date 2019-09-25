@@ -17,7 +17,7 @@
 #include "Engine/Engine.h"
 #include "CULambdaRunnable.h"
 #include "CUOpusCoder.h"
-#include "CUPreciseTimer.h"
+#include "CUMeasureTimer.h"
 
 #pragma warning( push )
 #pragma warning( disable : 5046)
@@ -372,12 +372,12 @@ FString UCUBlueprintLibrary::GetLoginId()
 
 void UCUBlueprintLibrary::MeasureTimerStart(const FString& Category /*= TEXT("TimeTaken")*/)
 {
-	FCUPreciseTimer::Tick(Category);
+	FCUMeasureTimer::Tick(Category);
 }
 
 float UCUBlueprintLibrary::MeasureTimerStop(const FString& Category /*= TEXT("TimeTaken")*/, bool bShouldLogResult /*= true*/)
 {
-	return (float) FCUPreciseTimer::Tock(Category, bShouldLogResult);
+	return (float)FCUMeasureTimer::Tock(Category, bShouldLogResult);
 }
 
 void UCUBlueprintLibrary::CallFunctionOnThread(const FString& FunctionName, ESIOCallbackType ThreadType, UObject* WorldContextObject /*= nullptr*/)

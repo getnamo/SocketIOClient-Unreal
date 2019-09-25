@@ -1,11 +1,11 @@
-#include "CUPreciseTimer.h"
+#include "CUMeasureTimer.h"
 #include "HAL/PlatformTime.h"
 
 #if ENABLE_CUPRECISE_TIMER
 static TMap<FString, TSharedPtr<FCUPreciseTimer>> FPreciseTimerInternalMap;
 #endif
 
-void FCUPreciseTimer::Tick(const FString& LogMsg /*= TEXT("TimeTaken")*/)
+void FCUMeasureTimer::Tick(const FString& LogMsg /*= TEXT("TimeTaken")*/)
 {
 #if ENABLE_CUPRECISE_TIMER
 	TSharedPtr<FCUPreciseTimer> Timer = MakeShareable(new FCUPreciseTimer);
@@ -14,7 +14,7 @@ void FCUPreciseTimer::Tick(const FString& LogMsg /*= TEXT("TimeTaken")*/)
 #endif
 }
 
-double FCUPreciseTimer::Tock(const FString& LogMsg /*= TEXT("TimeTaken")*/, bool bShouldLogResult /*= true*/)
+double FCUMeasureTimer::Tock(const FString& LogMsg /*= TEXT("TimeTaken")*/, bool bShouldLogResult /*= true*/)
 {
 #if ENABLE_CUPRECISE_TIMER
 	double Now = FPlatformTime::Seconds();
@@ -39,10 +39,10 @@ double FCUPreciseTimer::Tock(const FString& LogMsg /*= TEXT("TimeTaken")*/, bool
 FCUScopeTimer::FCUScopeTimer(const FString& LogMsg)
 {
 	LogMessage = LogMsg;
-	FCUPreciseTimer::Tick(LogMsg);
+	FCUMeasureTimer::Tick(LogMsg);
 }
 
 FCUScopeTimer::~FCUScopeTimer()
 {
-	FCUPreciseTimer::Tock(LogMessage);
+	FCUMeasureTimer::Tock(LogMessage);
 }

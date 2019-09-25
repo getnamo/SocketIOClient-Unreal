@@ -9,14 +9,14 @@
 *	C++ Utility Timer class. Multiple categories can be used simultaneously.
 *
 *	Usage: 
-*	FCUPreciseTimer::Tick(TEXT("MyMeasurementCategory");
+*	FCUMeasureTimer::Tick(TEXT("MyMeasurementCategory");
 *	//Your code
-*	FCUPreciseTimer::Tock(TEXT("MyMeasurementCategory"); //This will log the time taken in miliseconds
+*	FCUMeasureTimer::Tock(TEXT("MyMeasurementCategory"); //This will log the time taken in miliseconds
 *
 *	optionally get the result and handle logging manually
-*	double Elapsed = FCUPreciseTimer::Tock(TEXT("MyMeasurementCategory", false);
+*	double Elapsed = FCUMeasureTimer::Tock(TEXT("MyMeasurementCategory", false);
 */
-class COREUTILITY_API FCUPreciseTimer
+class COREUTILITY_API FCUMeasureTimer
 {
 public:
 	/**
