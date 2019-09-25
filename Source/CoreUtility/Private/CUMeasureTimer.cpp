@@ -2,13 +2,13 @@
 #include "HAL/PlatformTime.h"
 
 #if ENABLE_CUPRECISE_TIMER
-static TMap<FString, TSharedPtr<FCUPreciseTimer>> FPreciseTimerInternalMap;
+static TMap<FString, TSharedPtr<FCUMeasureTimer>> FPreciseTimerInternalMap;
 #endif
 
 void FCUMeasureTimer::Tick(const FString& LogMsg /*= TEXT("TimeTaken")*/)
 {
 #if ENABLE_CUPRECISE_TIMER
-	TSharedPtr<FCUPreciseTimer> Timer = MakeShareable(new FCUPreciseTimer);
+	TSharedPtr<FCUMeasureTimer> Timer = MakeShareable(new FCUMeasureTimer);
 	FPreciseTimerInternalMap.Add(LogMsg, Timer);
 	Timer->Then = FPlatformTime::Seconds();	//start timer last so we don't measure anything else
 #endif
@@ -23,7 +23,7 @@ double FCUMeasureTimer::Tock(const FString& LogMsg /*= TEXT("TimeTaken")*/, bool
 		UE_LOG(LogTemp, Warning, TEXT("FPreciseTimer::Tock error: <%s> no such category ticked."), *LogMsg);
 		return 0.0;
 	}
-	TSharedPtr<FCUPreciseTimer> Timer = FPreciseTimerInternalMap[LogMsg];
+	TSharedPtr<FCUMeasureTimer> Timer = FPreciseTimerInternalMap[LogMsg];
 	double Elapsed = (Now - Timer->Then) * 1000.0;
 	if (bShouldLogResult)
 	{
