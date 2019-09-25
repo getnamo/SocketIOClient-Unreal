@@ -219,6 +219,12 @@ bool USocketIOClientComponent::CallBPFunctionWithResponse(UObject* Target, const
 		UE_LOG(SocketIOLog, Warning, TEXT("CallFunctionByNameWithArguments: Target not found for '%s'"), *FunctionName);
 		return false;
 	}
+	UWorld* World = GEngine->GetWorldFromContextObject(Target, EGetWorldErrorMode::LogAndReturnNull);
+	if (World && World->bIsTearingDown)
+	{
+		UE_LOG(SocketIOLog, Log, TEXT("World tearing down, %s BP function call ignored."), *FunctionName);
+		return false;
+	}
 
 	UFunction* Function = Target->FindFunction(FName(*FunctionName));
 	if (nullptr == Function)
