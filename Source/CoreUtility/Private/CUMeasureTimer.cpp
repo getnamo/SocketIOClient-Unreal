@@ -20,7 +20,7 @@ double FCUMeasureTimer::Tock(const FString& LogMsg /*= TEXT("TimeTaken")*/, bool
 	double Now = FPlatformTime::Seconds();
 	if (!FPreciseTimerInternalMap.Contains(LogMsg))
 	{
-		UE_LOG(LogTemp, Warning, TEXT("FPreciseTimer::Tock error: <%s> no such category ticked."), *LogMsg);
+		UE_LOG(LogTemp, Warning, TEXT("FCUMeasureTimer::Tock error: <%s> no such category ticked."), *LogMsg);
 		return 0.0;
 	}
 	TSharedPtr<FCUMeasureTimer> Timer = FPreciseTimerInternalMap[LogMsg];
