@@ -34,7 +34,7 @@ void FSocketIONative::Connect(const FString& InAddressAndPort, const TSharedPtr<
 	}
 
 	//Connect to the server on a background thread so it never blocks
-	FCULambdaRunnable::RunLambdaOnBackGroundThread([&, Query, Headers]
+	FCULambdaRunnable::RunLambdaOnBackGroundThread([&, StdAddressString, Query, Headers]
 	{
 		std::map<std::string, std::string> QueryMap = {};
 		std::map<std::string, std::string> HeadersMap = {};
