@@ -137,11 +137,15 @@ namespace sio
 
 		std::string const& get_sessionid() const { return m_sid; }
 
+		std::string const& get_current_url() const { return m_base_url; }
+
 		void set_reconnect_attempts(unsigned attempts) {m_reconn_attempts_when_closed = m_reconn_attempts = attempts;}
 
 		void set_reconnect_delay(unsigned millis) {m_reconn_delay = millis;if(m_reconn_delay_max<millis) m_reconn_delay_max = millis;}
 
 		void set_reconnect_delay_max(unsigned millis) {m_reconn_delay_max = millis;if(m_reconn_delay>millis) m_reconn_delay = millis;}
+
+		
 
 	protected:
 		void send(packet& p);

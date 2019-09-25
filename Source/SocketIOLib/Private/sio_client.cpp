@@ -128,7 +128,12 @@ namespace sio
         return m_impl->get_sessionid();
     }
 
-    void client::set_reconnect_attempts(int attempts)
+	std::string const& client::get_url() const
+	{
+		return m_impl->get_current_url();
+	}
+
+	void client::set_reconnect_attempts(int attempts)
     {
         m_impl->set_reconnect_attempts(attempts);
     }

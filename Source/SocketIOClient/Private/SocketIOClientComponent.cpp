@@ -482,10 +482,10 @@ void USocketIOClientComponent::EmitWithGraphCallBack(const FString& EventName, s
 		FLatentActionManager& LatentActionManager = World->GetLatentActionManager();
 		int32 UUID = LatentInfo.UUID;
 
-		FCorePendingLatentAction *LatentAction = LatentActionManager.FindExistingAction<FCorePendingLatentAction>(LatentInfo.CallbackTarget, UUID);
+		FCUPendingLatentAction *LatentAction = LatentActionManager.FindExistingAction<FCUPendingLatentAction>(LatentInfo.CallbackTarget, UUID);
 
 		//It's safe to use raw new as actions get deleted by the manager
-		LatentAction = new FCorePendingLatentAction(LatentInfo);
+		LatentAction = new FCUPendingLatentAction(LatentInfo);
 
 		LatentAction->OnCancelNotification = [this, UUID]()
 		{

@@ -4,13 +4,13 @@
 #pragma once
 
 #include "Components/ActorComponent.h"
-#include "FileUtilityComponent.generated.h"
+#include "CUFileComponent.generated.h"
 
 /**
-*
+* Convenience component to save/load data from files
 */
 UCLASS(ClassGroup = "Utility", meta = (BlueprintSpawnableComponent))
-class COREUTILITY_API UFileUtilityComponent : public UActorComponent
+class COREUTILITY_API UCUFileComponent : public UActorComponent
 {
 	GENERATED_UCLASS_BODY()
 public:
