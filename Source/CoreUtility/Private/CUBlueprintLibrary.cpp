@@ -105,7 +105,7 @@ TSharedPtr<FCUOpusCoder> OpusCoder;
 
 TArray<uint8> UCUBlueprintLibrary::Conv_OpusBytesToWav(const TArray<uint8>& InBytes)
 {
-	FCUScopeTimer Timer(TEXT("Conv_OpusBytesToWav"));
+	//FCUScopeTimer Timer(TEXT("Conv_OpusBytesToWav"));
 
 	TArray<uint8> WavBytes;
 	//Early exit condition
@@ -135,7 +135,8 @@ TArray<uint8> UCUBlueprintLibrary::Conv_OpusBytesToWav(const TArray<uint8>& InBy
 
 TArray<uint8> UCUBlueprintLibrary::Conv_WavBytesToOpus(const TArray<uint8>& InBytes)
 {
-	FCUScopeTimer Timer(TEXT("Conv_WavBytesToOpus"));
+	//FCUScopeTimer Timer(TEXT("Conv_WavBytesToOpus"));
+
 	TArray<uint8> OpusBytes;
 
 	FWaveModInfo WaveInfo;
