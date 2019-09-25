@@ -1,5 +1,5 @@
 #include "CUPreciseTimer.h"
-#include "Core.h"
+#include "HAL/PlatformTime.h"
 
 #if ENABLE_CUPRECISE_TIMER
 static TMap<FString, TSharedPtr<FCUPreciseTimer>> FPreciseTimerInternalMap;
