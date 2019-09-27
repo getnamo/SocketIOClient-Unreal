@@ -40,7 +40,7 @@ HTTPS currently not yet supported
 
  1. Create new or choose project.
  2. Browse to your project folder (typically found at Documents/Unreal Project/{Your Project Root})
- 3. Create a Plugins folder and open it
+ 3. Create a *Plugins* in your project root folder and use that path for step 4. command.
  4. Git clone. Repository uses submodules, so recommended command is:
  
 ```git clone https://github.com/getnamo/socketio-client-ue4.git --recurse-submodules```
