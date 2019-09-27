@@ -482,24 +482,10 @@ void USocketIOClientComponent::EmitWithGraphCallBack(const FString& EventName, s
 	{
 		JsonMessage = MakeShareable(new FJsonValueNull);
 	}
+	FCULatentAction *LatentAction = FCULatentAction::CreateLatentAction(LatentInfo, this);
 
-	if (UWorld* World = GEngine->GetWorldFromContextObject(this, EGetWorldErrorMode::LogAndReturnNull))
+	if (LatentAction)
 	{
-		FLatentActionManager& LatentActionManager = World->GetLatentActionManager();
-		int32 UUID = LatentInfo.UUID;
-
-		FCULatentAction *LatentAction = LatentActionManager.FindExistingAction<FCULatentAction>(LatentInfo.CallbackTarget, UUID);
-
-		//It's safe to use raw new as actions get deleted by the manager
-		LatentAction = new FCULatentAction(LatentInfo);
-
-		LatentAction->OnCancelNotification = [this, UUID]()
-		{
-			UE_LOG(LogTemp, Log, TEXT("%d graph callback cancelled."), UUID);
-		};
-
-		LatentActionManager.AddNewAction(LatentInfo.CallbackTarget, LatentInfo.UUID, LatentAction);
-
 		//emit the message and pass the LatentAction, we also pass the result reference through lambda capture
 		NativeClient->Emit(EventName, JsonMessage, [this, LatentAction, &Result](const TArray<TSharedPtr<FJsonValue>>& Response)
 		{

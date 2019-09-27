@@ -46,10 +46,18 @@ void FCULambdaRunnable::SetTimeout(TFunction<void()>OnDone, float DurationInSec,
 FCULatentAction* FCULatentAction::CreateLatentAction(struct FLatentActionInfo& LatentInfo, UObject* WorldContext)
 {
 	UWorld* World = GEngine->GetWorldFromContextObject(WorldContext, EGetWorldErrorMode::LogAndReturnNull);
+	if (!World) 
+	{
+		return nullptr;
+	}
 	FLatentActionManager& LatentActionManager = World->GetLatentActionManager();
-	int32 UUID = LatentInfo.UUID;
-	FCULatentAction *LatentAction = LatentActionManager.FindExistingAction<FCULatentAction>(LatentInfo.CallbackTarget, UUID);
+	FCULatentAction *LatentAction = LatentActionManager.FindExistingAction<FCULatentAction>(LatentInfo.CallbackTarget, LatentInfo.UUID);
 	LatentAction = new FCULatentAction(LatentInfo);	//safe to use new since latentactionmanager will delete it
+	int32 UUID = LatentInfo.UUID;
+	LatentAction->OnCancelNotification = [UUID]()
+	{
+		UE_LOG(LogTemp, Log, TEXT("%d graph callback cancelled."), UUID);
+	};
 	LatentActionManager.AddNewAction(LatentInfo.CallbackTarget, LatentInfo.UUID, LatentAction);
 	return LatentAction;
 }
