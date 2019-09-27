@@ -3,6 +3,7 @@
 
 #include "CULambdaRunnable.h"
 #include "Runtime/Core/Public/Async/Async.h"
+#include "Engine/Engine.h"
 
 void FCULambdaRunnable::RunLambdaOnBackGroundThread(TFunction< void()> InFunction)
 {
@@ -40,3 +41,68 @@ void FCULambdaRunnable::SetTimeout(TFunction<void()>OnDone, float DurationInSec,
 		}
 	});
 }
+
+
+FCULatentAction* FCULatentAction::CreateLatentAction(struct FLatentActionInfo& LatentInfo, UObject* WorldContext)
+{
+	UWorld* World = GEngine->GetWorldFromContextObject(WorldContext, EGetWorldErrorMode::LogAndReturnNull);
+	FLatentActionManager& LatentActionManager = World->GetLatentActionManager();
+	int32 UUID = LatentInfo.UUID;
+	FCULatentAction *LatentAction = LatentActionManager.FindExistingAction<FCULatentAction>(LatentInfo.CallbackTarget, UUID);
+	LatentAction = new FCULatentAction(LatentInfo);	//safe to use new since latentactionmanager will delete it
+	LatentActionManager.AddNewAction(LatentInfo.CallbackTarget, LatentInfo.UUID, LatentAction);
+	return LatentAction;
+}
+
+FCULatentAction::FCULatentAction(const FLatentActionInfo& LatentInfo) :
+	ExecutionFunction(LatentInfo.ExecutionFunction),
+	OutputLink(LatentInfo.Linkage),
+	CallbackTarget(LatentInfo.CallbackTarget),
+	Called(false)
+{
+
+}
+
+void FCULatentAction::UpdateOperation(FLatentResponse& Response)
+{
+	Response.FinishAndTriggerIf(Called, ExecutionFunction, OutputLink, CallbackTarget);
+}
+
+void FCULatentAction::Call()
+{
+	Called = true;
+}
+
+void FCULatentAction::Cancel()
+{
+	if (OnCancelNotification)
+	{
+		OnCancelNotification();
+	}
+}
+
+void FCULatentAction::NotifyObjectDestroyed()
+{
+	Cancel();
+}
+
+void FCULatentAction::NotifyActionAborted()
+{
+	Cancel();
+}
+
+#if WITH_EDITOR
+FString FCULatentAction::GetDescription() const
+{
+	{
+		if (Called)
+		{
+			return TEXT("Done.");
+		}
+		else
+		{
+			return TEXT("Pending.");
+		}
+	};
+}
+#endif

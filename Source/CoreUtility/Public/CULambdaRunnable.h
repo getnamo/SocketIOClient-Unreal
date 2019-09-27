@@ -6,63 +6,28 @@
 #include "Runtime/Engine/Public/LatentActions.h"
 #include "Runtime/Core/Public/Async/TaskGraphInterfaces.h"
 
-//A simple latent action where we don't hold the value, expect capturing value in lambdas
-class COREUTILITY_API FCUPendingLatentAction : public FPendingLatentAction
+/** A simple latent action where we don't hold the value, expect capturing value in lambdas */
+class COREUTILITY_API FCULatentAction : public FPendingLatentAction
 {
 public:
 	TFunction<void()> OnCancelNotification = nullptr;
 
-	FCUPendingLatentAction(const FLatentActionInfo& LatentInfo) :
-		ExecutionFunction(LatentInfo.ExecutionFunction),
-		OutputLink(LatentInfo.Linkage),
-		CallbackTarget(LatentInfo.CallbackTarget),
-		Called(false)
-	{
-	}
+	/** Note that you need to use the resulting call to cleanly exit */
+	static FCULatentAction* CreateLatentAction(struct FLatentActionInfo& LatentInfo, UObject* WorldContext);
 
-	virtual void UpdateOperation(FLatentResponse& Response) override
-	{
-		Response.FinishAndTriggerIf(Called, ExecutionFunction, OutputLink, CallbackTarget);
-	}
+	FCULatentAction(const FLatentActionInfo& LatentInfo);
 
-	void Call()
-	{
-		Called = true;
-	}
+	virtual void UpdateOperation(FLatentResponse& Response) override;
 
-	void Cancel()
-	{
-		if (OnCancelNotification)
-		{
-			OnCancelNotification();
-		}
-	}
+	void Call();
+	void Cancel();
 
-	virtual void NotifyObjectDestroyed() override
-	{
-		Cancel();
-	}
-
-	virtual void NotifyActionAborted() override
-	{
-		Cancel();
-	}
-
+	virtual void NotifyObjectDestroyed() override;
+	virtual void NotifyActionAborted() override;
 
 #if WITH_EDITOR
-	virtual FString GetDescription() const override
-	{
-		if (Called)
-		{
-			return TEXT("Done.");
-		}
-		else
-		{
-			return TEXT("Pending.");
-		}
-	};
+	virtual FString GetDescription() const override;
 #endif
-
 
 	const FName ExecutionFunction;
 	const int32 OutputLink;
