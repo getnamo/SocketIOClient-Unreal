@@ -35,11 +35,15 @@ HTTPS currently not yet supported
  ### Via Unreal Engine Marketplace (helps support plugin development and maintenance)
  
  Available at this link: [Socket.IO Client - Marketplace](https://www.unrealengine.com/marketplace/socket-io-client)
- 
- ### Optional Plugin Enabled Check
- 5. If your plugin isn't enabled for whatever reason you can enable the plugin via Edit->Plugins. Scroll down to Project->Networking. Click Enabled.
- 6. Restart the Editor and open your project again. Plugin is now ready to use.
 
+ ### Via Git clone
+
+ 1. Create new or choose project.
+ 2. Browse to your project folder (typically found at Documents/Unreal Project/{Your Project Root})
+ 3. Create a Plugins folder and open it
+ 4. Git clone. Repository uses submodules, so recommended command is:
+ 
+```git clone https://github.com/getnamo/socketio-client-ue4.git --recurse-submodules```
 
 ## Example Project - Chat
 
