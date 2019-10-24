@@ -120,6 +120,16 @@ public:
 		const TSharedPtr<FJsonObject>& Query, 
 		const TSharedPtr<FJsonObject>& Headers);
 
+	/** 
+	* Join a desired namespace. Keep in mind that emitting to a namespace will auto-join it
+	*/
+	void JoinNamespace(const FString& Namespace);
+
+	/**
+	* Leave a specified namespace.
+	*/
+	void LeaveNamespace(const FString& Namespace);
+
 	/**
 	* Disconnect from current socket.io server, optional method.
 	*

@@ -418,6 +418,16 @@ void USocketIOClientComponent::SyncDisconnect()
 	NativeClient->SyncDisconnect();
 }
 
+void USocketIOClientComponent::JoinNamespace(const FString& Namespace)
+{
+	NativeClient->JoinNamespace(Namespace);
+}
+
+void USocketIOClientComponent::LeaveNamespace(const FString& Namespace)
+{
+	NativeClient->LeaveNamespace(Namespace);
+}
+
 #if PLATFORM_WINDOWS
 #pragma endregion Connect
 #pragma region Emit

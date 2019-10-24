@@ -81,6 +81,17 @@ void FSocketIONative::Connect(const FString& InAddressAndPort)
 	Connect(InAddressAndPort, Query, Headers);
 }
 
+void FSocketIONative::JoinNamespace(const FString& Namespace)
+{
+	//just referencing the namespace will join it
+	PrivateClient->socket(USIOMessageConvert::StdString(Namespace));
+}
+
+void FSocketIONative::LeaveNamespace(const FString& Namespace)
+{
+	PrivateClient->socket(USIOMessageConvert::StdString(Namespace))->close();
+}
+
 void FSocketIONative::Disconnect()
 {	
 	if (OnDisconnectedCallback)

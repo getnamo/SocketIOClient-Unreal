@@ -145,6 +145,18 @@ public:
 
 	void SyncDisconnect();
 
+	/**
+	* Join a desired namespace. Keep in mind that emitting to a namespace will auto-join it
+	*/
+	UFUNCTION(BlueprintCallable, Category = "SocketIO Functions")
+	void JoinNamespace(const FString& Namespace);
+
+	/** 
+	* Leave a specified namespace. Should stop listening to events on given namespace.
+	*/
+	UFUNCTION(BlueprintCallable, Category = "SocketIO Functions")
+	void LeaveNamespace(const FString& Namespace);
+
 	//
 	//Blueprint Functions
 	//
