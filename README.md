@@ -238,6 +238,29 @@ Instead of using the event graph and comparing strings, you can bind an event di
 
 ![IMG](http://i.imgur.com/7fA1qca.png)
 
+### Namespaces
+
+Before v1.2.3 you can only join namespaces via using ```Emit``` and ```Bind Event``` with a namespace specified. This will auto-join your namespace of choice upon calling either function.
+
+![Example join emit](https://i.imgur.com/9rOy5Bp.png)
+
+A good place to bind your namespace functions is using the dedicated namespace connected/disconnected events
+
+![namespace events](https://i.imgur.com/ZyF41j4.png)
+
+Below is an example of binding a namespace event when you've connected to it. Keep in mind you'd need to join the namespace for this event to get bound and you can bind it elsewhere e.g. on beginplay instead if preferred.
+
+![namespace bind event](https://i.imgur.com/yWTOLB5.png)
+
+Since v1.2.3 you can now also join and leave a namespace explicitly using ```Join Namespace``` and ```Leave Namespace``` functions.
+
+![join and leave namespaces](https://i.imgur.com/bqBSp1q.png)
+
+### Rooms
+
+The Rooms functionality is solely based on server implementation, see Socket.IO api for details: https://socket.io/docs/rooms-and-namespaces/#Joining-and-leaving
+
+Generally speaking you can have some kind of event to emit to your server specifying the unreal client wants to join or leave a room and then the server would handle that request for you. If you wanted to emit a message to a specific user in a room you'd need a way to get a list of possible users (e.g. get the list on joining the room or via a callback). Then selecting a user from the list and passing their id along with desired data in an emit call to the server which would forward the data to the user in the room you've joined.
 
 ### Complex Connect
 
