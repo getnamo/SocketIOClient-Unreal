@@ -13,6 +13,8 @@ Socket.IO Lib uses _asio_, _rapidjson_, and _websocketpp_. SIOJson is originally
 
 Recommended socket.io server version: 1.4+.
 
+*Tip: This is a sizeable readme, quickly find your topic with ```Ctrl+F``` and a search term e.g. namespaces*
+
 ### Contribute! Current Main Issues:
 
 Current platform issues:
@@ -258,7 +260,7 @@ Since v1.2.3 you can now also join and leave a namespace explicitly using ```Joi
 
 ### Rooms
 
-The Rooms functionality is solely based on server implementation, see Socket.IO api for details: https://socket.io/docs/rooms-and-namespaces/#Joining-and-leaving
+The Rooms functionality is solely based on server implementation, see Socket.IO api for details: https://socket.io/docs/rooms-and-namespaces/#Rooms
 
 Generally speaking you can have some kind of event to emit to your server specifying the unreal client wants to join or leave a room and then the server would handle that request for you. If you wanted to emit a message to a specific user in a room you'd need a way to get a list of possible users (e.g. get the list on joining the room or via a callback). Then selecting a user from the list and passing their id along with desired data in an emit call to the server which would forward the data to the user in the room you've joined.
 
