@@ -218,7 +218,8 @@ void UCUBlueprintLibrary::SetSoundWaveFromWavBytes(USoundWaveProcedural* InSound
 {
 	FWaveModInfo WaveInfo;
 
-	if (WaveInfo.ReadWaveInfo(InBytes.GetData(), InBytes.Num()))
+	FString ErrorReason;
+	if (WaveInfo.ReadWaveInfo(InBytes.GetData(), InBytes.Num(), &ErrorReason))
 	{
 		//copy header info
 		int32 DurationDiv = *WaveInfo.pChannels * *WaveInfo.pBitsPerSample * *WaveInfo.pSamplesPerSec;
@@ -239,6 +240,10 @@ void UCUBlueprintLibrary::SetSoundWaveFromWavBytes(USoundWaveProcedural* InSound
 
 		//Queue actual audio data
 		InSoundWave->QueueAudio(WaveInfo.SampleDataStart, WaveInfo.SampleDataSize);
+	}
+	else
+	{
+		UE_LOG(LogTemp, Log, TEXT("SetSoundWaveFromWavBytes::WaveRead error: %s"), *ErrorReason);
 	}
 }
 
