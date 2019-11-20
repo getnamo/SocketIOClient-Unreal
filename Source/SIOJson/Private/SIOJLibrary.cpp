@@ -50,11 +50,21 @@ FString USIOJLibrary::Base64Encode(const FString& Source)
 	return FBase64::Encode(Source);
 }
 
+FString USIOJLibrary::Base64EncodeBytes(const TArray<uint8>& Source)
+{
+	return FBase64::Encode(Source);
+}
+
 bool USIOJLibrary::Base64Decode(const FString& Source, FString& Dest)
 {
 	return FBase64::Decode(Source, Dest);
 }
 
+
+bool USIOJLibrary::Base64DecodeBytes(const FString& Source, TArray<uint8>& Dest)
+{
+	return FBase64::Decode(Source, Dest);
+}
 
 bool USIOJLibrary::StringToJsonValueArray(const FString& JsonString, TArray<USIOJsonValue*>& OutJsonValueArray)
 {
