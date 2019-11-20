@@ -39,10 +39,10 @@ public:
 	//Structs
 
 	//Will trim names if specified as blueprint
-	static TSharedPtr<FJsonObject> ToJsonObject(UStruct* Struct, void* StructPtr, bool IsBlueprintStruct = false);
+	static TSharedPtr<FJsonObject> ToJsonObject(UStruct* Struct, void* StructPtr, bool IsBlueprintStruct = false, bool BinaryStructCppSupport = false);
 
 	//Expects a JsonObject, if blueprint struct it will lengthen the names to fill properly
-	static bool JsonObjectToUStruct(TSharedPtr<FJsonObject> JsonObject, UStruct* Struct, void* StructPtr, bool IsBlueprintStruct = false);
+	static bool JsonObjectToUStruct(TSharedPtr<FJsonObject> JsonObject, UStruct* Struct, void* StructPtr, bool IsBlueprintStruct = false, bool BinaryStructCppSupport = false);
 	
 	//Files - convenience read/write files
 	static bool JsonFileToUStruct(const FString& FilePath, UStruct* Struct, void* StructPtr, bool IsBlueprintStruct = false);

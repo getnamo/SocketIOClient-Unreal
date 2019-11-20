@@ -9,9 +9,9 @@
 *	C++ Utility Timer class. Multiple categories can be used simultaneously.
 *
 *	Usage: 
-*	FCUMeasureTimer::Tick(TEXT("MyMeasurementCategory");
+*	FCUMeasureTimer::Tick(TEXT("MyMeasurementCategory"));
 *	//Your code
-*	FCUMeasureTimer::Tock(TEXT("MyMeasurementCategory"); //This will log the time taken in miliseconds
+*	FCUMeasureTimer::Tock(TEXT("MyMeasurementCategory")); //This will log the time taken in miliseconds
 *
 *	optionally get the result and handle logging manually
 *	double Elapsed = FCUMeasureTimer::Tock(TEXT("MyMeasurementCategory", false);

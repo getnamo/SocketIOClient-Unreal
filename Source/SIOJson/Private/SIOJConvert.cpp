@@ -736,52 +736,51 @@ TSharedPtr<FJsonObject> USIOJConvert::ToJsonObject(const FString& JsonString)
 
 
 
-TSharedPtr<FJsonObject> USIOJConvert::ToJsonObject(UStruct* StructDefinition, void* StructPtr, bool IsBlueprintStruct)
+TSharedPtr<FJsonObject> USIOJConvert::ToJsonObject(UStruct* StructDefinition, void* StructPtr, bool IsBlueprintStruct, bool BinaryStructCppSupport /*= false */)
 {
 	TSharedRef<FJsonObject> JsonObject = MakeShareable(new FJsonObject);
 
-	if (IsBlueprintStruct)
+	if (IsBlueprintStruct || BinaryStructCppSupport)
 	{
 		//Handle BP enum override
 		if (!EnumOverrideExportCallback.IsBound())
 		{
-
 			EnumOverrideExportCallback.BindLambda([](UProperty* Property, const void* Value)
+			{
+				if (UByteProperty* BPEnumProperty = Cast<UByteProperty>(Property))
 				{
-					if (UByteProperty* BPEnumProperty = Cast<UByteProperty>(Property))
+					//Override default enum behavior by fetching display name text
+					UEnum* EnumDef = BPEnumProperty->Enum;
+
+					int32 IntValue = *(int32*)Value;
+
+					//It's an enum byte
+					if (EnumDef)
 					{
-						//Override default enum behavior by fetching display name text
-						UEnum* EnumDef = BPEnumProperty->Enum;
-
-						int32 IntValue = *(int32*)Value;
-
-						//It's an enum byte
-						if (EnumDef)
-						{
-							FString StringValue = EnumDef->GetDisplayNameTextByIndex(IntValue).ToString();
-							return (TSharedPtr<FJsonValue>)MakeShared<FJsonValueString>(StringValue);
-						}
-						//it's a regular byte, convert to number
-						else
-						{
-							return (TSharedPtr<FJsonValue>)MakeShared<FJsonValueNumber>(IntValue);
-						}
+						FString StringValue = EnumDef->GetDisplayNameTextByIndex(IntValue).ToString();
+						return (TSharedPtr<FJsonValue>)MakeShared<FJsonValueString>(StringValue);
 					}
-					//byte array special case
-					else if (UArrayProperty* ArrayProperty = Cast <UArrayProperty>(Property))
+					//it's a regular byte, convert to number
+					else
 					{
-						//is it a byte array?
-						if (ArrayProperty->Inner->IsA<UByteProperty>())
-						{
-							FScriptArrayHelper ArrayHelper(ArrayProperty, Value);
-							TArray<uint8> ByteArray(ArrayHelper.GetRawPtr(), ArrayHelper.Num());
-							return USIOJConvert::ToJsonValue(ByteArray);
-						}
+						return (TSharedPtr<FJsonValue>)MakeShared<FJsonValueNumber>(IntValue);
 					}
+				}
+				//byte array special case
+				else if (UArrayProperty* ArrayProperty = Cast <UArrayProperty>(Property))
+				{
+					//is it a byte array?
+					if (ArrayProperty->Inner->IsA<UByteProperty>())
+					{
+						FScriptArrayHelper ArrayHelper(ArrayProperty, Value);
+						TArray<uint8> ByteArray(ArrayHelper.GetRawPtr(), ArrayHelper.Num());
+						return USIOJConvert::ToJsonValue(ByteArray);
+					}
+				}
 
-					// invalid
-					return TSharedPtr<FJsonValue>();
-				});
+				// invalid
+				return TSharedPtr<FJsonValue>();
+			});
 		}
 
 		//Get the object keys
@@ -806,9 +805,9 @@ TSharedPtr<FJsonObject> USIOJConvert::MakeJsonObject()
 	return MakeShareable(new FJsonObject);
 }
 
-bool USIOJConvert::JsonObjectToUStruct(TSharedPtr<FJsonObject> JsonObject, UStruct* Struct, void* StructPtr, bool IsBlueprintStruct)
+bool USIOJConvert::JsonObjectToUStruct(TSharedPtr<FJsonObject> JsonObject, UStruct* Struct, void* StructPtr, bool IsBlueprintStruct /*= false*/, bool BinaryStructCppSupport /*= false*/)
 {
-	if (IsBlueprintStruct)
+	if (IsBlueprintStruct || BinaryStructCppSupport)
 	{
 		//Json object we pass will have their trimmed BP names, e.g. boolKey vs boolKey_8_EDBB36654CF43866C376DE921373AF23
 		//so we have to match them to the verbose versions, get a map of the names
