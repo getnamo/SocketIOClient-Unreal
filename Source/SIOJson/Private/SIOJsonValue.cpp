@@ -5,6 +5,8 @@
 
 #include "SIOJsonValue.h"
 #include "SIOJConvert.h"
+#include "ISIOJson.h"
+#include "Runtime/Core/Public/Misc/Base64.h"
 
 #if PLATFORM_WINDOWS
 #pragma region FJsonValueBinary
@@ -17,6 +19,18 @@ TArray<uint8> FJsonValueBinary::AsBinary(const TSharedPtr<FJsonValue>& InJsonVal
 	{
 		TSharedPtr<FJsonValueBinary> BinaryValue = StaticCastSharedPtr<FJsonValueBinary>(InJsonValue);
 		return BinaryValue->AsBinary();
+	}
+	else if (InJsonValue->Type == EJson::String)
+	{
+		//If we got a string that isn't detected as a binary via socket.io protocol hack
+		//then we need to decode this string as base 64
+		TArray<uint8> DecodedArray;
+		bool bDidDecodeCorrectly = FBase64::Decode(InJsonValue->AsString(), DecodedArray);
+		if (!bDidDecodeCorrectly)
+		{
+			UE_LOG(LogSIOJ, Warning, TEXT("FJsonValueBinary::AsBinary couldn't decode %s as a binary."), *InJsonValue->AsString());
+		}
+		return DecodedArray;
 	}
 	else
 	{

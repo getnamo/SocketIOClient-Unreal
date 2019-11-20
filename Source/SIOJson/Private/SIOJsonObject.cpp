@@ -4,9 +4,12 @@
 // Copyright 2014 Vladimir Alyamkin. All Rights Reserved.
 
 #include "SIOJsonObject.h"
+#include "SIOJsonValue.h"
+#include "ISIOJson.h"
 #include "Runtime/Json/Public/Policies/CondensedJsonPrintPolicy.h"
 #include "Runtime/Json/Public/Serialization/JsonWriter.h"
 #include "Runtime/Json/Public/Serialization/JsonSerializer.h"
+#include "Runtime/Core/Public/Misc/Base64.h"
 
 typedef TJsonWriterFactory< TCHAR, TCondensedJsonPrintPolicy<TCHAR> > FCondensedJsonStringWriterFactory;
 typedef TJsonWriter< TCHAR, TCondensedJsonPrintPolicy<TCHAR> > FCondensedJsonStringWriter;
@@ -340,8 +343,7 @@ void USIOJsonObject::SetObjectField(const FString& FieldName, USIOJsonObject* Js
 	JsonObj->SetObjectField(FieldName, JsonObject->GetRootObject());
 }
 
-
-TArray<uint8> USIOJsonObject::GetBinaryField(const FString& FieldName) const
+void USIOJsonObject::GetBinaryField(const FString& FieldName, TArray<uint8>& OutBinary) const
 {
 	if (!JsonObj->HasTypedField<EJson::String>(FieldName))
 	{
@@ -351,12 +353,24 @@ TArray<uint8> USIOJsonObject::GetBinaryField(const FString& FieldName) const
 
 	if (FJsonValueBinary::IsBinary(JsonValue))
 	{
-		return FJsonValueBinary::AsBinary(JsonValue);
+		OutBinary = FJsonValueBinary::AsBinary(JsonValue);
+	}
+	else if (JsonValue->Type == EJson::String)
+	{
+		//If we got a string that isn't detected as a binary via socket.io protocol hack
+		//then we need to decode this string as base 64
+		TArray<uint8> DecodedArray;
+		bool bDidDecodeCorrectly = FBase64::Decode(JsonValue->AsString(), DecodedArray);
+		if (!bDidDecodeCorrectly)
+		{
+			UE_LOG(LogSIOJ, Warning, TEXT("USIOJsonObject::GetBinaryField couldn't decode %s as a binary."), *JsonValue->AsString());
+		}
+		OutBinary = DecodedArray;
 	}
 	else
 	{
 		TArray<uint8> EmptyArray;
-		return EmptyArray;
+		OutBinary = EmptyArray;
 	}
 }
 

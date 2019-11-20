@@ -125,7 +125,7 @@ class SIOJSON_API USIOJsonObject : public UObject
 
 	/** Get the field named FieldName as a binary buffer array. */
 	UFUNCTION(BlueprintCallable, Category = "SIOJ|Json")
-	TArray<uint8> GetBinaryField(const FString& FieldName) const;
+	void GetBinaryField(const FString& FieldName, TArray<uint8>& OutBinary) const;
 
 	/** Set an BinaryField named FieldName and binary buffer array */
 	UFUNCTION(BlueprintCallable, Category = "SIOJ|Json")
