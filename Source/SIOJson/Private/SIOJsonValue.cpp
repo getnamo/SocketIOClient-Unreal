@@ -28,6 +28,10 @@ TArray<uint8> FJsonValueBinary::AsBinary(const TSharedPtr<FJsonValue>& InJsonVal
 
 bool FJsonValueBinary::IsBinary(const TSharedPtr<FJsonValue>& InJsonValue)
 {
+	if (!InJsonValue.IsValid())
+	{
+		return false;
+	}
 	//use our hackery to determine if we got a binary string
 	bool IgnoreBool;
 	return !InJsonValue->TryGetBool(IgnoreBool);
@@ -223,7 +227,7 @@ FString USIOJsonValue::GetTypeString() const
 	}
 }
 
-bool USIOJsonValue::IsNull() const 
+bool USIOJsonValue::IsNull() const
 {
 	if (!JsonVal.IsValid())
 	{
@@ -321,7 +325,7 @@ TArray<uint8> USIOJsonValue::AsBinary()
 		TArray<uint8> ByteArray;
 		return ByteArray;
 	}
-	
+
 	//binary object pretending & starts with non-json format? it's our disguise binary
 	if (JsonVal->Type == EJson::String)
 	{
@@ -341,7 +345,7 @@ TArray<uint8> USIOJsonValue::AsBinary()
 			ByteArray.AddUninitialized(HexString.Len() / 2);
 
 			bool DidConvert = FString::ToHexBlob(HexString, ByteArray.GetData(), ByteArray.Num());
-			
+
 			//Empty our array if conversion failed
 			if (!DidConvert)
 			{
@@ -360,7 +364,7 @@ TArray<uint8> USIOJsonValue::AsBinary()
 }
 
 FString USIOJsonValue::EncodeJson() const
-{ 
+{
 	return USIOJConvert::ToJsonString(JsonVal);
 }
 

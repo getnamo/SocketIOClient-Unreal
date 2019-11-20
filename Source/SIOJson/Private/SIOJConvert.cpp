@@ -18,7 +18,7 @@ typedef TJsonWriter< TCHAR, TCondensedJsonPrintPolicy<TCHAR> > FCondensedJsonStr
 //The one key that will break
 #define TMAP_STRING TEXT("!__!INTERNAL_TMAP")
 
-namespace 
+namespace
 {
 	FJsonObjectConverter::CustomExportCallback EnumOverrideExportCallback;
 
@@ -66,13 +66,13 @@ namespace
 				{
 					//Failed 'NewEnumeratorX' lookup, try via DisplayNames
 					const FString LowerStrValue = StrValue.ToLower();
-					
+
 					//blueprints only support int8 sized enums
 					int8 MaxEnum = (int8)Enum->GetMaxEnumValue();
-					for (int32 i = 0; i < MaxEnum; i++) 
+					for (int32 i = 0; i < MaxEnum; i++)
 					{
 						//Case insensitive match
-						if(LowerStrValue.Equals(Enum->GetDisplayNameTextByIndex(i).ToString().ToLower()))
+						if (LowerStrValue.Equals(Enum->GetDisplayNameTextByIndex(i).ToString().ToLower()))
 						{
 							IntValue = i;
 						}
@@ -559,7 +559,7 @@ FString USIOJConvert::ToJsonString(const TSharedPtr<FJsonValue>& JsonValue)
 	}
 	else if (JsonValue->Type == EJson::Number)
 	{
-		return FString::Printf(TEXT("%f"),JsonValue->AsNumber());
+		return FString::Printf(TEXT("%f"), JsonValue->AsNumber());
 	}
 	else if (JsonValue->Type == EJson::Boolean)
 	{
@@ -586,7 +586,7 @@ USIOJsonValue* USIOJConvert::ToSIOJsonValue(const TArray<TSharedPtr<FJsonValue>>
 	{
 		ValueArray.Add(InVal);
 	}
-	
+
 	USIOJsonValue* ResultValue = NewObject<USIOJsonValue>();
 	TSharedPtr<FJsonValue> NewVal = MakeShareable(new FJsonValueArray(ValueArray));
 	ResultValue->SetRootValue(NewVal);
@@ -633,7 +633,7 @@ TSharedPtr<FJsonValue> USIOJConvert::JsonStringToJsonValue(const FString& JsonSt
 		TSharedRef< TJsonReader<> > Reader = TJsonReaderFactory<>::Create(*JsonString);
 		bool success = FJsonSerializer::Deserialize(Reader, RawJsonValueArray);
 
-		if (success) 
+		if (success)
 		{
 			return MakeShareable(new FJsonValueArray(RawJsonValueArray));
 		}
@@ -645,7 +645,7 @@ TSharedPtr<FJsonValue> USIOJConvert::JsonStringToJsonValue(const FString& JsonSt
 		bool BooleanValue = (JsonString == FString("true"));
 		return MakeShareable(new FJsonValueBoolean(BooleanValue));
 	}
-	
+
 	//String
 	return MakeShareable(new FJsonValueString(JsonString));
 }
@@ -704,7 +704,7 @@ TSharedPtr<FJsonObject> USIOJConvert::ToJsonObject(const FString& JsonString)
 
 
 TSharedPtr<FJsonObject> USIOJConvert::ToJsonObject(UStruct* StructDefinition, void* StructPtr, bool IsBlueprintStruct)
-{	
+{
 	TSharedRef<FJsonObject> JsonObject = MakeShareable(new FJsonObject);
 
 	if (IsBlueprintStruct)
@@ -712,21 +712,43 @@ TSharedPtr<FJsonObject> USIOJConvert::ToJsonObject(UStruct* StructDefinition, vo
 		//Handle BP enum override
 		if (!EnumOverrideExportCallback.IsBound())
 		{
+
 			EnumOverrideExportCallback.BindLambda([](UProperty* Property, const void* Value)
-			{
-				if (UByteProperty* BPEnumProperty = Cast<UByteProperty>(Property))
 				{
-					//Override default enum behavior by fetching display name text
-					UEnum* EnumDef = BPEnumProperty->Enum;
-					int32 IntValue = *(int32*)Value;
-					FString StringValue = EnumDef->GetDisplayNameTextByIndex(IntValue).ToString();
+					if (UByteProperty* BPEnumProperty = Cast<UByteProperty>(Property))
+					{
+						//Override default enum behavior by fetching display name text
+						UEnum* EnumDef = BPEnumProperty->Enum;
 
-					return (TSharedPtr<FJsonValue>)MakeShared<FJsonValueString>(StringValue);
-				}
+						int32 IntValue = *(int32*)Value;
 
-				// invalid
-				return TSharedPtr<FJsonValue>();
-			});
+						//It's an enum byte
+						if (EnumDef)
+						{
+							FString StringValue = EnumDef->GetDisplayNameTextByIndex(IntValue).ToString();
+							return (TSharedPtr<FJsonValue>)MakeShared<FJsonValueString>(StringValue);
+						}
+						//it's a regular byte, convert to number
+						else
+						{
+							return (TSharedPtr<FJsonValue>)MakeShared<FJsonValueNumber>(IntValue);
+						}
+					}
+					//byte array special case
+					else if (UArrayProperty* ArrayProperty = Cast <UArrayProperty>(Property))
+					{
+						//is it a byte array?
+						if (ArrayProperty->Inner->IsA<UByteProperty>())
+						{
+							FScriptArrayHelper ArrayHelper(ArrayProperty, Value);
+							TArray<uint8> ByteArray(ArrayHelper.GetRawPtr(), ArrayHelper.Num());
+							return USIOJConvert::ToJsonValue(ByteArray);
+						}
+					}
+
+					// invalid
+					return TSharedPtr<FJsonValue>();
+				});
 		}
 
 		//Get the object keys
@@ -770,7 +792,7 @@ bool USIOJConvert::JsonObjectToUStruct(TSharedPtr<FJsonObject> JsonObject, UStru
 
 		/*Todo: add support for enums by pretty name and not by NewEnumeratorX
 		Will require re-writing FJsonObjectConverter::JsonObjectToUStruct to lookup by display name in numeric case
-		of https://github.com/EpicGames/UnrealEngine/blob/release/Engine/Source/Runtime/JsonUtilities/Private/JsonObjectConverter.cpp#L377, 
+		of https://github.com/EpicGames/UnrealEngine/blob/release/Engine/Source/Runtime/JsonUtilities/Private/JsonObjectConverter.cpp#L377,
 		or getting engine pull request merge.
 		*/
 
@@ -787,7 +809,7 @@ bool USIOJConvert::JsonFileToUStruct(const FString& FilePath, UStruct* Struct, v
 {
 	//Read bytes from file
 	TArray<uint8> OutBytes;
-	if (!FFileHelper::LoadFileToArray(OutBytes, *FilePath)) 
+	if (!FFileHelper::LoadFileToArray(OutBytes, *FilePath))
 	{
 		return false;
 	}
@@ -799,7 +821,7 @@ bool USIOJConvert::JsonFileToUStruct(const FString& FilePath, UStruct* Struct, v
 	//Read into struct
 	return JsonObjectToUStruct(ToJsonObject(JsonString), Struct, StructPtr, IsBlueprintStruct);
 }
-	
+
 
 bool USIOJConvert::ToJsonFile(const FString& FilePath, UStruct* Struct, void* StructPtr, bool IsBlueprintStruct /*= false*/)
 {
@@ -822,7 +844,7 @@ bool USIOJConvert::ToJsonFile(const FString& FilePath, UStruct* Struct, void* St
 void USIOJConvert::TrimValueKeyNames(const TSharedPtr<FJsonValue>& JsonValue)
 {
 	//Array?
-	if (JsonValue->Type == EJson::Array) 
+	if (JsonValue->Type == EJson::Array)
 	{
 		auto Array = JsonValue->AsArray();
 
@@ -869,7 +891,7 @@ bool USIOJConvert::TrimKey(const FString& InLongKey, FString& OutTrimmedKey)
 	if (LastIndex >= 0)
 	{
 		OutTrimmedKey = InLongKey.Mid(0, LastIndex);;
-		return true; 
+		return true;
 	}
 	else
 	{
