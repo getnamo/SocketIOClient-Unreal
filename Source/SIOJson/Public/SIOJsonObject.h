@@ -20,7 +20,7 @@ class SIOJSON_API USIOJsonObject : public UObject
 	GENERATED_UCLASS_BODY()
 
 	/** Create new Json object, cannot be pure  */
-	UFUNCTION(BlueprintCallable , meta = (DisplayName = "Construct Json Object", HidePin = "WorldContextObject", DefaultToSelf = "WorldContextObject"), Category = "SIOJ|Json")
+	UFUNCTION(BlueprintCallable , meta = (DisplayName = "Construct Json Object", KeyWords = "create make", HidePin = "WorldContextObject", DefaultToSelf = "WorldContextObject"), Category = "SIOJ|Json")
 	static USIOJsonObject* ConstructJsonObject(UObject* WorldContextObject);
 
 	/** Reset all internal data */

@@ -11,6 +11,7 @@
 #include "SIOJsonObject.h"
 #include "Runtime/JsonUtilities/Public/JsonObjectConverter.h"
 #include "Runtime/Core/Public/UObject/PropertyPortFlags.h"
+#include "Runtime/Core/Public/Misc/Base64.h"
 
 typedef TJsonWriterFactory< TCHAR, TCondensedJsonPrintPolicy<TCHAR> > FCondensedJsonStringWriterFactory;
 typedef TJsonWriter< TCHAR, TCondensedJsonPrintPolicy<TCHAR> > FCondensedJsonStringWriter;
@@ -405,6 +406,38 @@ namespace
 		{
 			if (bArrayOrSetProperty)
 			{
+				//Begin custom workaround - support string -> binary array conversion
+				UArrayProperty* ArrayProperty = Cast<UArrayProperty>(Property);
+				if (ArrayProperty->Inner->IsA<UByteProperty>())
+				{
+					//Did we get a direct binary?
+					TArray<uint8> ByteArray;
+					if (FJsonValueBinary::IsBinary(JsonValue))
+					{
+						ByteArray = FJsonValueBinary::AsBinary(JsonValue);
+					}
+					//it's a string, convert use base64 to bytes
+					else if(JsonValue->Type == EJson::String)
+					{
+						bool bDidDecodeCorrectly = FBase64::Decode(JsonValue->AsString(), ByteArray);
+						if (!bDidDecodeCorrectly)
+						{
+							UE_LOG(LogJson, Warning, TEXT("FBase64::Decode failed on %s"), *Property->GetName());
+							return false;
+						}
+					}
+					else
+					{
+						UE_LOG(LogJson, Error, TEXT("BPEnumWA-JsonValueToUProperty - Attempted to import TArray from unsupported non-array JSON key: %s"), *Property->GetName());
+						return false;
+					}
+					//Memcpy raw arrays
+					FScriptArrayHelper ArrayHelper(ArrayProperty, OutValue);
+					ArrayHelper.EmptyAndAddUninitializedValues(ByteArray.Num());
+					FGenericPlatformMemory::Memcpy(ArrayHelper.GetRawPtr(), ByteArray.GetData(), ByteArray.Num());
+					return true;
+				}
+				//End custom workaround 
 				UE_LOG(LogJson, Error, TEXT("BPEnumWA-JsonValueToUProperty - Attempted to import TArray from non-array JSON key"));
 				return false;
 			}
