@@ -116,6 +116,8 @@ Socket.IO spec supports raw binary data types and these should be capable of bei
 
 ![IMG](http://i.imgur.com/PqxEJqI.png)
 
+Since v1.2.6 byte arrays are fully supported inside structs as well. If you do encode a ```SIOJsonValue``` or ```SIOJsonObject``` to JSON string (i.e. not using socket.io protocol for transmission) then binaries will get encoded in base64. Passing in a ```SIOJsonValue``` of string type for decoding into a binary will attempt base64 decoding to allow for non-socket.io protocol fallback. Keep in mind that base64 encoding has a 25% overhead.
+
 ### Decoding Responses
 
 There are many ways to decode your *SIOJsonValue* message, it all depends on your data setup. You can even decode your *JsonObject*s directly into structs, if the JSON structure has matching variable names.
