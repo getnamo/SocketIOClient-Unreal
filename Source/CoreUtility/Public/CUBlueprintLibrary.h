@@ -148,4 +148,11 @@ public:
 	*/
 	UFUNCTION(BlueprintCallable, Category = "CoreUtility|Threading", meta = (WorldContext = "WorldContextObject"))
 	static void CallFunctionOnThread(const FString& Function, ESIOCallbackType ThreadType, UObject* WorldContextObject = nullptr);
+
+	/**
+	*	Calls specified function on thread type with a latent graph return. This allows you to run certain functions on a background thread or
+	*	taskgraph in blueprints. Keep in mind that you should not create or destroy UObjects non-game threads.
+	*/
+	UFUNCTION(BlueprintCallable, Category = "CoreUtility|Threading", meta = (Latent, LatentInfo = "LatentInfo", WorldContext = "WorldContextObject"))
+	static void CallFunctionOnThreadGraphReturn(const FString& Function, ESIOCallbackType ThreadType, struct FLatentActionInfo LatentInfo, UObject* WorldContextObject = nullptr);
 };

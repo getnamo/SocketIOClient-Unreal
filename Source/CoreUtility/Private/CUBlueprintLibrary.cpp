@@ -443,4 +443,69 @@ void UCUBlueprintLibrary::CallFunctionOnThread(const FString& FunctionName, ESIO
 	}
 }
 
+void UCUBlueprintLibrary::CallFunctionOnThreadGraphReturn(const FString& FunctionName, ESIOCallbackType ThreadType, struct FLatentActionInfo LatentInfo, UObject* WorldContextObject /*= nullptr*/)
+{
+	UObject* Target = WorldContextObject;
+	FCULatentAction* LatentAction = FCULatentAction::CreateLatentAction(LatentInfo, Target);
+
+	if (!Target->IsValidLowLevel())
+	{
+		UE_LOG(LogTemp, Warning, TEXT("CallFunctionOnThread: Target not found for '%s'"), *FunctionName);
+		LatentAction->Call();
+		return;
+	}
+
+	UFunction* Function = Target->FindFunction(FName(*FunctionName));
+	if (nullptr == Function)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("CallFunctionOnThread: Function not found '%s'"), *FunctionName);
+		LatentAction->Call();
+		return;
+	}
+
+	switch (ThreadType)
+	{
+	case CALLBACK_GAME_THREAD:
+		if (IsInGameThread())
+		{
+			Target->ProcessEvent(Function, nullptr);
+			LatentAction->Call();
+		}
+		else
+		{
+			FCULambdaRunnable::RunShortLambdaOnGameThread([Function, Target, LatentAction]
+			{
+				if (Target->IsValidLowLevel())
+				{
+					Target->ProcessEvent(Function, nullptr);
+					LatentAction->Call();
+				}
+			});
+		}
+		break;
+	case CALLBACK_BACKGROUND_THREADPOOL:
+		FCULambdaRunnable::RunLambdaOnBackGroundThreadPool([Function, Target, LatentAction]
+		{
+			if (Target->IsValidLowLevel())
+			{
+				Target->ProcessEvent(Function, nullptr);
+				LatentAction->Call();
+			}
+		});
+		break;
+	case CALLBACK_BACKGROUND_TASKGRAPH:
+		FCULambdaRunnable::RunShortLambdaOnBackGroundTask([Function, Target, LatentAction]
+		{
+			if (Target->IsValidLowLevel())
+			{
+				Target->ProcessEvent(Function, nullptr);
+				LatentAction->Call();
+			}
+		});
+		break;
+	default:
+		break;
+	}
+}
+
 #pragma warning( pop )
