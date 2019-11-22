@@ -316,7 +316,7 @@ See https://github.com/getnamo/socketio-client-ue4/blob/master/Source/CoreUtilit
 
 #### CULambdaRunnable
 
-Wrapper for simple multi-threading in C++. Used all over the plugin to handle threading with lambda captured scopes and simpler latent struct wrapping. Example of a call to a background thread and return to gamethread:
+A wrapper for simple multi-threading in C++. Used all over the plugin to handle threading with lambda captured scopes and simpler latent structs for bp calls. Below is an example of a call to a background thread and return to gamethread:
 
 ```c++
 //Assuming you're in game thread
@@ -354,16 +354,16 @@ Global blueprint utilities.
 
 ##### Blueprint Multithreading
 
-Enables easy calling of blueprint functions on background threads and returning back to the game thread to deal with the results. This enables long running operations to not block the game thread while they finish
+Enables easy calling of blueprint functions on background threads and returning back to the game thread to deal with the results. This enables long running operations to not block the game thread while they work.
 
-Two variants are available as of v1.2.8: ```Call Function On Thread``` and ```Call Function on Thread Graph Return```. Generally the latent variant is recommended for easier function chaining and will always return on the game thread when finished.
+Two variants are available as of v1.2.8: ```Call Function On Thread``` and ```Call Function on Thread Graph Return```. Generally the latent variant is recommended for easier function chaining and it will always return on the game thread when finished.
 
 In the example below we use the latent variant to call two background tasks in succession, return to read the result on the game thread and measure the overall time taken.
 
 [![latent multithreading](https://i.imgur.com/ryORGF5.png)](https://i.imgur.com/G4ZPtyt.mp4)
 (click image to see video of performance)
 
-The first task prepares an array with  a million floats, the second sums them up. We use class member variables to pass data between threads. It's important to only have one function modifying the same data at any time and you cannot make or destroy UObjects on background threads so it may be necessary to callback to the gamethread to do allocations if you use UObjects.
+The first task prepares an array with a million floats, the second sums them up. This should take ~1 sec to run, but from the video above you can see that it doesn't block the game thread at all. We use class member variables to pass data between threads. It's important to only have one function modifying the same data at any time and you cannot make or destroy UObjects on background threads so it may be necessary to callback to the gamethread to do allocations if you use UObjects.
 
 #### CUOpusCoder
 
