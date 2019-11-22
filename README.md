@@ -306,7 +306,7 @@ Non actor-owners such as Game Instances cannot receive the graph callbacks due t
 
 ### CoreUtility
 
-Plugin contains the core utility module with lot's of useful blueprint utilities.
+Plugin contains the core utility module with a variety of useful blueprint utilities.
 
 #### CUFileComponent
 
