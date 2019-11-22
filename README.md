@@ -304,15 +304,38 @@ Game Instances do *not* have actor owners and therefore cannot register and init
 
 Non actor-owners such as Game Instances cannot receive the graph callbacks due to invalid world context. This only affects this one callback method, other methods work as usual.
 
-### CoreUtility
+## CoreUtility
 
-Plugin contains the core utility module with a variety of useful blueprint utilities.
+Plugin contains the CoreUtility module with a variety of useful C++ and blueprint utilities.
 
 #### CUFileComponent
 
 Provides and easy way to save/load files to common project directories. Example usecase: Encode a received message to JSON and pass the bytes in to ```SaveBytesToFile``` to store your response.
 
 See https://github.com/getnamo/socketio-client-ue4/blob/master/Source/CoreUtility/Public/CUFileComponent.h for details.
+
+#### CULambdaRunnable
+
+Wrapper for simple multi-threading in C++. Used all over the plugin to handle threading with lambda captured scopes and simpler latent struct wrapping. Example of a call to a background thread and return to gamethread:
+
+```c++
+//Assuming you're in game thread
+FCULambdaRunnable::RunLambdaOnBackGroundThread([]
+{
+	//Now you're in a background thread
+	//... do some calculation and let's callback a result
+	int SomeResult;
+	FCULambdaRunnable::RunShortLambdaOnGameThread([SomeResult]
+	{
+		//You're back to the game thread
+		//... display or do something with the result safely
+	});
+});
+```
+
+See https://github.com/getnamo/socketio-client-ue4/blob/master/Source/CoreUtility/Public/CULambdaRunnable.h for full API.
+
+For blueprint multi-threading see https://github.com/getnamo/socketio-client-ue4#blueprint-multithreading.
 
 #### CUMeasureTimer
 
