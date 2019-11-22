@@ -333,9 +333,9 @@ Global blueprint utilities.
 
 Enables easy calling of blueprint functions on background threads and returning back to the game thread to deal with the results. This enables long running operations to not block the game thread while they finish
 
-Two variants availableas of v1.2.8 ```Call Function On Thread``` and ```Call Function on Thread Graph Return```. Generally the latent variant is recommended.
+Two variants are available as of v1.2.8: ```Call Function On Thread``` and ```Call Function on Thread Graph Return```. Generally the latent variant is recommended for easier function chaining and will always return on the game thread when finished.
 
-In the example below we use the latent variant to call two background tasks in succession, return to read the result on the game thread and measure the overall time taken .
+In the example below we use the latent variant to call two background tasks in succession, return to read the result on the game thread and measure the overall time taken.
 
 [![latent multithreading](https://i.imgur.com/ryORGF5.png)](https://i.imgur.com/G4ZPtyt.mp4)
 (click image to see video of performance)
