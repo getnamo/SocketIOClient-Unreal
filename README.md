@@ -304,6 +304,50 @@ Game Instances do *not* have actor owners and therefore cannot register and init
 
 Non actor-owners such as Game Instances cannot receive the graph callbacks due to invalid world context. This only affects this one callback method, other methods work as usual.
 
+### CoreUtility
+
+Plugin contains the core utility module with lot's of useful blueprint utilities.
+
+#### CUFileComponent
+
+Provides and easy way to save/load files to common project directories. Example usecase: Encode a received message to JSON and pass the bytes in to ```SaveBytesToFile``` to store your response.
+
+See https://github.com/getnamo/socketio-client-ue4/blob/master/Source/CoreUtility/Public/CUFileComponent.h for details.
+
+#### CUMeasureTimer
+
+Static string tagged measurement of durations. Useful for sprinkling your code with duration messages for optimization. CUBlueprintLibrary exposes this utility to blueprint.
+
+See https://github.com/getnamo/socketio-client-ue4/blob/master/Source/CoreUtility/Public/CUBlueprintLibrary.h for details.
+
+#### CUBlueprintLibrary
+
+Global blueprint utilities.
+- Conversions: String<->Bytes, Texture2D<->Bytes, Opus<->Wav, Wav<->Soundwave
+- Time string
+- Unique ID
+- Measurement timers based on CUMeasureTimer
+- Blueprint multithreading calls
+
+##### Blueprint Multithreading
+
+Enables easy calling of blueprint functions on background threads and returning back to the game thread to deal with the results. This enables long running operations to not block the game thread while they finish
+
+Two variants availableas of v1.2.8 ```Call Function On Thread``` and ```Call Function on Thread Graph Return```. Generally the latent variant is recommended.
+
+In the example below we use the latent variant to call two background tasks in succession, return to read the result on the game thread and measure the overall time taken .
+
+[![latent multithreading](https://i.imgur.com/ryORGF5.png)](https://i.imgur.com/G4ZPtyt.mp4)
+(click image to see video of performance)
+
+The first task prepares an array with  a million floats, the second sums them up. We use class member variables to pass data between threads. It's important to only have one function modifying the same data at any time and you cannot make or destroy UObjects on background threads so it may be necessary to callback to the gamethread to do allocations if you use UObjects.
+
+#### CUOpusCoder
+
+Standalone opus coder that doesn't depend on the online subsystem. Useful for custom VOIP solutions.
+
+See https://github.com/getnamo/socketio-client-ue4/blob/master/Source/CoreUtility/Public/CUOpusCoder.h for details.
+
 ## How to use - C++
 
 ### Setup
