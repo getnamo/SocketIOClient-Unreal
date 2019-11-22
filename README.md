@@ -415,7 +415,7 @@ To connect simply change your address, the component will auto-connect on compon
 USocketIOClientComponent* SIOClientComponent; //get a reference or add as subobject in your actor
 
 //the component will autoconnect, but you may wish to change the url before it does that via
-SIOClientComponent->AddressAndPort = FString("http://127.0.0.1:3000"); //change your address
+SIOClientComponent->AddressAndPort = TEXT("http://127.0.0.1:3000"); //change your address
 ```
 
 You can also connect at your own time by disabling auto-connect and connecting either to the default address or a custom one
@@ -427,7 +427,7 @@ SIOClientComponent->Connect();
 
 //You can also easily disconnect at some point, reconnect to another address
 SIOClientComponent->Disconnect();
-SIOClientComponent->Connect(FString("http://127.0.0.1:3000"));
+SIOClientComponent->Connect(TEXT("http://127.0.0.1:3000"));
 ```
 
 ### Receiving Events
@@ -435,7 +435,7 @@ SIOClientComponent->Connect(FString("http://127.0.0.1:3000"));
 To receive events call _OnNativeEvent_ and pass in your expected event name and callback lambda or function with ```void(const FString&, const TSharedPtr<FJsonValue>&)``` signature. Optionally pass in another FString to specify namespace, omit if not using a namespace (default ```TEXT("/")```). 
 
 ```c++
-SIOClientComponent->OnNativeEvent(FString("MyEvent"), [](const FString& Event, const TSharedPtr<FJsonValue>& Message)
+SIOClientComponent->OnNativeEvent(TEXT("MyEvent"), [](const FString& Event, const TSharedPtr<FJsonValue>& Message)
 {
 	//Called when the event is received. We can e.g. log what we got
 	UE_LOG(LogTemp, Log, TEXT("Received: %s"), *USIOJConvert::ToJsonString(Message));
@@ -452,10 +452,10 @@ In C++ you can use *EmitNative*, *EmitRaw*, or *EmitRawBinary*. *EmitNative* is 
 
 #### String
 
-Emit an FString. Note that *FString(TEXT("yourString"))* is recommended if you have performance concerns due to internal conversion from ```char*```
+Emit an FString (or TEXT() macro).
 
 ```c++
-SIOClientComponent->EmitNative(FString("nativeTest"), FString("hi"));
+SIOClientComponent->EmitNative(TEXT("nativeTest"), TEXT("hi"));
 ```
 
 #### Number
@@ -463,7 +463,7 @@ SIOClientComponent->EmitNative(FString("nativeTest"), FString("hi"));
 Emit a double
 
 ```c++
-SIOClientComponent->EmitNative(FString("nativeTest"), -3.5f);
+SIOClientComponent->EmitNative(TEXT("nativeTest"), -3.5f);
 ```
 
 #### Boolean
@@ -471,7 +471,7 @@ SIOClientComponent->EmitNative(FString("nativeTest"), -3.5f);
 Emit a raw boolean
 
 ```c++
-SIOClientComponent->EmitNative(FString("nativeTest"), true);
+SIOClientComponent->EmitNative(TEXT("nativeTest"), true);
 ```
 
 #### Binary or raw data
@@ -485,13 +485,13 @@ Buffer.Add(0x69);
 Buffer.Add(0x21);
 Buffer.Add(0x00);
 
-SIOClientComponent->EmitNative(FString("nativeTest"), Buffer);
+SIOClientComponent->EmitNative(TEXT("nativeTest"), Buffer);
 ```
 
 or
 
 ```c++
-SIOComponent->EmitRawBinary(FString("myBinarySendEvent"), Buffer.GetData(), Buffer.Num());
+SIOComponent->EmitRawBinary(TEXT("myBinarySendEvent"), Buffer.GetData(), Buffer.Num());
 ```
 
 #### FJsonObject - Simple
@@ -501,9 +501,9 @@ Option 1 - Shorthand
 ```c++
 //Basic one field object e.g. {"myKey":"myValue"}
 auto JsonObject = USIOJConvert::MakeJsonObject();								
-JsonObject->SetStringField(FString("myKey"), FString("myValue"));
+JsonObject->SetStringField(TEXT("myKey"), TEXT("myValue"));
 
-SIOClientComponent->EmitNative(FString("nativeTest"), JsonObject);
+SIOClientComponent->EmitNative(TEXT("nativeTest"), JsonObject);
 ```
 
 Option 2 - Standard
@@ -519,17 +519,17 @@ A nested example using various methods
 ```c++
 //All types, nested
 TSharedPtr<FJsonObject> JsonObject = MakeShareable(new FJsonObject);						//make object option2
-JsonObject->SetBoolField(FString("myBool"), false);
-JsonObject->SetStringField(FString("myString"), FString("Socket.io is easy"));
-JsonObject->SetNumberField(FString("myNumber"), 9001);
+JsonObject->SetBoolField(TEXT("myBool"), false);
+JsonObject->SetStringField(TEXT("myString"), TEXT("Socket.io is easy"));
+JsonObject->SetNumberField(TEXT("myNumber"), 9001);
 
-JsonObject->SetField(FString("myBinary1"), USIOJConvert::ToJsonValue(Buffer));				//binary option1 - shorthand
-JsonObject->SetField(FString("myBinary2"), MakeShareable(new FJsonValueBinary(Buffer)));	//binary option2
+JsonObject->SetField(TEXT("myBinary1"), USIOJConvert::ToJsonValue(Buffer));				//binary option1 - shorthand
+JsonObject->SetField(TEXT("myBinary2"), MakeShareable(new FJsonValueBinary(Buffer)));	//binary option2
 
-JsonObject->SetArrayField(FString("myArray"), ArrayValue);
-JsonObject->SetObjectField(FString("myNestedObject"), SmallObject);
+JsonObject->SetArrayField(TEXT("myArray"), ArrayValue);
+JsonObject->SetObjectField(TEXT("myNestedObject"), SmallObject);
 
-SIOClientComponent->EmitNative(FString("nativeTest"), JsonObject);
+SIOClientComponent->EmitNative(TEXT("nativeTest"), JsonObject);
 ```
 
 #### Callback Example
@@ -539,13 +539,13 @@ Below is an example of emitting a simple object with the server using the passed
 ```c++	
 //Make an object {"myKey":"myValue"}
 TSharedPtr<FJsonObject> JsonObject = MakeShareable(new FJsonObject);
-JsonObject->SetStringField(FString("myKey"), FString("myValue"));
+JsonObject->SetStringField(TEXT("myKey"), TEXT("myValue"));
 
 //Show what we emitted
 UE_LOG(LogTemp, Log, TEXT("1) Made a simple object and emitted: %s"), *USIOJConvert::ToJsonString(JsonObject));
 
 //Emit event "callbackTest" expecting an echo callback with the object we sent
-SIOClientComponent->EmitNative(FString("callbackTest"), JsonObject, [&](auto Response)
+SIOClientComponent->EmitNative(TEXT("callbackTest"), JsonObject, [&](auto Response)
 {
 	//Response is an array of JsonValues, in our case we expect an object response, grab first element as an object.
 	auto Message = Response[0]->AsObject();
@@ -579,11 +579,11 @@ struct FTestCppStruct
 ```c++
 //Set your struct variables
 FTestCppStruct TestStruct;
-TestStruct.Name = FString("George");
+TestStruct.Name = TEXT("George");
 TestStruct.Index = 5;
 TestStruct.SomeNumber = 5.123f;
 
-SIOClientComponent->EmitNative(FString("callbackTest"),  FTestCppStruct::StaticStruct(), &TestStruct, [&](auto Response)
+SIOClientComponent->EmitNative(TEXT("callbackTest"),  FTestCppStruct::StaticStruct(), &TestStruct, [&](auto Response)
 {
 	auto Message = Response[0]->AsObject();
 
@@ -638,7 +638,7 @@ void USIOTestGameInstance::Init()
 			UE_LOG(LogTemp, Log, TEXT("Received: %s"), *USIOJConvert::ToJsonString(Message));
 		});
 
-	Socket->Emit(TEXT("MyEmit"), FString("hi"));
+	Socket->Emit(TEXT("MyEmit"), TEXT("hi"));
 }
 
 void USIOTestGameInstance::Shutdown()
