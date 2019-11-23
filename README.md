@@ -246,6 +246,15 @@ Instead of using the event graph and comparing strings, you can bind an event di
 
 ![IMG](http://i.imgur.com/7fA1qca.png)
 
+#### Receiving Events on non-game thread
+
+Since v1.1.0 use ```Bind Event to Function``` and change the thread override option to ```Use Network Thread```.
+
+![](https://user-images.githubusercontent.com/542365/69472108-f95c1280-0d5a-11ea-9667-579b22d77ac3.png)
+
+NB: You cannot make or destroy uobjects on non-gamethreads and be mindful of your access patterns across threads to ensure you don't get a race condition. See https://github.com/getnamo/socketio-client-ue4#blueprint-multithreading for other types of threading utility.
+
+
 ### Namespaces
 
 Before v1.2.3 you can only join namespaces via using ```Emit``` and ```Bind Event``` with a namespace specified. This will auto-join your namespace of choice upon calling either function.
