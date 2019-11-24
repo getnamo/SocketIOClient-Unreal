@@ -173,13 +173,12 @@ public:
 	//custom thunk needed to handle wildcard structs
 	DECLARE_FUNCTION(execSaveStructToJsonFile)
 	{
-		//Get properties and pointers from stack (nb, it's reverse order, right to left!)
 		Stack.StepCompiledIn<UStructProperty>(NULL);
 		UStructProperty* StructProp = ExactCast<UStructProperty>(Stack.MostRecentProperty);
 		void* StructPtr = Stack.MostRecentPropertyAddress;
-		Stack.StepCompiledIn<UStrProperty>(NULL);
-		UStrProperty* FilePathProp = ExactCast<UStrProperty>(Stack.MostRecentProperty);
-		FString FilePath = FilePathProp->GetPropertyValue(Stack.MostRecentPropertyAddress);
+
+		FString FilePath;
+		Stack.StepCompiledIn<UStrProperty>(&FilePath);
 		P_FINISH;
 
 		P_NATIVE_BEGIN;
@@ -190,10 +189,8 @@ public:
 	//custom thunk needed to handle wildcard structs
 	DECLARE_FUNCTION(execLoadJsonFileToStruct)
 	{
-		//Get properties and pointers from stack (nb, it's reverse order, right to left!)
-		Stack.StepCompiledIn<UStrProperty>(NULL);
-		UStrProperty* FilePathProp = ExactCast<UStrProperty>(Stack.MostRecentProperty);
-		FString FilePath = FilePathProp->GetPropertyValue(Stack.MostRecentPropertyAddress);
+		FString FilePath;
+		Stack.StepCompiledIn<UStrProperty>(&FilePath);
 		Stack.StepCompiledIn<UStructProperty>(NULL);
 		UStructProperty* StructProp = ExactCast<UStructProperty>(Stack.MostRecentProperty);
 		void* StructPtr = Stack.MostRecentPropertyAddress;
