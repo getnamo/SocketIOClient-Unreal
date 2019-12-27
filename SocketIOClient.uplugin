@@ -74,7 +74,7 @@
 		},
 		{
 			"Name": "SIOJEditorPlugin",
-			"Type": "DeveloperTool",
+			"Type": "Editor",
 			"LoadingPhase": "Default",
 			"WhitelistPlatforms": [
 				"Win64",
