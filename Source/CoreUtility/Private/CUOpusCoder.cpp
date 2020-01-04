@@ -5,8 +5,10 @@
 
 FCUOpusCoder::FCUOpusCoder()
 {
+#if WITH_OPUS
 	Encoder = nullptr;
 	Decoder = nullptr;
+#endif
 	SampleRate = 16000;
 	Channels = 1;
 	BitRate = 24000;
@@ -19,6 +21,7 @@ FCUOpusCoder::FCUOpusCoder()
 
 FCUOpusCoder::~FCUOpusCoder()
 {
+#if WITH_OPUS
 	if (Encoder)
 	{
 		opus_encoder_destroy(Encoder);
@@ -29,6 +32,7 @@ FCUOpusCoder::~FCUOpusCoder()
 		opus_decoder_destroy(Decoder);
 		Decoder = nullptr;
 	}
+#endif
 }
 
 void FCUOpusCoder::SetSampleRate(int32 InSamplesPerSec)
@@ -68,6 +72,7 @@ bool FCUOpusCoder::EncodeStream(const TArray<uint8>& InPCMBytes, FCUOpusMinimalS
 	{
 		return false;
 	}
+#if WITH_OPUS
 
 #if DEBUG_OPUS_LOG
 	DebugLogEncoder();
@@ -119,6 +124,8 @@ bool FCUOpusCoder::EncodeStream(const TArray<uint8>& InPCMBytes, FCUOpusMinimalS
 	UE_LOG(LogTemp, Log, TEXT("Total packets encoded: %d, total bytes: %d=%d"), OutStream.PacketSizes.Num(), BytesWritten, OutStream.CompressedBytes.Num());
 #endif
 
+#endif //with opus
+
 	return true;
 }
 
@@ -128,6 +135,7 @@ bool FCUOpusCoder::DecodeStream(const FCUOpusMinimalStream& InStream, TArray<uin
 	{
 		return false;
 	}
+#if WITH_OPUS
 
 #if DEBUG_OPUS_LOG
 	DebugLogDecoder();
@@ -165,6 +173,8 @@ bool FCUOpusCoder::DecodeStream(const FCUOpusMinimalStream& InStream, TArray<uin
 
 #if DEBUG_OPUS_LOG
 	UE_LOG(LogTemp, Log, TEXT("decoded into %d bytes"), OutPCMFrame.Num());
+#endif
+
 #endif
 	return true;
 }
@@ -216,17 +226,23 @@ bool FCUOpusCoder::DeserializeMinimal(const TArray<uint8>& InSerializedMinimalBy
 
 int32 FCUOpusCoder::EncodeFrame(const TArray<uint8>& InPCMFrame, TArray<uint8>& OutCompressed)
 {
+#if WITH_OPUS
 	return opus_encode(Encoder, (const opus_int16*)InPCMFrame.GetData(), FrameSize, OutCompressed.GetData(), MaxPacketSize);
+#endif
 }
 
 int32 FCUOpusCoder::DecodeFrame(const TArray<uint8>& InCompressedFrame, TArray<uint8>& OutPCMFrame)
 {
+#if WITH_OPUS
 	return opus_decode(Decoder, InCompressedFrame.GetData(), InCompressedFrame.Num(), (opus_int16*)OutPCMFrame.GetData(), FrameSize, 0);
+#endif
 }
 
 
 bool FCUOpusCoder::InitEncoderIfNeeded()
 {
+#if WITH_OPUS
+
 	if (!Encoder)
 	{
 		int32 ErrorCode;
@@ -257,11 +273,14 @@ bool FCUOpusCoder::InitEncoderIfNeeded()
 			*/
 		}
 	}
+
+#endif
 	return true;
 }
 
 bool FCUOpusCoder::InitDecoderIfNeeded()
 {
+#if WITH_OPUS
 	if (!Decoder)
 	{
 		int32 ErrorCode;
@@ -272,11 +291,13 @@ bool FCUOpusCoder::InitDecoderIfNeeded()
 			return false;
 		}
 	}
+#endif
 	return true;
 }
 
 void FCUOpusCoder::ResetCoderIfInitialized()
 {
+#if WITH_OPUS
 	if (Encoder)
 	{
 		opus_encoder_destroy(Encoder);
@@ -289,11 +310,13 @@ void FCUOpusCoder::ResetCoderIfInitialized()
 		Decoder = nullptr;
 		InitDecoderIfNeeded();
 	}
+#endif
 }
 
 //Debug utilities
 void FCUOpusCoder::DebugLogEncoder()
 {
+#if WITH_OPUS
 	int32 ErrCode = 0;
 	int32 BitRateLocal = 0;
 	int32 Vbr = 0;
@@ -316,10 +339,12 @@ void FCUOpusCoder::DebugLogEncoder()
 	UE_LOG(LogTemp, Log, TEXT("- SampleRate: %d"), SampleRateLocal);
 	UE_LOG(LogTemp, Log, TEXT("- Vbr: %d"), Vbr);
 	UE_LOG(LogTemp, Log, TEXT("- Complexity: %d"), Complexity);
+#endif
 }
 
 void FCUOpusCoder::DebugLogDecoder()
 {
+#if WITH_OPUS
 	int32 ErrCode = 0;
 	int32 Gain = 0;
 	int32 Pitch = 0;
@@ -330,10 +355,12 @@ void FCUOpusCoder::DebugLogDecoder()
 	UE_LOG(LogTemp, Log, TEXT("Opus Decoder Details"));
 	UE_LOG(LogTemp, Log, TEXT("- Gain: %d"), Gain);
 	UE_LOG(LogTemp, Log, TEXT("- Pitch: %d"), Pitch);
+#endif
 }
 
 void FCUOpusCoder::DebugLogFrame(const uint8* PacketData, uint32 PacketLength, uint32 InSampleRate, bool bEncode)
 {
+#if WITH_OPUS
 	// Frame Encoding see http://tools.ietf.org/html/rfc6716#section-3.1
 	int32 NumFrames = opus_packet_get_nb_frames(PacketData, PacketLength);
 	if (NumFrames == OPUS_BAD_ARG || NumFrames == OPUS_INVALID_PACKET)
@@ -394,5 +421,6 @@ void FCUOpusCoder::DebugLogFrame(const uint8* PacketData, uint32 PacketLength, u
 		UE_LOG(LogTemp, Log, TEXT("PacketLength: %d NumFrames: %d NumSamples: %d Bandwidth: %s Encoding: %d Stereo: %d FrameDesc: %d"),
 			PacketLength, NumFrames, NumSamples, BandwidthStr, TOCEncoding, TOCStereo, TOCMode);
 	}
+#endif
 }
 

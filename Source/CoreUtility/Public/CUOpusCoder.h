@@ -5,8 +5,8 @@
 #define WITH_OPUS (PLATFORM_WINDOWS || PLATFORM_MAC || PLATFORM_UNIX || PLATFORM_XBOXONE || PLATFORM_ANDROID)
 
 #if WITH_OPUS
-#include "opus.h"
-#include "ogg/ogg.h"
+#include "ThirdParty/libOpus/opus-1.1/include/opus.h"
+//#include "ogg/ogg.h"
 #endif
 
 //Bare minimum struct for transferring opus bytes.
@@ -65,8 +65,11 @@ protected:
 	bool InitDecoderIfNeeded();
 
 private:
+
+#if WITH_OPUS
 	OpusEncoder* Encoder;
 	OpusDecoder* Decoder;
+#endif
 
 	int32 BitRate;
 	int32 MaxPacketSize;
