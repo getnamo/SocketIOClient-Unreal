@@ -63,7 +63,7 @@ By default the component will auto connect *on begin play* to your default addre
 
 If you want to connect at your own time, you change the default variable *Should Auto Connect* to false and then call *Connect* with your address
 
-Call *Bind Event* for each event you wish the client to subscribe, e.g. 'chat message'
+Call *Bind Event* for each event you wish the client to subscribe, e.g. 'chat message' (NB: [Bind Event to Function](https://github.com/getnamo/socketio-client-ue4#binding-events-to-functions) is the recommended route once you're comfortable with how the plugin works)
 
 If you expect to receive events, select your component and in the Details pane press the + to add an 'OnEvent' event to your event graph
 
