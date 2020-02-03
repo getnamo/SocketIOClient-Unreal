@@ -130,7 +130,7 @@ USIOJsonValue* USIOJsonValue::ConstructJsonValueBinary(UObject* WorldContextObje
 	return NewValue;
 }
 
-USIOJsonValue* ConstructJsonValue(UObject* WorldContextObject, const TSharedPtr<FJsonValue>& InValue)
+USIOJsonValue* USIOJsonValue::ConstructJsonValue(UObject* WorldContextObject, const TSharedPtr<FJsonValue>& InValue)
 {
 	TSharedPtr<FJsonValue> NewVal = InValue;
 
