@@ -573,6 +573,11 @@ void USocketIOClientComponent::BindEvent(const FString& EventName, const FString
 	}, Namespace);
 }
 
+void USocketIOClientComponent::UnbindEvent(const FString& EventName, const FString& Namespace/* = TEXT("/")*/)
+{
+	NativeClient->UnbindEvent(EventName, Namespace);
+}
+
 void USocketIOClientComponent::BindEventToFunction(const FString& EventName,
 	const FString& FunctionName,
 	UObject* Target, 

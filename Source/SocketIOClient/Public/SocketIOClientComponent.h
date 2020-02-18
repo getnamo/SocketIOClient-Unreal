@@ -214,6 +214,14 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "SocketIO Functions")
 	void BindEvent(const FString& EventName, const FString& Namespace = TEXT("/"));
 
+	/**
+	* Unbind an event from whatever it was bound to (safe to call if not already bound)
+	*
+	* @param EventName	Event name
+	* @param Namespace	Optional namespace, defaults to default namespace
+	*/
+	UFUNCTION(BlueprintCallable, Category = "SocketIO Functions")
+	void UnbindEvent(const FString& EventName, const FString& Namespace = TEXT("/"));
 
 	/**
 	* Bind an event to a function with the given name.
