@@ -100,6 +100,19 @@ public:
 	UFUNCTION(BlueprintPure, meta = (DisplayName = "To Bytes (SoundWave)", BlueprintAutocast), Category = "CoreUtility|Conversion")
 	static TArray<uint8> Conv_SoundWaveToWavBytes(USoundWave* SoundWave);
 
+
+	/** 
+	* Compact Transform bytes are [[pitch,yaw,roll,x,y,z,sx,sy,sz],...]
+	*/
+	UFUNCTION(BlueprintPure, meta = (DisplayName = "To Transforms (Bytes)", BlueprintAutocast), Category = "CoreUtility|Conversion")
+	static void Conv_CompactBytesToTransforms(const TArray<uint8>& InCompactBytes, TArray<FTransform>& OutTransforms);
+
+	/** 
+	* Compact Position bytes are [[x,y,z],...]
+	*/
+	UFUNCTION(BlueprintPure, meta = (DisplayName = "To Transforms (Location Bytes)", BlueprintAutocast), Category = "CoreUtility|Conversion")
+	static void Conv_CompactPositionBytesToTransforms(const TArray<uint8>& InCompactBytes, TArray<FTransform>& OutTransforms);
+
 	/**
 	*	Sets and updates soundwave if needed from incoming bytes. Callable on background threads
 	*/
