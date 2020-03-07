@@ -5,11 +5,11 @@
 
 #include "SIOJLibrary.h"
 #include "ISIOJson.h"
-#include "Runtime/Json/Public/Dom/JsonObject.h"
-#include "Runtime/Json/Public/Dom/JsonValue.h"
+#include "Json/Public/Dom/JsonObject.h"
+#include "Json/Public/Dom/JsonValue.h"
 #include "SIOJsonValue.h"
 #include "SIOJsonObject.h"
-#include "Runtime/Core/Public/Misc/Base64.h"
+#include "Misc/Base64.h"
 #include "Engine/Engine.h"
 
 //////////////////////////////////////////////////////////////////////////

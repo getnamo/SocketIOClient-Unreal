@@ -2,12 +2,12 @@
 
 
 #include "CUFileComponent.h"
-#include "Runtime/Core/Public/HAL/PlatformFilemanager.h"
-#include "Runtime/Core/Public/Misc/FileHelper.h"
-#include "Runtime/Core/Public/Misc/Paths.h"
+#include "HAL/PlatformFilemanager.h"
+#include "Misc/FileHelper.h"
+#include "Misc/Paths.h"
 
 #if PLATFORM_ANDROID
-#include "Runtime/Core/Public/Android/AndroidPlatformMisc.h"
+#include "Android/AndroidPlatformMisc.h"
 #endif
 
 UCUFileComponent::UCUFileComponent(const FObjectInitializer &init) : UActorComponent(init)

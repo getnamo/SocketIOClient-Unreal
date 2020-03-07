@@ -2,7 +2,7 @@
 
 
 #include "CULambdaRunnable.h"
-#include "Runtime/Core/Public/Async/Async.h"
+#include "Async/Async.h"
 #include "Engine/Engine.h"
 
 void FCULambdaRunnable::RunLambdaOnBackGroundThread(TFunction< void()> InFunction)

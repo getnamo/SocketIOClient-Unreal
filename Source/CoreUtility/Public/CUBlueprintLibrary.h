@@ -4,8 +4,8 @@
 #pragma once
 
 #include "Kismet/BlueprintFunctionLibrary.h"
-#include "Runtime/Core/Public/Async/Future.h"
-#include "Runtime/Engine/Classes/Sound/SoundWaveProcedural.h"
+#include "Async/Future.h"
+#include "Engine/Classes/Sound/SoundWaveProcedural.h"
 #include "CUBlueprintLibrary.generated.h"
 
 /** Wrapper for EImageFormat::Type for BP */

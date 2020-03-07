@@ -2,9 +2,9 @@
 
 
 #pragma once
-#include "Runtime/Engine/Classes/Engine/LatentActionManager.h"
-#include "Runtime/Engine/Public/LatentActions.h"
-#include "Runtime/Core/Public/Async/TaskGraphInterfaces.h"
+#include "Engine/Classes/Engine/LatentActionManager.h"
+#include "LatentActions.h"
+#include "Async/TaskGraphInterfaces.h"
 
 /** A simple latent action where we don't hold the value, expect capturing value in lambdas */
 class COREUTILITY_API FCULatentAction : public FPendingLatentAction

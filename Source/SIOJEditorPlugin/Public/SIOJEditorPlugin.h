@@ -6,7 +6,7 @@
 
 #pragma once
 
-#include "Runtime/Core/Public/Modules/ModuleManager.h"
+#include "Modules/ModuleManager.h"
 
 class FSIOJEditorPluginModule : public IModuleInterface
 {

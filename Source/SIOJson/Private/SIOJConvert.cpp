@@ -2,16 +2,16 @@
 
 
 #include "SIOJConvert.h"
-//#include "Runtime/Json/Public/Json.h"
-#include "Runtime/CoreUObject/Public/UObject/TextProperty.h"
+//#include "Json.h"
+#include "UObject/TextProperty.h"
 #include "JsonGlobals.h"
 #include "Policies/CondensedJsonPrintPolicy.h"
-#include "Runtime/Core/Public/Misc/FileHelper.h"
+#include "Misc/FileHelper.h"
 #include "SIOJsonValue.h"
 #include "SIOJsonObject.h"
-#include "Runtime/JsonUtilities/Public/JsonObjectConverter.h"
-#include "Runtime/Core/Public/UObject/PropertyPortFlags.h"
-#include "Runtime/Core/Public/Misc/Base64.h"
+#include "JsonUtilities/Public/JsonObjectConverter.h"
+#include "UObject/PropertyPortFlags.h"
+#include "Misc/Base64.h"
 
 typedef TJsonWriterFactory< TCHAR, TCondensedJsonPrintPolicy<TCHAR> > FCondensedJsonStringWriterFactory;
 typedef TJsonWriter< TCHAR, TCondensedJsonPrintPolicy<TCHAR> > FCondensedJsonStringWriter;
