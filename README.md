@@ -766,7 +766,8 @@ Works out of the box.
 If you're using this as a project plugin you will need to convert your blueprint only project to mixed (bp and C++). Follow these instructions to do that: https://allarsblog.com/2015/11/04/converting-bp-project-to-cpp/
 
 ![Converting project to C++](https://i.imgur.com/Urwx2TF.png)
-e.g. menu option to convert your project to mixed by adding a C++ file.
+
+e.g. Using the File menu option to convert your project to mixed by adding a C++ file.
 
 ### iOS
 
