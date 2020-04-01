@@ -75,7 +75,7 @@ Keep in mind that you can have this be a proper function instead of a custom eve
 
 ![IMG](https://i.imgur.com/QyItHsG.png)
 
-And that for the receiving type, if it known you can specify the exact type (like String in the example above), or if you're not sure or it's a complex type (e.g. a struct) you set it to a SIOJsonValue and use functions to decode it (see https://github.com/getnamo/socketio-client-ue4#decoding-responses for details)
+For the receiving type, if it's known, you can specify the exact type (like String in the example above see https://github.com/getnamo/socketio-client-ue4#emit-with-callback for supported signatures), or if you're not sure or it's a complex type (e.g. a struct) you set it to a SIOJsonValue and use functions to decode it (see https://github.com/getnamo/socketio-client-ue4#decoding-responses for details)
 
 ![IMG](https://i.imgur.com/nNQTZ6j.png)
 
