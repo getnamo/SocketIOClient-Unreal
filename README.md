@@ -66,7 +66,6 @@ If you want to connect at your own time, you change the default variable *Should
 ### Receiving an Event
 There are two ways to receive socket.io events.
 
-
 #### Receive To Function
 The recommended way is to bind an event directly to a function or custom event. E.g. receiving the event "chatMessage" with a String parameter.
 
@@ -81,7 +80,8 @@ And that for the receiving type, if it known you can specify the exact type (lik
 ![IMG](https://i.imgur.com/nNQTZ6j.png)
 
 #### Receive To Generic Event
-You can also receive an event to a generic unreal event delegate first you bind the event to the generic event
+
+You can also receive an event to a generic unreal event. First you bind the socket.io event to the generic event.
 
 ![IMG](https://i.imgur.com/mizdErw.png)
 
