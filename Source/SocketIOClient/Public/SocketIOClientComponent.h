@@ -12,7 +12,7 @@ DECLARE_DYNAMIC_MULTICAST_DELEGATE(FSIOCEventSignature);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FSIOCSocketEventSignature, FString, Namespace);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FSIOCOpenEventSignature, FString, SessionId, bool, bIsReconnection);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FSIOCCloseEventSignature, TEnumAsByte<ESIOConnectionCloseReason>, Reason);
-DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FSIOCEventJsonSignature, FString, Event, class USIOJsonValue*, MessageJson);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FSIOCEventJsonSignature, FString, EventName, class USIOJsonValue*, MessageJson);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_ThreeParams(FSIOConnectionProblemSignature, int32, Attempts, int32,  NextAttemptInMs, float, TimeSinceConnected);
 
 UCLASS(BlueprintType, ClassGroup = "Networking", meta = (BlueprintSpawnableComponent))
@@ -23,7 +23,7 @@ public:
 
 	//Async events
 
-	/** On bound event received. */
+	/** On generic bound event received. Requires Bind Event to be called before. Will not receive Bind Event To Function events. */
 	UPROPERTY(BlueprintAssignable, Category = "SocketIO Events")
 	FSIOCEventJsonSignature OnEvent;
 
@@ -206,7 +206,7 @@ public:
 								const FString& Namespace = TEXT("/"));
 
 	/**
-	* Bind an event, then respond to it with 'OnEvent' multi-cast delegate
+	* Bind an event, then respond to it with 'OnEvent' multi-cast delegate. If you want functions or custom events to receive the event, use Bind Event To Function.
 	*
 	* @param EventName	Event name
 	* @param Namespace	Optional namespace, defaults to default namespace
