@@ -562,7 +562,7 @@ void USocketIOClientComponent::EmitNative(const FString& EventName, const SIO_TE
 #pragma region OnEvents
 #endif
 
-void USocketIOClientComponent::BindEvent(const FString& EventName, const FString& Namespace)
+void USocketIOClientComponent::BindEventToGenericEvent(const FString& EventName, const FString& Namespace)
 {
 	NativeClient->OnEvent(EventName, [&](const FString& Event, const TSharedPtr<FJsonValue>& EventValue)
 	{
@@ -599,7 +599,7 @@ void USocketIOClientComponent::BindEventToFunction(const FString& EventName,
 	else
 	{
 		//if we forgot our function name, fallback to regular bind event
-		BindEvent(EventName, Namespace);
+		BindEventToGenericEvent(EventName, Namespace);
 	}
 }
 
