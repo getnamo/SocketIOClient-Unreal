@@ -59,18 +59,37 @@ Add the SocketIO Client Component to your blueprint actor of choice
 
 By default the component will auto connect *on begin play* to your default address and port [http://localhost:3000](http://localhost:3000). You can change this default address to connect to your service instead.
 
-![IMG](http://i.imgur.com/dWxCmvQ.png)
+![IMG](https://i.imgur.com/LOC1ehw.png)
 
 If you want to connect at your own time, you change the default variable *Should Auto Connect* to false and then call *Connect* with your address
 
-Call *Bind Event* for each event you wish the client to subscribe, e.g. 'chat message' (NB: [Bind Event to Function](https://github.com/getnamo/socketio-client-ue4#binding-events-to-functions) is the recommended route once you're comfortable with how the plugin works)
+### Receiving an Event
+There are two ways to receive socket.io events.
 
-If you expect to receive events, select your component and in the Details pane press the + to add an 'OnEvent' event to your event graph
+#### Receive To Function
+The recommended way is to bind an event directly to a function or custom event. E.g. receiving the event "chatMessage" with a String parameter.
 
-Handle this event for your event types, e.g. printing 'chat message' event strings.
+![IMG](https://i.imgur.com/YHSf62f.png)
 
-![IMG](http://i.imgur.com/vVlNBlx.png)
+Keep in mind that you can have this be a proper function instead of a custom event
 
+![IMG](https://i.imgur.com/QyItHsG.png)
+
+For the receiving type, if it's known, you can specify the exact type (like String in the example above see https://github.com/getnamo/socketio-client-ue4#emit-with-callback for supported signatures), or if you're not sure or it's a complex type (e.g. a struct) you set it to a SIOJsonValue and use functions to decode it (see https://github.com/getnamo/socketio-client-ue4#decoding-responses for details)
+
+![IMG](https://i.imgur.com/nNQTZ6j.png)
+
+#### Receive To Generic Event
+
+You can also receive an event to a generic unreal event. First you bind the socket.io event to the generic event.
+
+![IMG](https://i.imgur.com/mizdErw.png)
+
+and then you receive it and filter the results by checking against the Event Name.
+
+![IMG](https://i.imgur.com/KVZaKGh.png)
+
+### Sending data or Emitting Events to Server
 
 If you want to send information to the server, emit events on the SocketIO Client Component, e.g. pressing M to emit a 'chat message' string
 
