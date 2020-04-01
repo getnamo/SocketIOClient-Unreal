@@ -569,7 +569,7 @@ void USocketIOClientComponent::BindEventToGenericEvent(const FString& EventName,
 		USIOJsonValue* NewValue = NewObject<USIOJsonValue>();
 		TSharedPtr<FJsonValue> NonConstValue = EventValue;
 		NewValue->SetRootValue(NonConstValue);
-		OnEvent.Broadcast(Event, NewValue);
+		OnGenericEvent.Broadcast(Event, NewValue);
 	}, Namespace);
 }
 
