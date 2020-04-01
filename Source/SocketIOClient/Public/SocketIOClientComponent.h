@@ -23,9 +23,9 @@ public:
 
 	//Async events
 
-	/** On generic bound event received. Requires Bind Event to be called before. Will not receive Bind Event To Function events. */
+	/** On generic bound event received. Requires Bind Event to Generic Event to be called before. Will not receive Bind Event To Function events. */
 	UPROPERTY(BlueprintAssignable, Category = "SocketIO Events")
-	FSIOCEventJsonSignature OnEvent;
+	FSIOCEventJsonSignature OnGenericEvent;
 
 	/** Received on socket.io connection established. */
 	UPROPERTY(BlueprintAssignable, Category = "SocketIO Events")
@@ -206,13 +206,13 @@ public:
 								const FString& Namespace = TEXT("/"));
 
 	/**
-	* Bind an event, then respond to it with 'OnEvent' multi-cast delegate. If you want functions or custom events to receive the event, use Bind Event To Function.
+	* Bind an event, then respond to it with 'OnGenericEvent' multi-cast delegate. If you want functions or custom events to receive the event, use Bind Event To Function.
 	*
 	* @param EventName	Event name
 	* @param Namespace	Optional namespace, defaults to default namespace
 	*/
 	UFUNCTION(BlueprintCallable, Category = "SocketIO Functions")
-	void BindEvent(const FString& EventName, const FString& Namespace = TEXT("/"));
+	void BindEventToGenericEvent(const FString& EventName, const FString& Namespace = TEXT("/"));
 
 	/**
 	* Unbind an event from whatever it was bound to (safe to call if not already bound)
