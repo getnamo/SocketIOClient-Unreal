@@ -277,7 +277,6 @@ public:
 protected:
 	/** Latent action helper */
 	FSIOJLatentAction<USIOJsonObject*>* ContinueAction;
-	FSIOJLatentAction<TArray<uint8>&>* BinaryContinueAction;
 
 	/** Internal request data stored as JSON */
 	UPROPERTY()
