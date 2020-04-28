@@ -189,7 +189,6 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "SIOJ|Response")
 	TArray<FString> GetAllResponseHeaders();
 
-
 	//////////////////////////////////////////////////////////////////////////
 	// URL processing
 
@@ -211,6 +210,8 @@ public:
 private:
 	/** Internal bind function for the IHTTPRequest::OnProcessRequestCompleted() event */
 	void OnProcessRequestComplete(FHttpRequestPtr Request, FHttpResponsePtr Response, bool bWasSuccessful);
+
+	void OnProcessRequestCompleteBinaryResult(FHttpRequestPtr Request, FHttpResponsePtr Response, bool bWasSuccessful);
 
 public:
 	/** Event occured when the request has been completed */
@@ -265,9 +266,18 @@ public:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "SIOJ|Response")
 	bool bIsValidJsonResponse;
 
+	/** If this is true it will call back on the binary callback instead of json */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "SIOJ|Response")
+	bool bShouldHaveBinaryResponse;
+
+	TFunction<void(TArray<uint8>&)> OnProcessURLCompleteCallback;
+
+	TArray<uint8> ResultBinaryData;
+
 protected:
 	/** Latent action helper */
 	FSIOJLatentAction<USIOJsonObject*>* ContinueAction;
+	FSIOJLatentAction<TArray<uint8>&>* BinaryContinueAction;
 
 	/** Internal request data stored as JSON */
 	UPROPERTY()

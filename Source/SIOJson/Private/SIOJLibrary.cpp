@@ -233,6 +233,36 @@ void USIOJLibrary::CallURL(UObject* WorldContextObject, const FString& URL, ESIO
 	Request->ProcessURL(URL);
 }
 
+void USIOJLibrary::GetURLBinary(UObject* WorldContextObject, const FString& URL, ESIORequestVerb Verb, ESIORequestContentType ContentType, TArray<uint8>& OutResultData, struct FLatentActionInfo LatentInfo)
+{
+	UWorld* World = GEngine->GetWorldFromContextObject(WorldContextObject, EGetWorldErrorMode::LogAndReturnNull);
+	if (World == nullptr)
+	{
+		UE_LOG(LogSIOJ, Error, TEXT("USIOJLibrary: Wrong world context"))
+			return;
+	}
+
+	USIOJRequestJSON* Request = NewObject<USIOJRequestJSON>();
+	FCULatentAction *LatentAction = FCULatentAction::CreateLatentAction(LatentInfo, WorldContextObject);
+
+	Request->SetVerb(Verb);
+	Request->SetContentType(ContentType);
+	Request->bShouldHaveBinaryResponse = true;
+	Request->OnProcessURLCompleteCallback = [LatentAction, &OutResultData](TArray<uint8>& ResultData)
+	{
+		if (LatentAction)
+		{
+			OutResultData = ResultData;
+			LatentAction->Call();	//resume the latent action
+		}
+	};
+
+	Request->ResetResponseData();
+	Request->ProcessURL(URL);
+
+	
+}
+
 void USIOJLibrary::OnCallComplete(USIOJRequestJSON* Request)
 {
 	if (!RequestMap.Contains(Request))

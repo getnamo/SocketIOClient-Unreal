@@ -22,6 +22,8 @@ USIOJRequestJSON::USIOJRequestJSON(const class FObjectInitializer& PCIP)
 {
 	RequestVerb = ESIORequestVerb::GET;
 	RequestContentType = ESIORequestContentType::x_www_form_urlencoded_url;
+	bShouldHaveBinaryResponse = false;
+	OnProcessURLCompleteCallback = nullptr;
 
 	ResetData();
 }
@@ -349,7 +351,14 @@ void USIOJRequestJSON::ProcessRequest()
 	}
 	
 	// Bind event
-	HttpRequest->OnProcessRequestComplete().BindUObject(this, &USIOJRequestJSON::OnProcessRequestComplete);
+	if (bShouldHaveBinaryResponse)
+	{
+		HttpRequest->OnProcessRequestComplete().BindUObject(this, &USIOJRequestJSON::OnProcessRequestCompleteBinaryResult);
+	}
+	else
+	{
+		HttpRequest->OnProcessRequestComplete().BindUObject(this, &USIOJRequestJSON::OnProcessRequestComplete);
+	}
 
 	// Execute the request
 	HttpRequest->ProcessRequest();
@@ -432,6 +441,41 @@ void USIOJRequestJSON::OnProcessRequestComplete(FHttpRequestPtr Request, FHttpRe
 	}
 }
 
+
+void USIOJRequestJSON::OnProcessRequestCompleteBinaryResult(FHttpRequestPtr Request, FHttpResponsePtr Response, bool bWasSuccessful)
+{
+	// Be sure that we have no data from previous response
+	ResetResponseData();
+
+	// Check we have a response and save response code as int32
+	if (Response.IsValid())
+	{
+		ResponseCode = Response->GetResponseCode();
+	}
+
+	// Check we have result to process futher
+	if (!bWasSuccessful || !Response.IsValid())
+	{
+		UE_LOG(LogSIOJ, Error, TEXT("Request failed (%d): %s"), ResponseCode, *Request->GetURL());
+
+		// Broadcast the result event
+		OnRequestFail.Broadcast(this);
+		OnStaticRequestFail.Broadcast(this);
+
+		return;
+	}
+
+	ResultBinaryData = Response->GetContent();
+
+	// Broadcast the result event
+	OnRequestComplete.Broadcast(this);
+	OnStaticRequestComplete.Broadcast(this);
+
+	if (OnProcessURLCompleteCallback)
+	{
+		OnProcessURLCompleteCallback(ResultBinaryData);
+	}
+}
 
 //////////////////////////////////////////////////////////////////////////
 // Tags

@@ -251,6 +251,10 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "SIOJ|Utility", meta = (WorldContext = "WorldContextObject"))
 	static void CallURL(UObject* WorldContextObject, const FString& URL, ESIORequestVerb Verb, ESIORequestContentType ContentType, USIOJsonObject* SIOJJson, const FSIOJCallDelegate& Callback);
 
+	/** Easy way to fetch resources using get */
+	UFUNCTION(BlueprintCallable, Category = "SIOJ|Utility", meta = (Latent, LatentInfo = "LatentInfo", WorldContext = "WorldContextObject"))
+	static void GetURLBinary(UObject* WorldContextObject, const FString& URL, ESIORequestVerb Verb, ESIORequestContentType ContentType, TArray<uint8>& OutResultData, struct FLatentActionInfo LatentInfo);
+
 	/** Called when URL is processed (one for both success/unsuccess events)*/
 	static void OnCallComplete(USIOJRequestJSON* Request);
 
