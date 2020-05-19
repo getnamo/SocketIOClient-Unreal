@@ -190,8 +190,8 @@ public:
 	DECLARE_FUNCTION(execLoadJsonFileToStruct)
 	{
 		FString FilePath;
-		Stack.StepCompiledIn<UStrProperty>(&FilePath);
-		Stack.StepCompiledIn<UStructProperty>(NULL);
+		Stack.StepCompiledIn<FStrProperty>(&FilePath);
+		Stack.StepCompiledIn<FStructProperty>(NULL);
 		FStructProperty* StructProp = CastField<FStructProperty>(Stack.MostRecentProperty);
 		void* StructPtr = Stack.MostRecentPropertyAddress;
 		P_FINISH;
