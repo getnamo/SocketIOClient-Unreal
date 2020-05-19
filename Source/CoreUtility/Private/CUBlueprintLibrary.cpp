@@ -28,7 +28,7 @@ struct FUpdateTextureData
 	UTexture2D* Texture2D;
 	FUpdateTextureRegion2D Region;
 	uint32 Pitch;
-	const TArray<uint8>* BufferArray;
+	TArray64<uint8> BufferArray;
 	TSharedPtr<IImageWrapper> Wrapper;	//to keep the uncompressed data alive
 };
 
@@ -65,7 +65,7 @@ UTexture2D* UCUBlueprintLibrary::Conv_BytesToTexture(const TArray<uint8>& InByte
 
 		//Uncompress on a background thread pool
 		FCULambdaRunnable::RunLambdaOnBackGroundThreadPool([ImageWrapper, Texture] {
-			const TArray<uint8>* UncompressedBGRA = nullptr;
+			TArray64<uint8> UncompressedBGRA;
 			if (ImageWrapper->GetRaw(ERGBFormat::BGRA, 8, UncompressedBGRA))
 			{
 
@@ -85,7 +85,7 @@ UTexture2D* UCUBlueprintLibrary::Conv_BytesToTexture(const TArray<uint8>& InByte
 						0,
 						UpdateData->Region,
 						UpdateData->Pitch,
-						UpdateData->BufferArray->GetData()
+						UpdateData->BufferArray.GetData()
 					);
 					delete UpdateData; //now that we've updated the texture data, we can finally release any data we're holding on to
 				});//End Enqueue
@@ -351,7 +351,7 @@ TFuture<UTexture2D*> UCUBlueprintLibrary::Conv_BytesToTexture_Async(const TArray
 		}
 
 		//Uncompress on a background thread pool
-		const TArray<uint8>* UncompressedBGRA = nullptr;
+		TArray64<uint8> UncompressedBGRA;
 		if (!ImageWrapper->GetRaw(ERGBFormat::BGRA, 8, UncompressedBGRA))
 		{
 			return (UTexture2D*)nullptr;
@@ -373,7 +373,7 @@ TFuture<UTexture2D*> UCUBlueprintLibrary::Conv_BytesToTexture_Async(const TArray
 				0,
 				UpdateData->Region,
 				UpdateData->Pitch,
-				UpdateData->BufferArray->GetData()
+				UpdateData->BufferArray.GetData()
 			);
 			delete UpdateData; //now that we've updated the texture data, we can finally release any data we're holding on to
 		});//End Enqueue

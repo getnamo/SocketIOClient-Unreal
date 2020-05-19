@@ -115,7 +115,7 @@ public:
 	* @return				Converted Json Object
 	*/
 	UFUNCTION(BlueprintPure, Category = "SocketIOFunctions", CustomThunk, meta = (CustomStructureParam = "AnyStruct"))
-	static USIOJsonObject* StructToJsonObject(UProperty* AnyStruct);
+	static USIOJsonObject* StructToJsonObject(TFieldPath<FProperty> AnyStruct);
 
 	/**
 	* Uses the reflection system to fill an unreal struct from data defined in JsonObject.
@@ -125,14 +125,14 @@ public:
 	* @return				Whether all properties filled correctly
 	*/
 	UFUNCTION(BlueprintCallable, Category = "SocketIOFunctions", CustomThunk, meta = (CustomStructureParam = "AnyStruct"))
-	static bool JsonObjectToStruct(USIOJsonObject* JsonObject, UProperty* AnyStruct);
+	static bool JsonObjectToStruct(USIOJsonObject* JsonObject, TFieldPath<FProperty> AnyStruct);
 
 	//Convert property into c++ accessible form
 	DECLARE_FUNCTION(execStructToJsonObject)
 	{
 		//Get properties and pointers from stack
 		Stack.Step(Stack.Object, NULL);
-		UStructProperty* StructProperty = ExactCast<UStructProperty>(Stack.MostRecentProperty);
+		FStructProperty* StructProperty = CastField<FStructProperty>(Stack.MostRecentProperty);
 		void* StructPtr = Stack.MostRecentPropertyAddress;
 
 		// We need this to wrap up the stack
@@ -152,7 +152,7 @@ public:
 		P_GET_OBJECT(USIOJsonObject, JsonObject);
 
 		Stack.Step(Stack.Object, NULL);
-		UStructProperty* StructProperty = ExactCast<UStructProperty>(Stack.MostRecentProperty);
+		FStructProperty* StructProperty = CastField<FStructProperty>(Stack.MostRecentProperty);
 		void* StructPtr = Stack.MostRecentPropertyAddress;
 
 		P_FINISH;
@@ -165,20 +165,20 @@ public:
 
 	//Convenience - Saving/Loading structs from files
 	UFUNCTION(BlueprintCallable, Category = "SocketIOFunctions", CustomThunk, meta = (CustomStructureParam = "AnyStruct"))
-	static bool SaveStructToJsonFile(UProperty* AnyStruct, const FString& FilePath);
+	static bool SaveStructToJsonFile(TFieldPath<FProperty> AnyStruct, const FString& FilePath);
 
 	UFUNCTION(BlueprintCallable, Category = "SocketIOFunctions", CustomThunk, meta = (CustomStructureParam = "AnyStruct"))
-	static bool LoadJsonFileToStruct(const FString& FilePath, UProperty* AnyStruct);
+	static bool LoadJsonFileToStruct(const FString& FilePath, TFieldPath<FProperty> AnyStruct);
 
 	//custom thunk needed to handle wildcard structs
 	DECLARE_FUNCTION(execSaveStructToJsonFile)
 	{
-		Stack.StepCompiledIn<UStructProperty>(NULL);
-		UStructProperty* StructProp = ExactCast<UStructProperty>(Stack.MostRecentProperty);
+		Stack.StepCompiledIn<FStructProperty>(NULL);
+		FStructProperty* StructProp = CastField<FStructProperty>(Stack.MostRecentProperty);
 		void* StructPtr = Stack.MostRecentPropertyAddress;
 
 		FString FilePath;
-		Stack.StepCompiledIn<UStrProperty>(&FilePath);
+		Stack.StepCompiledIn<FStrProperty>(&FilePath);
 		P_FINISH;
 
 		P_NATIVE_BEGIN;
@@ -192,7 +192,7 @@ public:
 		FString FilePath;
 		Stack.StepCompiledIn<UStrProperty>(&FilePath);
 		Stack.StepCompiledIn<UStructProperty>(NULL);
-		UStructProperty* StructProp = ExactCast<UStructProperty>(Stack.MostRecentProperty);
+		FStructProperty* StructProp = CastField<FStructProperty>(Stack.MostRecentProperty);
 		void* StructPtr = Stack.MostRecentPropertyAddress;
 		P_FINISH;
 
