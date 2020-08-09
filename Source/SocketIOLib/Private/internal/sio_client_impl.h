@@ -124,7 +124,7 @@ namespace sio
 
 		// Client Functions - such as send, etc.
 		void connect(const std::string& uri, const std::map<std::string, std::string>& queryString,
-                     const std::map<std::string, std::string>& httpExtraHeaders);
+                     const std::map<std::string, std::string>& httpExtraHeaders, const std::string& path = "socket.io");
 
 		sio::socket::ptr const& socket(const std::string& nsp);
 
@@ -215,6 +215,7 @@ namespace sio
 		std::string m_sid;
 		std::string m_base_url;
 		std::string m_query_string;
+		std::string m_path;
 		std::map<std::string, std::string> m_http_headers;
 
 		unsigned int m_ping_interval;

@@ -87,7 +87,7 @@ namespace sio
 		sync_close();
 	}
 
-	void client_impl::connect(const string& uri, const map<string,string>& query, const map<string, string>& headers)
+	void client_impl::connect(const string& uri, const map<string,string>& query, const map<string, string>& headers, const std::string& path)
 	{
 		//reset connection attempts to last set
 		m_reconn_attempts = m_reconn_attempts_when_closed;
@@ -127,6 +127,7 @@ namespace sio
 		m_query_string=move(query_str);
 
 		m_http_headers = headers;
+		m_path = path;
 
 		this->reset_states();
 		m_client.get_io_service().dispatch(lib::bind(&client_impl::connect_impl,this,uri,m_query_string));
@@ -244,7 +245,7 @@ namespace sio
 			} else {
 				ss<<uo.get_host();
 			}
-			ss<<":"<<uo.get_port()<<"/socket.io/?EIO=4&transport=websocket";
+			ss<<":"<<uo.get_port()<<"/" << m_path << "/?EIO=4&transport=websocket";
 			if(m_sid.size()>0){
 				ss<<"&sid="<<m_sid;
 			}
