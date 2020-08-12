@@ -3,6 +3,7 @@
 
 #include "SocketIOClient.h"
 #include "SocketIONative.h"
+#include "SIOMessageConvert.h"
 #include "CULambdaRunnable.h"
 #include "Runtime/Core/Public/HAL/ThreadSafeBool.h"
 
