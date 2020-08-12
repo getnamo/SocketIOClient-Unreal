@@ -3,6 +3,7 @@
 
 #include "SocketIOClientComponent.h"
 #include "SIOJConvert.h"
+#include "SIOMessageConvert.h"
 #include "SIOJRequestJSON.h"
 #include "SocketIOClient.h"
 #include "Engine/Engine.h"
