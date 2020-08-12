@@ -12,6 +12,10 @@
 #define _SCL_SECURE_NO_WARNINGS
 #endif
 
+#if !defined(LOG)
+    #define LOG(x)
+#endif
+
 /* For this code, we will use standalone ASIO
    and websocketpp in C++11 mode only */
 #define ASIO_STANDALONE
