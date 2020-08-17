@@ -118,7 +118,8 @@ public:
 	void Connect(	
 		const FString& InAddressAndPort,
 		const TSharedPtr<FJsonObject>& Query, 
-		const TSharedPtr<FJsonObject>& Headers);
+		const TSharedPtr<FJsonObject>& Headers,
+		const FString& Path = "socket.io");
 
 	/** 
 	* Join a desired namespace. Keep in mind that emitting to a namespace will auto-join it

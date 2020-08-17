@@ -68,6 +68,8 @@ namespace sio
         void set_reconnect_delay(unsigned millis);
 
         void set_reconnect_delay_max(unsigned millis);
+		
+		void set_path(const std::string& path);
 
         sio::socket::ptr const& socket(const std::string& nsp = "");
 
@@ -91,6 +93,7 @@ namespace sio
         void operator=(client const& cl){}
 
         client_impl* m_impl;
+		std::string m_path;
     };
 
 }

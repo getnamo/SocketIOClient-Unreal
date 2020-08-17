@@ -114,7 +114,6 @@ void USocketIOClientComponent::UninitializeComponent()
 		NativeClient = nullptr;
 	}
 
-	//UE_LOG(SocketIO, Log, TEXT("UninitializeComponent() call"));
 	Super::UninitializeComponent();
 }
 
@@ -362,16 +361,16 @@ bool USocketIOClientComponent::CallBPFunctionWithMessage(UObject* Target, const 
 #pragma region Connect
 #endif
 
-void USocketIOClientComponent::Connect(const FString& InAddressAndPort, USIOJsonObject* Query /*= nullptr*/, USIOJsonObject* Headers /*= nullptr*/)
+void USocketIOClientComponent::Connect(const FString& InAddressAndPort, const FString& Path, USIOJsonObject* Query /*= nullptr*/, USIOJsonObject* Headers /*= nullptr*/)
 {
 	//Check if we're limiting this component
-	if(bLimitConnectionToGameWorld)
-	{ 
+	if (bLimitConnectionToGameWorld)
+	{
 		UWorld* World = GEngine->GetWorldFromContextObject(this, EGetWorldErrorMode::LogAndReturnNull);
 		if (World)
 		{
 			bool bIsGameWorld = (World->IsGameWorld() || World->IsPreviewWorld());
-			if(!bIsGameWorld)
+			if (!bIsGameWorld)
 			{
 				UE_LOG(SocketIO, Log, TEXT("USocketIOClientComponent::Connect attempt in non-game world blocked by bLimitConnectionToGameWorld."));
 				return;
@@ -400,13 +399,13 @@ void USocketIOClientComponent::Connect(const FString& InAddressAndPort, USIOJson
 	NativeClient->MaxReconnectionAttempts = MaxReconnectionAttempts;
 	NativeClient->ReconnectionDelay = ReconnectionDelayInMs;
 	NativeClient->VerboseLog = bVerboseConnectionLog;
-	
-	ConnectNative(InAddressAndPort, QueryFJson, HeadersFJson);
+
+	ConnectNative(InAddressAndPort, Path, QueryFJson, HeadersFJson);
 }
 
-void USocketIOClientComponent::ConnectNative(const FString& InAddressAndPort, const TSharedPtr<FJsonObject>& Query /*= nullptr*/, const TSharedPtr<FJsonObject>& Headers /*= nullptr*/)
+void USocketIOClientComponent::ConnectNative(const FString& InAddressAndPort, const FString& Path, const TSharedPtr<FJsonObject>& Query /*= nullptr*/, const TSharedPtr<FJsonObject>& Headers /*= nullptr*/)
 {
-	NativeClient->Connect(InAddressAndPort, Query, Headers);
+	NativeClient->Connect(InAddressAndPort, Query, Headers, Path);
 }
 
 void USocketIOClientComponent::Disconnect()

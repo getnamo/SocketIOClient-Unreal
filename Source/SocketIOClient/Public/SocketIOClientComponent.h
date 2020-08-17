@@ -124,12 +124,14 @@ public:
 	* Query and headers are defined by a {'stringKey':'stringValue'} SIOJson Object
 	*
 	* @param AddressAndPort	the address in URL format with port
+	* @param Path optional ws:// trailing path for socket.io connection
 	* @param Query http query as a SIOJsonObject with string keys and values
 	* @param Headers http header as a SIOJsonObject with string keys and values
 	*
 	*/
 	UFUNCTION(BlueprintCallable, Category = "SocketIO Functions")
-	void Connect(	const FString& InAddressAndPort, 
+	void Connect(	const FString& InAddressAndPort,
+					const FString& Path = TEXT("socket.io"),
 					USIOJsonObject* Query = nullptr, 
 					USIOJsonObject* Headers = nullptr);
 
@@ -249,11 +251,13 @@ public:
 	* Query and headers are defined by a {'stringKey':'stringValue'} FJsonObjects
 	*
 	* @param AddressAndPort	the address in URL format with port
+	* @param Path the path of the socketio server (ex: "socket.io"
 	* @param Query http query as a FJsonObject with string keys and values
 	* @param Headers http header as a FJsonObject with string keys and values
 	*
 	*/
 	void ConnectNative(	const FString& InAddressAndPort, 
+						const FString& Path = TEXT("socket.io"),
 						const TSharedPtr<FJsonObject>& Query = nullptr, 
 						const TSharedPtr<FJsonObject>& Headers = nullptr);
 
