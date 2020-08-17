@@ -3,6 +3,7 @@
 
 #include "SocketIOClient.h"
 #include "SocketIONative.h"
+#include "SIOMessageConvert.h"
 #include "CULambdaRunnable.h"
 #include "Runtime/Core/Public/HAL/ThreadSafeBool.h"
 
@@ -69,7 +70,7 @@ void FSocketIOClientModule::ShutdownModule()
 		//if it takes more than 5 seconds, just quit
 		if (Elapsed > 5.f)
 		{
-			UE_LOG(SocketIOLog, Warning, TEXT("FSocketIOClientModule::ShutdownModule force quit due to long wait to quit."));
+			UE_LOG(SocketIO, Warning, TEXT("FSocketIOClientModule::ShutdownModule force quit due to long wait to quit."));
 			break;
 		}
 	}
