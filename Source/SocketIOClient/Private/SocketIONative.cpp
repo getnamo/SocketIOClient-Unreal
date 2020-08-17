@@ -64,7 +64,7 @@ void FSocketIONative::Connect(const FString& InAddressAndPort, const TSharedPtr<
 			else
 			{
 				//we're already connected to the correct endpoint, ignore request
-				UE_LOG(SocketIOLog, Warning, TEXT("Attempted to connect to %s when we're already connected. Request ignored."), UTF8_TO_TCHAR(StdAddressString.c_str()));
+				UE_LOG(SocketIO, Warning, TEXT("Attempted to connect to %s when we're already connected. Request ignored."), UTF8_TO_TCHAR(StdAddressString.c_str()));
 				return;
 			}
 		}
@@ -350,7 +350,7 @@ void FSocketIONative::OnBinaryEvent(const FString& EventName, TFunction< void(co
 		}
 		else
 		{
-			UE_LOG(SocketIOLog, Warning, TEXT("Non-binary message received to binary message lambda, check server message data!"));
+			UE_LOG(SocketIO, Warning, TEXT("Non-binary message received to binary message lambda, check server message data!"));
 		}
 	}));
 }
@@ -376,7 +376,7 @@ void FSocketIONative::SetupInternalCallbacks()
 		FString DisconnectReasonString = USIOJConvert::EnumToString(TEXT("ESIOConnectionCloseReason"), DisconnectReason);
 		if (VerboseLog)
 		{
-			UE_LOG(SocketIOLog, Log, TEXT("SocketIO Disconnected %s reason: %s"), *SessionId, *DisconnectReasonString);
+			UE_LOG(SocketIO, Log, TEXT("SocketIO Disconnected %s reason: %s"), *SessionId, *DisconnectReasonString);
 		}
 		LastSessionId = SessionId;
 		SessionId = TEXT("Invalid");
@@ -415,7 +415,7 @@ void FSocketIONative::SetupInternalCallbacks()
 
 			if (VerboseLog)
 			{
-				UE_LOG(SocketIOLog, Log, TEXT("SocketIO Connected with session: %s"), *SessionId);
+				UE_LOG(SocketIO, Log, TEXT("SocketIO Connected with session: %s"), *SessionId);
 			}
 			if (OnConnectedCallback)
 			{
@@ -441,7 +441,7 @@ void FSocketIONative::SetupInternalCallbacks()
 
 		if (VerboseLog)
 		{
-			UE_LOG(SocketIOLog, Log, TEXT("SocketIO %s connected to namespace: %s"), *SessionId, *Namespace);
+			UE_LOG(SocketIO, Log, TEXT("SocketIO %s connected to namespace: %s"), *SessionId, *Namespace);
 		}
 		if (OnNamespaceConnectedCallback)
 		{
@@ -472,7 +472,7 @@ void FSocketIONative::SetupInternalCallbacks()
 		}
 		if (VerboseLog)
 		{
-			UE_LOG(SocketIOLog, Log, TEXT("SocketIO %s disconnected from namespace: %s"), *NamespaceSession, *Namespace);
+			UE_LOG(SocketIO, Log, TEXT("SocketIO %s disconnected from namespace: %s"), *NamespaceSession, *Namespace);
 		}
 		if (OnNamespaceDisconnectedCallback)
 		{
@@ -497,7 +497,7 @@ void FSocketIONative::SetupInternalCallbacks()
 	{
 		if (VerboseLog)
 		{
-			UE_LOG(SocketIOLog, Log, TEXT("SocketIO failed to connect."));
+			UE_LOG(SocketIO, Log, TEXT("SocketIO failed to connect."));
 		}
 		if (OnFailCallback)
 		{
@@ -524,7 +524,7 @@ void FSocketIONative::SetupInternalCallbacks()
 
 		if (VerboseLog)
 		{
-			UE_LOG(SocketIOLog, Log, TEXT("SocketIO %s appears to have lost connection, reconnecting attempt %d with delay %d"), *SessionId, num, delay);
+			UE_LOG(SocketIO, Log, TEXT("SocketIO %s appears to have lost connection, reconnecting attempt %d with delay %d"), *SessionId, num, delay);
 		}
 		if (OnReconnectionCallback)
 		{

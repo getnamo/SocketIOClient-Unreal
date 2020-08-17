@@ -6,7 +6,7 @@
 #include "Runtime/Json/Public/Policies/CondensedJsonPrintPolicy.h"
 #include "SIOJsonValue.h"
 
-DEFINE_LOG_CATEGORY(SocketIOLog);
+DEFINE_LOG_CATEGORY(SocketIO);
 
 typedef TJsonWriterFactory< TCHAR, TCondensedJsonPrintPolicy<TCHAR> > FCondensedJsonStringWriterFactory;
 typedef TJsonWriter< TCHAR, TCondensedJsonPrintPolicy<TCHAR> > FCondensedJsonStringWriter;
