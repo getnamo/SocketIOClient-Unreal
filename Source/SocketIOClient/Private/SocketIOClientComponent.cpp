@@ -113,7 +113,6 @@ void USocketIOClientComponent::UninitializeComponent()
 		NativeClient = nullptr;
 	}
 
-	//UE_LOG(LogTemp, Log, TEXT("UninitializeComponent() call"));
 	Super::UninitializeComponent();
 }
 
@@ -361,12 +360,7 @@ bool USocketIOClientComponent::CallBPFunctionWithMessage(UObject* Target, const 
 #pragma region Connect
 #endif
 
-void USocketIOClientComponent::Connect(const FString& InAddressAndPort, USIOJsonObject* Query /*= nullptr*/, USIOJsonObject* Headers /*= nullptr*/)
-{
-	ConnectWithPath(InAddressAndPort, TEXT("socket.io"), Query, Headers); 
-}
-
-void USocketIOClientComponent::ConnectWithPath(const FString& InAddressAndPort, const FString& Path, USIOJsonObject* Query /*= nullptr*/, USIOJsonObject* Headers /*= nullptr*/)
+void USocketIOClientComponent::Connect(const FString& InAddressAndPort, const FString& Path, USIOJsonObject* Query /*= nullptr*/, USIOJsonObject* Headers /*= nullptr*/)
 {
 	//Check if we're limiting this component
 	if (bLimitConnectionToGameWorld)
@@ -405,7 +399,7 @@ void USocketIOClientComponent::ConnectWithPath(const FString& InAddressAndPort, 
 	NativeClient->ReconnectionDelay = ReconnectionDelayInMs;
 	NativeClient->VerboseLog = bVerboseConnectionLog;
 
-	ConnectNativeWithPath(InAddressAndPort, Path, QueryFJson, HeadersFJson);
+	ConnectNative(InAddressAndPort, Path, QueryFJson, HeadersFJson);
 }
 
 void USocketIOClientComponent::ConnectNative(const FString& InAddressAndPort, const FString& Path, const TSharedPtr<FJsonObject>& Query /*= nullptr*/, const TSharedPtr<FJsonObject>& Headers /*= nullptr*/)
