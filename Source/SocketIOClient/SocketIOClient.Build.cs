@@ -79,6 +79,7 @@ namespace UnrealBuildTool.Rules
                 "JsonUtilities",
                 "SIOJson",
 				"CoreUtility",
+                "SocketIOLib",
                     // ... add other public dependencies that you statically link with here ...
                 }
                 );
@@ -91,7 +92,6 @@ namespace UnrealBuildTool.Rules
                 "Engine",
                 "Slate",
                 "SlateCore",
-				"SocketIOLib",
                     // ... add private dependencies that you statically link with here ...	
                 }
                 );
