@@ -311,6 +311,6 @@ protected:
 	FString CustomVerb;
 
 	/** Request we're currently processing */
-	TSharedRef<IHttpRequest, ESPMode::ThreadSafe> HttpRequest = FHttpModule::Get().CreateRequest();
+	FHttpRequestRef HttpRequest = FHttpModule::Get().CreateRequest();
 
 };
