@@ -93,11 +93,11 @@ public:
 	// Construction
 
 	/** Creates new request (totally empty) */
-	UFUNCTION(BlueprintPure, meta = (DisplayName = "Construct Json Request (Empty)", HidePin = "WorldContextObject", DefaultToSelf = "WorldContextObject"), Category = "SIOJ|Request")
+	UFUNCTION(BlueprintCallable, meta = (DisplayName = "Construct Json Request (Empty)", HidePin = "WorldContextObject", DefaultToSelf = "WorldContextObject"), Category = "SIOJ|Request")
 	static USIOJRequestJSON* ConstructRequest(UObject* WorldContextObject);
 
 	/** Creates new request with defined verb and content type */
-	UFUNCTION(BlueprintPure, meta = (DisplayName = "Construct Json Request", HidePin = "WorldContextObject", DefaultToSelf = "WorldContextObject"), Category = "SIOJ|Request")
+	UFUNCTION(BlueprintCallable, meta = (DisplayName = "Construct Json Request", HidePin = "WorldContextObject", DefaultToSelf = "WorldContextObject"), Category = "SIOJ|Request")
 	static USIOJRequestJSON* ConstructRequestExt(UObject* WorldContextObject, ESIORequestVerb Verb, ESIORequestContentType ContentType);
 
 	/** Set verb to the request */
