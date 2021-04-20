@@ -142,6 +142,12 @@ public:
 	UFUNCTION(BlueprintPure, Category = "CoreUtility|Misc")
 	static FString GetLoginId();
 
+	/** 
+	* Return a somewhat unique int for given string
+	*/
+	UFUNCTION(BlueprintPure, Category = "CoreUtility|Misc")
+	static int32 ToHashCode(const FString& String);
+
 	/**
 	* Time inter-tick durations for simple
 	*/
