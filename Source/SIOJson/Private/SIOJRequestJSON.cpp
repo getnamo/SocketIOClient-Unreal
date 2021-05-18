@@ -4,6 +4,8 @@
 // Copyright 2014 Vladimir Alyamkin. All Rights Reserved.
 
 #include "SIOJRequestJSON.h"
+#include "ISIOJson.h"
+#include "SIOJLibrary.h"
 #include "SIOJsonValue.h"
 #include "SIOJsonObject.h"
 
