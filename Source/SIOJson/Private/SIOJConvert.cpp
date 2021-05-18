@@ -9,7 +9,7 @@
 #include "Misc/FileHelper.h"
 #include "SIOJsonValue.h"
 #include "SIOJsonObject.h"
-#include "JsonUtilities/Public/JsonObjectConverter.h"
+#include "JsonObjectConverter.h"
 #include "UObject/PropertyPortFlags.h"
 #include "Misc/Base64.h"
 

@@ -5,8 +5,9 @@
 
 #include "SIOJsonValue.h"
 #include "SIOJConvert.h"
+#include "SIOJsonObject.h"
 #include "ISIOJson.h"
-#include "Runtime/Core/Public/Misc/Base64.h"
+#include "Misc/Base64.h"
 
 #if PLATFORM_WINDOWS
 #pragma region FJsonValueBinary
