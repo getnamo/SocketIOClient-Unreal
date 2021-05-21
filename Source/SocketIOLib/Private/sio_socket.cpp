@@ -13,7 +13,7 @@
 #endif
 
 #if !defined(LOG)
-    #define LOG(x)
+#define LOG(x)
 #endif
 
 /* For this code, we will use standalone ASIO
@@ -24,9 +24,18 @@
 #include "sio_socket.h"
 #include "internal/sio_packet.h"
 #include "internal/sio_client_impl.h"
-#include <asio/system_timer.hpp>
+#include <asio/steady_timer.hpp>
+#include <asio/error_code.hpp>
 #include <queue>
+#include <chrono>
 #include <cstdarg>
+#include <functional>
+
+#if DEBUG || _DEBUG
+#define LOG(x) std::cout << x
+#else
+#define LOG(x)
+#endif
 
 #define NULL_GUARD(_x_)  \
     if(_x_ == NULL) return
@@ -171,7 +180,7 @@ namespace sio
         
         event_listener get_bind_listener_locked(string const& event);
         
-        void ack(int msgId,string const& name,message::list const& ack_message);
+        void ack(int msgId, string const& name, message::list const& ack_message);
         
         void timeout_connection(const lib::error_code &ec);
         
@@ -283,10 +292,6 @@ namespace sio
     void socket::impl::send_connect()
     {
         NULL_GUARD(m_client);
-        if(m_nsp == "/")
-        {
-            return;
-        }
         packet p(packet::type_connect,m_nsp);
         m_client->send(p);
         m_connection_timer.reset(new asio::system_timer(m_client->get_io_service()));
@@ -305,12 +310,11 @@ namespace sio
             
             if(!m_connection_timer)
             {
-				m_connection_timer.reset(new asio::system_timer(m_client->get_io_service()));
+                m_connection_timer.reset(new asio::system_timer(m_client->get_io_service()));
             }
-
             lib::error_code ec;
             m_connection_timer->expires_from_now(std::chrono::milliseconds(3000), ec);
-            m_connection_timer->async_wait(lib::bind(&socket::impl::on_close, this));
+            m_connection_timer->async_wait(std::bind(&socket::impl::on_close, this));
         }
     }
     
@@ -466,7 +470,7 @@ namespace sio
         }
     }
     
-    void socket::impl::ack(int msgId, const string &name, const message::list &ack_message)
+    void socket::impl::ack(int msgId, const string &, const message::list &ack_message)
     {
         packet p(m_nsp, ack_message.to_array_message(),msgId,true);
         send_packet(p);
@@ -622,3 +626,7 @@ namespace sio
         m_impl->on_disconnect();
     }
 }
+
+
+
+

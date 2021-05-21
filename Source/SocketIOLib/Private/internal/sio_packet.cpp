@@ -38,17 +38,17 @@ namespace sio
 {
     using namespace rapidjson;
     using namespace std;
-    void accept_message(message const& msg,Value& val, Document& doc,vector<shared_ptr<const string> >& buffers);
+    void accept_message(message const& msg, Value& val, Document& doc, vector<shared_ptr<const string> >& buffers);
 
-	void accept_bool_message(bool_message const& msg, Value& val)
-	{
-		val.SetBool(msg.get_bool());
-	}
+    void accept_bool_message(bool_message const& msg, Value& val)
+    {
+        val.SetBool(msg.get_bool());
+    }
 
-	void accept_null_message(Value& val)
-	{
-		val.SetNull();
-	}
+    void accept_null_message(Value& val)
+    {
+        val.SetNull();
+    }
 
     void accept_int_message(int_message const& msg, Value& val)
     {
@@ -62,11 +62,11 @@ namespace sio
 
     void accept_string_message(string_message const& msg, Value& val)
     {
-        val.SetString(msg.get_string().data(),(SizeType) msg.get_string().length());
+        val.SetString(msg.get_string().data(), (SizeType)msg.get_string().length());
     }
 
 
-    void accept_binary_message(binary_message const& msg,Value& val,Document& doc,vector<shared_ptr<const string> >& buffers)
+    void accept_binary_message(binary_message const& msg, Value& val, Document& doc, vector<shared_ptr<const string> >& buffers)
     {
         val.SetObject();
         Value boolVal;
@@ -75,41 +75,35 @@ namespace sio
         Value numVal;
         numVal.SetInt((int)buffers.size());
         val.AddMember("num", numVal, doc.GetAllocator());
-        //FIXME can not avoid binary copy here.
-        shared_ptr<string> write_buffer = make_shared<string>();
-        write_buffer->reserve(msg.get_binary()->size()+1);
-        char frame_char = packet::frame_message;
-        write_buffer->append(&frame_char,1);
-        write_buffer->append(*(msg.get_binary()));
-        buffers.push_back(write_buffer);
+        buffers.push_back(msg.get_binary());
     }
 
-    void accept_array_message(array_message const& msg,Value& val,Document& doc,vector<shared_ptr<const string> >& buffers)
+    void accept_array_message(array_message const& msg, Value& val, Document& doc, vector<shared_ptr<const string> >& buffers)
     {
         val.SetArray();
-        for (vector<message::ptr>::const_iterator it = msg.get_vector().begin(); it!=msg.get_vector().end(); ++it) {
+        for (vector<message::ptr>::const_iterator it = msg.get_vector().begin(); it != msg.get_vector().end(); ++it) {
             Value child;
-            accept_message(*(*it), child, doc,buffers);
+            accept_message(*(*it), child, doc, buffers);
             val.PushBack(child, doc.GetAllocator());
         }
     }
 
-    void accept_object_message(object_message const& msg,Value& val,Document& doc,vector<shared_ptr<const string> >& buffers)
+    void accept_object_message(object_message const& msg, Value& val, Document& doc, vector<shared_ptr<const string> >& buffers)
     {
         val.SetObject();
-        for (map<string,message::ptr>::const_iterator it = msg.get_map().begin(); it!= msg.get_map().end(); ++it) {
+        for (map<string, message::ptr>::const_iterator it = msg.get_map().begin(); it != msg.get_map().end(); ++it) {
             Value nameVal;
             nameVal.SetString(it->first.data(), (SizeType)it->first.length(), doc.GetAllocator());
             Value valueVal;
-            accept_message(*(it->second), valueVal, doc,buffers);
+            accept_message(*(it->second), valueVal, doc, buffers);
             val.AddMember(nameVal, valueVal, doc.GetAllocator());
         }
     }
 
-    void accept_message(message const& msg,Value& val, Document& doc,vector<shared_ptr<const string> >& buffers)
+    void accept_message(message const& msg, Value& val, Document& doc, vector<shared_ptr<const string> >& buffers)
     {
         const message* msg_ptr = &msg;
-        switch(msg.get_flag())
+        switch (msg.get_flag())
         {
         case message::flag_integer:
         {
@@ -126,29 +120,29 @@ namespace sio
             accept_string_message(*(static_cast<const string_message*>(msg_ptr)), val);
             break;
         }
-		case message::flag_boolean:
-		{
-			accept_bool_message(*(static_cast<const bool_message*>(msg_ptr)), val);
-			break;
-		}
-		case message::flag_null:
-		{
-			accept_null_message(val);
-			break;
-		}
+        case message::flag_boolean:
+        {
+            accept_bool_message(*(static_cast<const bool_message*>(msg_ptr)), val);
+            break;
+        }
+        case message::flag_null:
+        {
+            accept_null_message(val);
+            break;
+        }
         case message::flag_binary:
         {
-            accept_binary_message(*(static_cast<const binary_message*>(msg_ptr)), val,doc,buffers);
+            accept_binary_message(*(static_cast<const binary_message*>(msg_ptr)), val, doc, buffers);
             break;
         }
         case message::flag_array:
         {
-            accept_array_message(*(static_cast<const array_message*>(msg_ptr)), val,doc,buffers);
+            accept_array_message(*(static_cast<const array_message*>(msg_ptr)), val, doc, buffers);
             break;
         }
         case message::flag_object:
         {
-            accept_object_message(*(static_cast<const object_message*>(msg_ptr)), val,doc,buffers);
+            accept_object_message(*(static_cast<const object_message*>(msg_ptr)), val, doc, buffers);
             break;
         }
         default:
@@ -158,35 +152,35 @@ namespace sio
 
     message::ptr from_json(Value const& value, vector<shared_ptr<const string> > const& buffers)
     {
-        if(value.IsInt64())
+        if (value.IsInt64())
         {
             return int_message::create(value.GetInt64());
         }
-        else if(value.IsDouble())
+        else if (value.IsDouble())
         {
             return double_message::create(value.GetDouble());
         }
-        else if(value.IsString())
+        else if (value.IsString())
         {
-            string str(value.GetString(),value.GetStringLength());
+            string str(value.GetString(), value.GetStringLength());
             return string_message::create(str);
         }
-        else if(value.IsArray())
+        else if (value.IsArray())
         {
             message::ptr ptr = array_message::create();
-            for (SizeType i = 0; i< value.Size(); ++i) {
-                static_cast<array_message*>(ptr.get())->get_vector().push_back(from_json(value[i],buffers));
+            for (SizeType i = 0; i < value.Size(); ++i) {
+                static_cast<array_message*>(ptr.get())->get_vector().push_back(from_json(value[i], buffers));
             }
             return ptr;
         }
-        else if(value.IsObject())
+        else if (value.IsObject())
         {
             //binary placeholder
             auto mem_it = value.FindMember(kBIN_PLACE_HOLDER);
-            if (mem_it!=value.MemberEnd() && mem_it->value.GetBool()) {
+            if (mem_it != value.MemberEnd() && mem_it->value.GetBool()) {
 
                 int num = value["num"].GetInt();
-                if(num >= 0 && num < static_cast<int>(buffers.size()))
+                if (num >= 0 && num < static_cast<int>(buffers.size()))
                 {
                     return binary_message::create(buffers[num]);
                 }
@@ -194,51 +188,51 @@ namespace sio
             }
             //real object message.
             message::ptr ptr = object_message::create();
-            for (auto it = value.MemberBegin();it!=value.MemberEnd();++it)
+            for (auto it = value.MemberBegin(); it != value.MemberEnd(); ++it)
             {
-                if(it->name.IsString())
+                if (it->name.IsString())
                 {
-                    string key(it->name.GetString(),it->name.GetStringLength());
-                    static_cast<object_message*>(ptr.get())->get_map()[key] = from_json(it->value,buffers);
+                    string key(it->name.GetString(), it->name.GetStringLength());
+                    static_cast<object_message*>(ptr.get())->get_map()[key] = from_json(it->value, buffers);
                 }
             }
             return ptr;
         }
-		else if(value.IsBool())
-		{
-			return bool_message::create(value.GetBool());
-		}
-		else if(value.IsNull())
-		{
-			return null_message::create();
-		}
+        else if (value.IsBool())
+        {
+            return bool_message::create(value.GetBool());
+        }
+        else if (value.IsNull())
+        {
+            return null_message::create();
+        }
         return message::ptr();
     }
 
-    packet::packet(string const& nsp,message::ptr const& msg,int pack_id, bool isAck):
+    packet::packet(string const& nsp, message::ptr const& msg, int pack_id, bool isAck) :
         _frame(frame_message),
-        _type((isAck?type_ack : type_event) | type_undetermined),
+        _type((isAck ? type_ack : type_event) | type_undetermined),
         _nsp(nsp),
-		_pack_id(pack_id),
-		_message(msg),
+        _pack_id(pack_id),
+        _message(msg),
         _pending_buffers(0)
     {
         assert((!isAck
-                || (isAck&&pack_id>=0)));
+            || (isAck && pack_id >= 0)));
     }
 
-    packet::packet(type type,string const& nsp, message::ptr const& msg):
+    packet::packet(type type, string const& nsp, message::ptr const& msg) :
         _frame(frame_message),
         _type(type),
         _nsp(nsp),
-		_pack_id(-1), 
-		_message(msg),
+        _pack_id(-1),
+        _message(msg),
         _pending_buffers(0)
     {
 
     }
 
-    packet::packet(packet::frame_type frame):
+    packet::packet(packet::frame_type frame) :
         _frame(frame),
         _type(type_undetermined),
         _pack_id(-1),
@@ -247,7 +241,7 @@ namespace sio
 
     }
 
-    packet::packet():
+    packet::packet() :
         _type(type_undetermined),
         _pack_id(-1),
         _pending_buffers(0)
@@ -258,12 +252,12 @@ namespace sio
 
     bool packet::is_binary_message(string const& payload_ptr)
     {
-        return payload_ptr.size()>0 && payload_ptr[0] == frame_message;
+        return payload_ptr.size() > 0 && payload_ptr[0] == frame_message;
     }
 
     bool packet::is_text_message(string const& payload_ptr)
     {
-        return payload_ptr.size()>0 && payload_ptr[0] == (frame_message + '0');
+        return payload_ptr.size() > 0 && payload_ptr[0] == (frame_message + '0');
     }
 
     bool packet::is_message(string const& payload_ptr)
@@ -271,11 +265,11 @@ namespace sio
         return is_binary_message(payload_ptr) || is_text_message(payload_ptr);
     }
 
-    bool packet::parse_buffer(const string &buf_payload)
+    bool packet::parse_buffer(const string& buf_payload)
     {
         if (_pending_buffers > 0) {
             assert(is_binary_message(buf_payload));//this is ensured by outside.
-            _buffers.push_back(std::make_shared<string>(buf_payload.data()+1,buf_payload.size()-1));
+            _buffers.push_back(std::make_shared<string>(buf_payload.data(), buf_payload.size()));
             _pending_buffers--;
             if (_pending_buffers == 0) {
 
@@ -294,7 +288,7 @@ namespace sio
     bool packet::parse(const string& payload_ptr)
     {
         assert(!is_binary_message(payload_ptr)); //this is ensured by outside
-        _frame = (packet::frame_type) (payload_ptr[0] - '0');
+        _frame = (packet::frame_type)(payload_ptr[0] - '0');
         _message.reset();
         _pack_id = -1;
         _buffers.clear();
@@ -302,39 +296,39 @@ namespace sio
         size_t pos = 1;
         if (_frame == frame_message) {
             _type = (packet::type)(payload_ptr[pos] - '0');
-            if(_type < type_min || _type > type_max)
+            if (_type < type_min || _type > type_max)
             {
                 return false;
             }
             pos++;
             if (_type == type_binary_event || _type == type_binary_ack) {
                 size_t score_pos = payload_ptr.find('-');
-                _pending_buffers = FCString::Atoi64(*FString(payload_ptr.substr(pos,score_pos - pos).c_str()));
-                pos = score_pos+1;
+                _pending_buffers = FCString::Atoi64(*FString(payload_ptr.substr(pos, score_pos - pos).c_str()));
+                pos = score_pos + 1;
             }
         }
 
-        size_t nsp_json_pos = payload_ptr.find_first_of("{[\"/",pos,4);
-        if(nsp_json_pos==string::npos)//no namespace and no message,the end.
+        size_t nsp_json_pos = payload_ptr.find_first_of("{[\"/", pos, 4);
+        if (nsp_json_pos == string::npos)//no namespace and no message,the end.
         {
             _nsp = "/";
             return false;
         }
         size_t json_pos = nsp_json_pos;
-        if(payload_ptr[nsp_json_pos] == '/')//nsp_json_pos is start of nsp
+        if (payload_ptr[nsp_json_pos] == '/')//nsp_json_pos is start of nsp
         {
             size_t comma_pos = payload_ptr.find_first_of(",");//end of nsp
-            if(comma_pos == string::npos)//packet end with nsp
+            if (comma_pos == string::npos)//packet end with nsp
             {
                 _nsp = payload_ptr.substr(nsp_json_pos);
                 return false;
             }
             else//we have a message, maybe the message have an id.
             {
-                _nsp = payload_ptr.substr(nsp_json_pos,comma_pos - nsp_json_pos);
-                pos = comma_pos+1;//start of the message
+                _nsp = payload_ptr.substr(nsp_json_pos, comma_pos - nsp_json_pos);
+                pos = comma_pos + 1;//start of the message
                 json_pos = payload_ptr.find_first_of("\"[{", pos, 3);//start of the json part of message
-                if(json_pos == string::npos)
+                if (json_pos == string::npos)
                 {
                     //no message,the end
                     //assume if there's no message, there's no message id.
@@ -347,9 +341,9 @@ namespace sio
             _nsp = "/";
         }
 
-        if(pos<json_pos)//we've got pack id.
+        if (pos < json_pos)//we've got pack id.
         {
-            _pack_id = FCString::Atoi(*FString(payload_ptr.substr(pos,json_pos - pos).c_str()));
+            _pack_id = FCString::Atoi(*FString(payload_ptr.substr(pos, json_pos - pos).c_str()));
         }
         if (_frame == frame_message && (_type == type_binary_event || _type == type_binary_ack)) {
             //parse later when all buffers are arrived.
@@ -359,18 +353,18 @@ namespace sio
         else
         {
             Document doc;
-            doc.Parse<0>(payload_ptr.data()+json_pos);
+            doc.Parse<0>(payload_ptr.data() + json_pos);
             _message = from_json(doc, vector<shared_ptr<const string> >());
             return false;
         }
 
     }
 
-    bool packet::accept(string& payload_ptr, vector<shared_ptr<const string> >&buffers)
+    bool packet::accept(string& payload_ptr, vector<shared_ptr<const string> >& buffers)
     {
-        char frame_char = _frame+'0';
-        payload_ptr.append(&frame_char,1);
-        if (_frame!=frame_message) {
+        char frame_char = _frame + '0';
+        payload_ptr.append(&frame_char, 1);
+        if (_frame != frame_message) {
             return false;
         }
         bool hasMessage = false;
@@ -379,33 +373,33 @@ namespace sio
             accept_message(*_message, doc, doc, buffers);
             hasMessage = true;
         }
-        bool hasBinary = buffers.size()>0;
-        _type = _type&(~type_undetermined);
-        if(_type == type_event)
+        bool hasBinary = buffers.size() > 0;
+        _type = _type & (~type_undetermined);
+        if (_type == type_event)
         {
-            _type = hasBinary?type_binary_event:type_event;
+            _type = hasBinary ? type_binary_event : type_event;
         }
-        else if(_type == type_ack)
+        else if (_type == type_ack)
         {
-            _type = hasBinary? type_binary_ack : type_ack;
+            _type = hasBinary ? type_binary_ack : type_ack;
         }
         ostringstream ss;
         ss.precision(8);
-        ss<<_type;
+        ss << _type;
         if (hasBinary) {
-            ss<<buffers.size()<<"-";
+            ss << buffers.size() << "-";
         }
-        if(_nsp.size()>0 && _nsp!="/")
+        if (_nsp.size() > 0 && _nsp != "/")
         {
-            ss<<_nsp;
-            if (hasMessage || _pack_id>=0) {
-                ss<<",";
+            ss << _nsp;
+            if (hasMessage || _pack_id >= 0) {
+                ss << ",";
             }
         }
 
-        if(_pack_id>=0)
+        if (_pack_id >= 0)
         {
-            ss<<_pack_id;
+            ss << _pack_id;
         }
 
         payload_ptr.append(ss.str());
@@ -414,7 +408,7 @@ namespace sio
             StringBuffer buffer;
             Writer<StringBuffer> writer(buffer);
             doc.Accept(writer);
-            payload_ptr.append(buffer.GetString(),buffer.GetSize());
+            payload_ptr.append(buffer.GetString(), buffer.GetSize());
         }
         return hasBinary;
     }
@@ -446,12 +440,12 @@ namespace sio
     }
 
 
-    void packet_manager::set_decode_callback(function<void (packet const&)> const& decode_callback)
+    void packet_manager::set_decode_callback(function<void(packet const&)> const& decode_callback)
     {
         m_decode_callback = decode_callback;
     }
 
-    void packet_manager::set_encode_callback(function<void (bool,shared_ptr<const string> const&)> const& encode_callback)
+    void packet_manager::set_encode_callback(function<void(bool, shared_ptr<const string> const&)> const& encode_callback)
     {
         m_encode_callback = encode_callback;
     }
@@ -461,34 +455,34 @@ namespace sio
         m_partial_packet.reset();
     }
 
-    void packet_manager::encode(packet& pack,encode_callback_function const& override_encode_callback) const
+    void packet_manager::encode(packet& pack, encode_callback_function const& override_encode_callback) const
     {
         shared_ptr<string> ptr = make_shared<string>();
         vector<shared_ptr<const string> > buffers;
-        const encode_callback_function *cb_ptr = &m_encode_callback;
-        if(override_encode_callback)
+        const encode_callback_function* cb_ptr = &m_encode_callback;
+        if (override_encode_callback)
         {
             cb_ptr = &override_encode_callback;
         }
-        if(pack.accept(*ptr,buffers))
+        if (pack.accept(*ptr, buffers))
         {
-            if((*cb_ptr))
+            if ((*cb_ptr))
             {
-                (*cb_ptr)(false,ptr);
+                (*cb_ptr)(false, ptr);
             }
-            for(auto it = buffers.begin();it!=buffers.end();++it)
+            for (auto it = buffers.begin(); it != buffers.end(); ++it)
             {
-                if((*cb_ptr))
+                if ((*cb_ptr))
                 {
-                    (*cb_ptr)(true,*it);
+                    (*cb_ptr)(true, *it);
                 }
             }
         }
         else
         {
-            if((*cb_ptr))
+            if ((*cb_ptr))
             {
-                (*cb_ptr)(false,ptr);
+                (*cb_ptr)(false, ptr);
             }
         }
     }
@@ -498,23 +492,23 @@ namespace sio
         unique_ptr<packet> p;
         do
         {
-            if(packet::is_text_message(payload))
+            if (packet::is_text_message(payload))
             {
                 p.reset(new packet());
-                if(p->parse(payload))
+                if (p->parse(payload))
                 {
                     m_partial_packet = std::move(p);
                 }
                 else
                 {
-					break;//return;
+                    break;
                 }
             }
-            else if(packet::is_binary_message(payload))
+            else if (packet::is_binary_message(payload))
             {
-                if(m_partial_packet)
+                if (m_partial_packet)
                 {
-                    if(!m_partial_packet->parse_buffer(payload))
+                    if (!m_partial_packet->parse_buffer(payload))
                     {
                         p = std::move(m_partial_packet);
                         break;
@@ -524,15 +518,13 @@ namespace sio
             else
             {
                 p.reset(new packet());
-				p->parse(payload);
-                /*if (!p->parse(payload))
-                    return;*/
+                p->parse(payload);
                 break;
             }
             return;
-        }while(0);
+        } while (0);
 
-        if(m_decode_callback)
+        if (m_decode_callback)
         {
             m_decode_callback(*p);
         }
