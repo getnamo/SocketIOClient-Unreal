@@ -32,8 +32,7 @@ using std::stringstream;
 namespace sio
 {
     client::client():
-        m_impl(new client_impl()),
-		m_path("socket.io")
+        m_impl(new client_impl())
     {
     }
     
@@ -89,18 +88,18 @@ namespace sio
 
     void client::connect(const std::string& uri)
     {
-        m_impl->connect(uri, {}, {}, m_path);
+        m_impl->connect(uri, {}, {});
     }
 
     void client::connect(const std::string& uri, const std::map<string,string>& query)
     {
-        m_impl->connect(uri, query, {}, m_path);
+        m_impl->connect(uri, query, {});
     }
 
     void client::connect(const std::string& uri, const std::map<std::string,std::string>& query,
                          const std::map<std::string,std::string>& http_extra_headers)
     {
-        m_impl->connect(uri, query, http_extra_headers, m_path);
+        m_impl->connect(uri, query, http_extra_headers);
     }
     
     socket::ptr const& client::socket(const std::string& nsp)
@@ -123,18 +122,18 @@ namespace sio
     {
         return m_impl->opened();
     }
+
+    std::string const& client::get_url() const
+    {
+        return m_impl->get_current_url();
+    }
     
     std::string const& client::get_sessionid() const
     {
         return m_impl->get_sessionid();
     }
 
-	std::string const& client::get_url() const
-	{
-		return m_impl->get_current_url();
-	}
-
-	void client::set_reconnect_attempts(int attempts)
+    void client::set_reconnect_attempts(int attempts)
     {
         m_impl->set_reconnect_attempts(attempts);
     }
@@ -149,14 +148,19 @@ namespace sio
         m_impl->set_reconnect_delay_max(millis);
     }
 
-	void client::set_path(const std::string& path)
-	{
-		m_path = path;
-	}
-   
-   void client::stop()
-   {
-       m_impl->stop();
-   }
-    
+    void client::set_logs_default()
+    {
+        m_impl->set_logs_default();
+    }
+
+    void client::set_logs_quiet()
+    {
+        m_impl->set_logs_quiet();
+    }
+
+    void client::set_logs_verbose()
+    {
+        m_impl->set_logs_verbose();
+    }
+
 }

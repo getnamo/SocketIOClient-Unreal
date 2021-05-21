@@ -7,7 +7,6 @@
 
 #ifndef SIO_PACKET_H
 #define SIO_PACKET_H
-
 #include <sstream>
 #include "sio_message.h"
 #include <functional>
@@ -52,11 +51,11 @@ namespace sio
         unsigned _pending_buffers;
         vector<shared_ptr<const string> > _buffers;
     public:
-        packet(string const& nsp,message::ptr const& msg,int pack_id = -1,bool isAck = false);//message type constructor.
+        packet(string const& nsp, message::ptr const& msg, int pack_id = -1, bool isAck = false);//message type constructor.
 
         packet(frame_type frame);
 
-        packet(type type,string const& nsp= string(),message::ptr const& msg = message::ptr());//other message types constructor.
+        packet(type type, string const& nsp = string(), message::ptr const& msg = message::ptr());//other message types constructor.
         //empty constructor for parse.
         packet();
 
@@ -68,7 +67,7 @@ namespace sio
 
         bool parse_buffer(string const& buf_payload);
 
-        bool accept(string& payload_ptr, vector<shared_ptr<const string> >&buffers); //return true if has binary buffers.
+        bool accept(string& payload_ptr, vector<shared_ptr<const string> >& buffers); //return true if has binary buffers.
 
         string const& get_nsp() const;
 
@@ -84,14 +83,14 @@ namespace sio
     class packet_manager
     {
     public:
-        typedef function<void (bool,shared_ptr<const string> const&)> encode_callback_function;
-        typedef  function<void (packet const&)> decode_callback_function;
+        typedef function<void(bool, shared_ptr<const string> const&)> encode_callback_function;
+        typedef  function<void(packet const&)> decode_callback_function;
 
         void set_decode_callback(decode_callback_function const& decode_callback);
 
         void set_encode_callback(encode_callback_function const& encode_callback);
 
-        void encode(packet& pack,encode_callback_function const& override_encode_callback = encode_callback_function()) const;
+        void encode(packet& pack, encode_callback_function const& override_encode_callback = encode_callback_function()) const;
 
         void put_payload(string const& payload);
 
