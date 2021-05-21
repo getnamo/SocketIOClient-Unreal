@@ -87,8 +87,9 @@ namespace sio
         sync_close();
     }
 
-    void client_impl::connect(const string& uri, const map<string, string>& query, const map<string, string>& headers)
+    void client_impl::connect(const string& uri, const map<string, string>& query, const map<string, string>& headers, const std::string& path /*= "socket.io"*/)
     {
+
         if (m_reconn_timer)
         {
             m_reconn_timer->cancel();
@@ -125,6 +126,7 @@ namespace sio
         m_query_string = move(query_str);
 
         m_http_headers = headers;
+        m_path = path;
 
         this->reset_states();
         m_client.get_io_service().dispatch(std::bind(&client_impl::connect_impl, this, uri, m_query_string));
@@ -259,7 +261,14 @@ namespace sio
 
             // If a resource path was included in the URI, use that, otherwise
             // use the default /socket.io/.
-            const std::string path(uo.get_resource() == "/" ? "/socket.io/" : uo.get_resource());
+            
+            std::string path(uo.get_resource() == "/" ? "/socket.io/" : uo.get_resource());
+			
+            //override if m_path is set
+			if (m_path != "socket.io")
+			{
+                path = "/" + m_path + "/";
+			}
 
             ss << ":" << uo.get_port() << path << "?EIO=4&transport=websocket";
             if (m_sid.size() > 0) {
@@ -484,8 +493,8 @@ namespace sio
                 unsigned delay = this->next_delay();
                 if (m_reconnect_listener) m_reconnect_listener(m_reconn_made, delay);
                 m_reconn_timer.reset(new asio::steady_timer(m_client.get_io_service()));
-                asio::error_code ec;
-                m_reconn_timer->expires_from_now(milliseconds(delay), ec);
+                asio::error_code ec2;
+                m_reconn_timer->expires_from_now(milliseconds(delay), ec2);
                 m_reconn_timer->async_wait(std::bind(&client_impl::timeout_reconnect, this, std::placeholders::_1));
                 return;
             }

@@ -68,6 +68,8 @@ namespace sio
 
         void set_reconnect_delay_max(unsigned millis);
 
+        void set_path(const std::string& path);
+
         void set_logs_default();
 
         void set_logs_quiet();
@@ -80,6 +82,9 @@ namespace sio
         void close();
         
         void sync_close();
+
+        // stop io_service
+        void stop();
         
         bool opened() const;
         
@@ -93,6 +98,8 @@ namespace sio
         void operator=(client const&){}
         
         client_impl* m_impl;
+
+        std::string m_path;
     };
     
 }
