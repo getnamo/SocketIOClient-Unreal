@@ -56,7 +56,8 @@ namespace sio
         m_reconn_delay(5000),
         m_reconn_delay_max(25000),
         m_reconn_attempts(0xFFFFFFFF),
-        m_reconn_made(0)
+        m_reconn_made(0),
+        m_path("socket.io")
     {
         using websocketpp::log::alevel;
 #ifndef DEBUG
@@ -126,7 +127,10 @@ namespace sio
         m_query_string = move(query_str);
 
         m_http_headers = headers;
-        m_path = path;
+
+        if (path != ""){
+            m_path = path;
+        }
 
         this->reset_states();
         m_client.get_io_service().dispatch(std::bind(&client_impl::connect_impl, this, uri, m_query_string));
