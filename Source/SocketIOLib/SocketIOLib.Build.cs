@@ -50,15 +50,25 @@ namespace UnrealBuildTool.Rules
 	            {
 	            "CoreUObject",
 	            "Engine",
+				"OpenSSL"
 	            }
 	            );
 
-
-	        DynamicallyLoadedModuleNames.AddRange(
+			DynamicallyLoadedModuleNames.AddRange(
 	            new string[]
 	            {
 	            }
 	            );
+
+			//Setup TLS support 
+			if (Target.Platform == UnrealTargetPlatform.Win64 ||
+				Target.Platform == UnrealTargetPlatform.Win32 ||
+				Target.Platform == UnrealTargetPlatform.Mac ||
+				Target.Platform == UnrealTargetPlatform.IOS
+				)
+			{
+				PublicDefinitions.Add("SIO_TLS");
+			}
 	    }
 	}
 }

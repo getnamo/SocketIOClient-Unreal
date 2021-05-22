@@ -36,16 +36,26 @@
 
 #if defined(DEBUG)
   #if SIO_TLS
-	#include <websocketpp/config/debug_asio.hpp>
-	typedef websocketpp::config::debug_asio_tls client_config;
+    #define UI UI_ST
+    THIRD_PARTY_INCLUDES_START
+    #include "openssl/hmac.h"
+    #include <websocketpp/config/debug_asio.hpp>
+    typedef websocketpp::config::debug_asio_tls client_config;
+    THIRD_PARTY_INCLUDES_END
+    #undef UI
   #else
 	#include <websocketpp/config/debug_asio_no_tls.hpp>
 	typedef websocketpp::config::debug_asio client_config;
   #endif //SIO_TLS
 #else
   #if defined(SIO_TLS)
-	#include <websocketpp/config/asio_client.hpp>
-	typedef websocketpp::config::asio_tls_client client_config;
+    #define UI UI_ST
+    THIRD_PARTY_INCLUDES_START
+    #include "openssl/hmac.h"
+    #include <websocketpp/config/asio_client.hpp>
+    typedef websocketpp::config::asio_tls_client client_config;
+    THIRD_PARTY_INCLUDES_END
+    #undef UI
   #else
 	#include <websocketpp/config/asio_no_tls_client.hpp>
 	typedef websocketpp::config::asio_client client_config;
