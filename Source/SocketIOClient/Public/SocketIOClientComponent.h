@@ -60,9 +60,29 @@ public:
 	FSIOCEventSignature OnFail;
 
 
-	/** Default connection address string in form e.g. http://localhost:80. */
+	/**
+		* Default connection address string in form e.g. http://localhost:80.
+		* If HTTPS/WSS is provided and TLS/SSL libraries aren't compiled, HTTP/WS
+		* will be used.
+		*/
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "SocketIO Connection Properties")
 	FString AddressAndPort;
+
+	/**
+		* Whether or not to use the TLS/SSL libraries for the connection.
+		* Ignored if TLS/SSL libraries are not compiled in (SIO_TLS isn't defined)
+		*/
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "SocketIO Connection Properties")
+	bool bShouldUseTlsLibraries;
+
+	/**
+		* If `Should Use TLS Libraries` is set to true, setting this to true
+		* will not verify the authenticity of the SSL certificate (i.e. asio::ssl::verify_none).
+		* NOTE: Certification verification is currently not implemented; setting to false will
+		* always fail verification.
+		*/
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "SocketIO Connection Properties")
+	bool bShouldSkipCertificateVerification = true;
 
 	/** If true will auto-connect on begin play to address specified in AddressAndPort. */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "SocketIO Connection Properties")

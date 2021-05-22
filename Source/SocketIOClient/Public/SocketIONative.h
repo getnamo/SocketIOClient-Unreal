@@ -95,7 +95,7 @@ public:
 	/** If true, all callbacks and events will occur on game thread. Default true. */
 	bool bCallbackOnGameThread;
 
-	FSocketIONative();
+	FSocketIONative(const bool bShouldUseTlsLibraries, const bool bShouldSkipCertificateVerification);
 
 	/**
 	* Connect to a socket.io server, optional method if auto-connect is set to true.

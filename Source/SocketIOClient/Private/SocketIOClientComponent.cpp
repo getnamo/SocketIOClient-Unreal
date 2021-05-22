@@ -11,6 +11,8 @@
 
 USocketIOClientComponent::USocketIOClientComponent(const FObjectInitializer &init) : UActorComponent(init)
 {
+	bShouldUseTlsLibraries = false;
+	bShouldSkipCertificateVerification = false;
 	bShouldAutoConnect = true;
 	bWantsInitializeComponent = true;
 	bAutoActivate = true;
@@ -63,14 +65,14 @@ void USocketIOClientComponent::InitializeNative()
 {
 	if (bPluginScopedConnection)
 	{
-		NativeClient = ISocketIOClientModule::Get().ValidSharedNativePointer(PluginScopedId);
+		NativeClient = ISocketIOClientModule::Get().ValidSharedNativePointer(PluginScopedId, bShouldUseTlsLibraries, bShouldSkipCertificateVerification);
 
 		//Enforcement: This is the default FSocketIONative option value, but this component depends on it being true.
 		NativeClient->bCallbackOnGameThread = true;
 	}
 	else
 	{
-		NativeClient = ISocketIOClientModule::Get().NewValidNativePointer();
+		NativeClient = ISocketIOClientModule::Get().NewValidNativePointer(bShouldUseTlsLibraries, bShouldSkipCertificateVerification);
 	}
 
 	SetupCallbacks();

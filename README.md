@@ -11,7 +11,7 @@ Socket.IO Lib uses _asio_, _rapidjson_, and _websocketpp_. SIOJson is originally
 [Unreal Forum Thread](https://forums.unrealengine.com/showthread.php?110680-Plugin-Socket-io-Client)
 
 
-Recommended socket.io server version: 1.4+.
+Recommended socket.io server version: 3.0+
 
 *Tip: This is a sizeable readme, quickly find your topic with ```Ctrl+F``` and a search term e.g. namespaces*
 
@@ -22,8 +22,34 @@ Current platform issues:
 * Xbox/PS4 platform untested - see [issue 117](https://github.com/getnamo/SocketIOClient-Unreal/issues/117)
 * Lumin platform untested - see [issue 114](https://github.com/getnamo/SocketIOClient-Unreal/issues/114)
 
-HTTPS currently not yet supported
-* OpenSSL Support - Available under separate branch https://github.com/getnamo/SocketIOClient-Unreal/tree/ssl. Issue tracked here: [issue39](https://github.com/getnamo/SocketIOClient-Unreal/issues/39)
+Current TLS/SSL issues:
+
+* Certification verification is not implemented; setting `bShouldSkipCertificateVerification` will always fail - see [issue 303](https://github.com/getnamo/SocketIOClient-Unreal/issues/303)
+
+## Socket.IO Server Compatibility
+
+Some features in later versions of this plugin are not supported by earlier versions of the Socket.IO server API. See the compatibility table below for more details
+
+<table>
+  <tr>
+    <th rowspan="2">UE4 Socket.IO plugin version</th>
+    <th colspan="2">Socket.IO server version</th>
+  </tr>
+  <tr>
+    <td align="center">1.x / 2.x</td>
+    <td align="center">3.x / 4.x</td>
+  </tr>
+  <tr>
+    <td><a href="https://github.com/getnamo/socketio-client-ue4/releases/tag/v2.0.1">v2.0.1 and earlier</a></td>
+    <td align="center">YES</td>
+    <td align="center">NO</td>
+  </tr>
+  <tr>
+    <td><a href="https://github.com/dobby5/socketio-client-ue4">v2.1.0 and later</a></td>
+    <td align="center">NO</td>
+    <td align="center">YES</td>
+  </tr>
+</table>
 
 ## Quick Install & Setup ##
 
@@ -772,6 +798,12 @@ You can post simple JSON requests using the SIOJRequest (this is the same archit
 ![Sending a JSON post request](https://i.imgur.com/UOJHcP0.png)
 
 These request functions are available globally.
+
+## TLS / SSL
+
+TLS is supported for both C++ and BP without recompiling the plugin to switch between no TLS and TLS. To use it, you must enable the `bShouldUseTlsLibraries` flag on the `SocketIOClientComponent` **and** specify a `https` or `wss` URL as the host.
+
+Currently, certification verification is not implemented, so you must have `bShouldSkipCertificateVerification` enabled (currently the default). See [issue 303](https://github.com/getnamo/SocketIOClient-Unreal/issues/303).
 
 ## Packaging
 

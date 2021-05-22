@@ -32,8 +32,35 @@ using std::stringstream;
 namespace sio
 {
     client::client():
-        m_impl(new client_impl())
+        m_impl(new client_impl<client_type_no_tls>())
     {
+    }
+
+    client::client(const bool bShouldUseTlsLibraries, const bool bShouldSkipCertificateVerification)
+    {
+        if (bShouldUseTlsLibraries)
+        {
+#if SIO_TLS
+            m_impl = new client_impl<client_type_tls>();
+
+            if (bShouldSkipCertificateVerification)
+            {
+                m_impl->set_verify_mode(asio::ssl::verify_none);
+            }
+            else
+            {
+                m_impl->set_verify_mode(asio::ssl::verify_peer);
+                // TODO: add verify CA chain file
+            }
+            m_impl->template_init(); // reinitialize based on the new mode
+#else
+            m_impl = new client_impl<client_type_no_tls>();
+#endif
+        }
+        else
+        {
+            m_impl = new client_impl<client_type_no_tls>();
+        }
     }
     
     client::~client()
@@ -84,6 +111,11 @@ namespace sio
     void client::clear_socket_listeners()
     {
         m_impl->clear_socket_listeners();
+    }
+
+    void client::connect()
+    {
+        m_impl->connect(std::string(), {}, {}, m_path);
     }
 
     void client::connect(const std::string& uri)

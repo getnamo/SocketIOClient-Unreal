@@ -9,7 +9,7 @@
 #include "sio_message.h"
 #include "sio_socket.h"
 
-FSocketIONative::FSocketIONative()
+FSocketIONative::FSocketIONative(const bool bShouldUseTlsLibraries, const bool bShouldSkipCertificateVerification)
 {
 	PrivateClient = nullptr;
 	AddressAndPort = TEXT("http://localhost:3000");	//default to 127.0.0.1
@@ -20,7 +20,7 @@ FSocketIONative::FSocketIONative()
 	ReconnectionDelay = 5000;
 	bCallbackOnGameThread = true;
 
-	PrivateClient = MakeShareable(new sio::client);
+	PrivateClient = MakeShareable(new sio::client(bShouldUseTlsLibraries, bShouldSkipCertificateVerification));
 
 	ClearCallbacks();
 }

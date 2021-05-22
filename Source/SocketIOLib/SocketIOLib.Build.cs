@@ -9,56 +9,68 @@ namespace UnrealBuildTool.Rules
 	public class SocketIOLib : ModuleRules
 	{
 		private string ThirdPartyPath
-        {
-            get { return Path.GetFullPath(Path.Combine(ModuleDirectory, "../ThirdParty/")); }
-        }
+		{
+			get { return Path.GetFullPath(Path.Combine(ModuleDirectory, "../ThirdParty/")); }
+		}
 
-	    public SocketIOLib(ReadOnlyTargetRules Target) : base(Target)
-	    {
-			PCHUsage = PCHUsageMode.UseExplicitOrSharedPCHs;
-			bUseRTTI = true;
-			bEnableExceptions = true;
+			public SocketIOLib(ReadOnlyTargetRules Target) : base(Target)
+			{
+				PCHUsage = PCHUsageMode.UseExplicitOrSharedPCHs;
+				bUseRTTI = true;
+				bEnableExceptions = true;
 
-			PublicIncludePaths.AddRange(
-	            new string[] {
-					Path.Combine(ModuleDirectory, "Public"),
-	            }
-	            );
-
-
-	        PrivateIncludePaths.AddRange(
-	            new string[] {
-					Path.Combine(ModuleDirectory, "Private"),
-					Path.Combine(ModuleDirectory, "Private/internal"),
-					Path.Combine(ThirdPartyPath, "websocketpp"),
-					Path.Combine(ThirdPartyPath, "asio/asio/include"),
-					Path.Combine(ThirdPartyPath, "rapidjson/include"),
-	            }
-	            );
+				PublicIncludePaths.AddRange(
+					new string[] {
+						Path.Combine(ModuleDirectory, "Public"),
+					}
+				);
 
 
-	        PublicDependencyModuleNames.AddRange(
-	            new string[]
-	            {
-	            "Core",
-	            }
-	            );
+				PrivateIncludePaths.AddRange(
+					new string[] {
+						Path.Combine(ModuleDirectory, "Private"),
+						Path.Combine(ModuleDirectory, "Private/internal"),
+						Path.Combine(ThirdPartyPath, "websocketpp"),
+						Path.Combine(ThirdPartyPath, "asio/asio/include"),
+						Path.Combine(ThirdPartyPath, "rapidjson/include"),
+					}
+				);
 
 
-	        PrivateDependencyModuleNames.AddRange(
-	            new string[]
-	            {
-	            "CoreUObject",
-	            "Engine",
-	            }
-	            );
+				PublicDependencyModuleNames.AddRange(
+					new string[]
+					{
+						"Core",
+					}
+				);
 
 
-	        DynamicallyLoadedModuleNames.AddRange(
-	            new string[]
-	            {
-	            }
-	            );
-	    }
+				PrivateDependencyModuleNames.AddRange(
+					new string[]
+					{
+						"CoreUObject",
+						"Engine",
+						"OpenSSL"
+					}
+				);
+
+
+				DynamicallyLoadedModuleNames.AddRange(
+					new string[]
+					{
+					}
+				);
+
+				//Setup TLS support | Maybe other platforms work as well (untested)
+				if (
+					Target.Platform == UnrealTargetPlatform.Win64 ||
+					Target.Platform == UnrealTargetPlatform.Mac ||
+					Target.Platform == UnrealTargetPlatform.Linux ||
+					Target.Platform == UnrealTargetPlatform.IOS
+				)
+				{
+					PublicDefinitions.Add("SIO_TLS=1");
+				}
+			}
 	}
 }
