@@ -23,7 +23,7 @@ Current platform issues:
 * Lumin platform untested - see [issue 114](https://github.com/getnamo/socketio-client-ue4/issues/114)
 
 HTTPS currently not yet supported
-* OpenSSL Support - [issue39](https://github.com/getnamo/socketio-client-ue4/issues/39), temporary [workaround available](https://github.com/getnamo/socketio-client-ue4/issues/72#issuecomment-371956821).
+* OpenSSL Support - Available under separate branch https://github.com/getnamo/socketio-client-ue4/tree/ssl. Issue tracked here: [issue39](https://github.com/getnamo/socketio-client-ue4/issues/39)
 
 ## Quick Install & Setup ##
 
