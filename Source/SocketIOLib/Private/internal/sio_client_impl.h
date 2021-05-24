@@ -96,7 +96,7 @@ namespace sio
 		virtual ~client_impl_base() {}
 
 		// listeners and event bindings. (see SYNTHESIS_SETTER below)
-		virtual void set_open_listener(client::con_listener const&) {};// = 0;
+		virtual void set_open_listener(client::con_listener const&) {};
 		virtual void set_fail_listener(client::con_listener const&) {};
 		virtual void set_reconnect_listener(client::reconnect_listener const&) {};
 		virtual void set_reconnecting_listener(client::con_listener const&) {};
