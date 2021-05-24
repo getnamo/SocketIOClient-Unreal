@@ -76,8 +76,9 @@ namespace sio
 
 		std::string const& get_namespace() const;
 
-	protected:
 		socket(client_impl_base*, std::string const&);
+
+	protected:
 
 		void on_connected();
 

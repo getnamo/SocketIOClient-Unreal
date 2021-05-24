@@ -46,7 +46,6 @@ namespace sio
 		else
 		{
 			m_impl = new client_impl<client_type_tls>(uri);
-
 		}
 #endif
 	}
