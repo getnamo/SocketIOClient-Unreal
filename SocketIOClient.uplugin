@@ -22,7 +22,6 @@
 			"LoadingPhase": "Default",
 			"WhitelistPlatforms": [
 				"Win64",
-				"Win32",
 				"Linux",
 				"Mac",
 				"Android",
@@ -35,7 +34,6 @@
 			"LoadingPhase": "PreDefault",
 			"WhitelistPlatforms": [
 				"Win64",
-				"Win32",
 				"Linux",
 				"Mac",
 				"Android",
@@ -48,7 +46,6 @@
 			"LoadingPhase": "PreDefault",
 			"WhitelistPlatforms": [
 				"Win64",
-				"Win32",
 				"Linux",
 				"Mac",
 				"Android",
@@ -61,7 +58,6 @@
 			"LoadingPhase": "PreDefault",
 			"WhitelistPlatforms": [
 				"Win64",
-				"Win32",
 				"Linux",
 				"Mac",
 				"Android",
@@ -74,7 +70,6 @@
 			"LoadingPhase": "Default",
 			"WhitelistPlatforms": [
 				"Win64",
-				"Win32",
 				"Linux",
 				"Mac",
 			]
