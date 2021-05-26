@@ -1,8 +1,8 @@
 {
 	"FileVersion": 3,
 	"Version": 1,
-	"VersionName": "1.6.0",
-	"EngineVersion" : "4.26.0",
+	"VersionName": "1.7.0",
+	"EngineVersion" : "5.0.0",
 	"FriendlyName": "Socket.IO Client",
 	"Description": "Real-time networking library Socket.IO Client usable from blueprints and c++.",
 	"Category": "Networking",

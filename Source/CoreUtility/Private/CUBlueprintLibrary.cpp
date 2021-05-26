@@ -295,11 +295,7 @@ void UCUBlueprintLibrary::SetSoundWaveFromWavBytes(USoundWaveProcedural* InSound
 TFuture<UTexture2D*> UCUBlueprintLibrary::Conv_BytesToTexture_Async(const TArray<uint8>& InBytes)
 {
 	//Running this on a background thread
-#if ENGINE_MINOR_VERSION < 23
-	return Async<UTexture2D*>(EAsyncExecution::Thread,[InBytes]
-#else
 	return Async(EAsyncExecution::Thread, [InBytes]
-#endif
 	{
 		//Create wrapper pointer we can share easily across threads
 		struct FDataHolder
