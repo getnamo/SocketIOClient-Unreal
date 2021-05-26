@@ -31,11 +31,7 @@
 #include <cstdarg>
 #include <functional>
 
-#ifndef DEBUG
-#define DEBUG 0
-#endif
-
-#if DEBUG
+#if defined(DEBUG) && DEBUG
 #define LOG(x) std::cout << x
 #else
 #define LOG(x)
