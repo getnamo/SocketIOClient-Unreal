@@ -76,6 +76,7 @@ namespace sio
 {
 	using namespace websocketpp;
 <<<<<<< HEAD
+<<<<<<< HEAD
 
 	typedef websocketpp::client<client_config> client_type_no_tls;
 #if SIO_TLS
@@ -193,6 +194,44 @@ namespace sio
 		void template_init(); // template-specific initialization
 
 		~client_impl();
+=======
+
+	typedef websocketpp::client<client_config> client_type;
+
+	class client_impl {
+
+	protected:
+		enum con_state
+		{
+			con_opening,
+			con_opened,
+			con_closing,
+			con_closed
+		};
+
+		client_impl();
+
+		~client_impl();
+
+		//set listeners and event bindings.
+#define SYNTHESIS_SETTER(__TYPE__,__FIELD__) \
+	void set_##__FIELD__(__TYPE__ const& l) \
+		{ m_##__FIELD__ = l;}
+
+		SYNTHESIS_SETTER(client::con_listener,open_listener)
+
+		SYNTHESIS_SETTER(client::con_listener,fail_listener)
+
+		SYNTHESIS_SETTER(client::reconnect_listener,reconnect_listener)
+
+		SYNTHESIS_SETTER(client::con_listener,reconnecting_listener)
+
+		SYNTHESIS_SETTER(client::close_listener,close_listener)
+
+		SYNTHESIS_SETTER(client::socket_listener,socket_open_listener)
+
+		SYNTHESIS_SETTER(client::socket_listener,socket_close_listener)
+>>>>>>> parent of 1ad78b7 (Compatibility with socketio 3.0 and 4.0)
 
 		//set listeners and event bindings.
 		void connect(const std::string& uri, const std::map<std::string, std::string>& queryString,
@@ -213,6 +252,7 @@ namespace sio
 			m_socket_close_listener = nullptr;
 		}
 
+<<<<<<< HEAD
 		// Client Functions - such as send, etc.
 		void connect(const std::string& uri, const std::map<std::string, std::string>& queryString,
                      const std::map<std::string, std::string>& httpExtraHeaders, const std::string& path = "socket.io");
@@ -245,6 +285,49 @@ namespace sio
 		void set_logs_verbose();
 
 	public:
+=======
+		void clear_con_listeners()
+		{
+			m_open_listener = nullptr;
+			m_close_listener = nullptr;
+			m_fail_listener = nullptr;
+			m_reconnect_listener = nullptr;
+			m_reconnecting_listener = nullptr;
+		}
+
+		void clear_socket_listeners()
+		{
+			m_socket_open_listener = nullptr;
+			m_socket_close_listener = nullptr;
+		}
+
+		// Client Functions - such as send, etc.
+		void connect(const std::string& uri, const std::map<std::string, std::string>& queryString,
+                     const std::map<std::string, std::string>& httpExtraHeaders, const std::string& path = "socket.io");
+
+		sio::socket::ptr const& socket(const std::string& nsp);
+
+		// Closes the connection
+		void close();
+
+		void sync_close();
+
+		bool opened() const { return m_con_state == con_opened; }
+
+		std::string const& get_sessionid() const { return m_sid; }
+
+		std::string const& get_current_url() const { return m_base_url; }
+
+		void set_reconnect_attempts(unsigned attempts) {m_reconn_attempts_when_closed = m_reconn_attempts = attempts;}
+
+		void set_reconnect_delay(unsigned millis) {m_reconn_delay = millis;if(m_reconn_delay_max<millis) m_reconn_delay_max = millis;}
+
+		void set_reconnect_delay_max(unsigned millis) {m_reconn_delay_max = millis;if(m_reconn_delay>millis) m_reconn_delay = millis;}
+
+		
+
+	protected:
+>>>>>>> parent of 1ad78b7 (Compatibility with socketio 3.0 and 4.0)
 		void send(packet& p);
 
 		void remove_socket(std::string const& nsp);
@@ -260,6 +343,7 @@ namespace sio
 
 		void connect_impl(const std::string& uri, const std::string& query);
 
+<<<<<<< HEAD
 		void close_impl(close::status::value const& code, std::string const& reason);
 
 		void send_impl(std::shared_ptr<const std::string> const& payload_ptr, frame::opcode::value opcode);
@@ -269,15 +353,33 @@ namespace sio
 		void timeout_pong(const asio::error_code& ec);
 
 		void timeout_reconnect(asio::error_code const& ec);
+=======
+		void close_impl(close::status::value const& code,std::string const& reason);
+
+		void send_impl(std::shared_ptr<const std::string> const&  payload_ptr,frame::opcode::value opcode);
+
+		void ping(const lib::error_code& ec);
+
+		void timeout_pong(const lib::error_code& ec);
+
+		void timeout_reconnect(lib::error_code const& ec);
+>>>>>>> parent of 1ad78b7 (Compatibility with socketio 3.0 and 4.0)
 
 		unsigned next_delay() const;
 
 		socket::ptr get_socket_locked(std::string const& nsp);
 
+<<<<<<< HEAD
 		void sockets_invoke_void(void (sio::socket::* fn)(void));
 
 		void on_decode(packet const& pack);
 		void on_encode(bool isBinary, shared_ptr<const string> const& payload);
+=======
+		void sockets_invoke_void(void (sio::socket::*fn)(void));
+
+		void on_decode(packet const& pack);
+		void on_encode(bool isBinary,shared_ptr<const string> const& payload);
+>>>>>>> parent of 1ad78b7 (Compatibility with socketio 3.0 and 4.0)
 
 		//websocket callbacks
 		void on_fail(connection_hdl con);
@@ -286,17 +388,26 @@ namespace sio
 
 		void on_close(connection_hdl con);
 
+<<<<<<< HEAD
 		//void on_message(connection_hdl con, client_type::message_ptr msg);
 		void on_message(connection_hdl con, message_ptr msg);
+=======
+		void on_message(connection_hdl con, client_type::message_ptr msg);
+>>>>>>> parent of 1ad78b7 (Compatibility with socketio 3.0 and 4.0)
 
 		//socketio callbacks
 		void on_handshake(message::ptr const& message);
 
+<<<<<<< HEAD
 		void on_ping();
+=======
+		void on_pong();
+>>>>>>> parent of 1ad78b7 (Compatibility with socketio 3.0 and 4.0)
 
 		void reset_states();
 
 		void clear_timers();
+<<<<<<< HEAD
 
 		// Percent encode query string
 		std::string encode_query_string(const std::string& query);
@@ -305,14 +416,33 @@ namespace sio
 		connection_hdl m_con;
 		client_type m_client;
 
+=======
+		
+		void stop();
+
+		#if defined(SIO_TLS)
+		typedef websocketpp::lib::shared_ptr<asio::ssl::context> context_ptr;
+
+		context_ptr on_tls_init(connection_hdl con);
+		#endif
+
+		// Connection pointer for client functions.
+		connection_hdl m_con;
+		client_type m_client;
+>>>>>>> parent of 1ad78b7 (Compatibility with socketio 3.0 and 4.0)
 		// Socket.IO server settings
 		std::string m_sid;
 		std::string m_base_url;
 		std::string m_query_string;
+<<<<<<< HEAD
+=======
+		std::string m_path;
+>>>>>>> parent of 1ad78b7 (Compatibility with socketio 3.0 and 4.0)
 		std::map<std::string, std::string> m_http_headers;
 
 		unsigned int m_ping_interval;
 		unsigned int m_ping_timeout;
+<<<<<<< HEAD
 
 		std::unique_ptr<std::thread> m_network_thread;
 
@@ -446,12 +576,48 @@ namespace sio
 		//passthrough path of plugin
 		std::string m_path;
 =======
+=======
+
+		std::unique_ptr<std::thread> m_network_thread;
+
+		packet_manager m_packet_mgr;
+
+		std::unique_ptr<asio::system_timer> m_ping_timer;
+
+		std::unique_ptr<asio::system_timer> m_ping_timeout_timer;
+
+		std::unique_ptr<asio::system_timer> m_reconn_timer;
+
+		con_state m_con_state;
+
+		client::con_listener m_open_listener;
+		client::con_listener m_fail_listener;
+		client::con_listener m_reconnecting_listener;
+		client::reconnect_listener m_reconnect_listener;
+		client::close_listener m_close_listener;
+
+		client::socket_listener m_socket_open_listener;
+		client::socket_listener m_socket_close_listener;
+
+		std::map<const std::string,socket::ptr> m_sockets;
+
+		std::mutex m_socket_mutex;
+
+		unsigned m_reconn_delay;
+
+		unsigned m_reconn_delay_max;
+
+		unsigned m_reconn_attempts;
+>>>>>>> parent of 1ad78b7 (Compatibility with socketio 3.0 and 4.0)
 		unsigned m_reconn_attempts_when_closed;
 
 		unsigned m_reconn_made;
 
 		//toggle this to enable/disable nagle's algorithm
 		bool m_tcp_no_delay;
+<<<<<<< HEAD
+>>>>>>> parent of 1ad78b7 (Compatibility with socketio 3.0 and 4.0)
+=======
 >>>>>>> parent of 1ad78b7 (Compatibility with socketio 3.0 and 4.0)
 
 		friend class sio::client;
@@ -459,7 +625,11 @@ namespace sio
 	};
 }
 <<<<<<< HEAD
+<<<<<<< HEAD
 #endif // SIO_CLIENT_IMPL_H
+=======
+#endif // SIO_CLIENT_IMPL_H
+>>>>>>> parent of 1ad78b7 (Compatibility with socketio 3.0 and 4.0)
 =======
 #endif // SIO_CLIENT_IMPL_H
 >>>>>>> parent of 1ad78b7 (Compatibility with socketio 3.0 and 4.0)

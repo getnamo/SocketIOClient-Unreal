@@ -791,6 +791,7 @@ namespace sio
 		}
 	}
 
+<<<<<<< HEAD
 	socket::event_listener socket::impl::get_bind_listener_locked(const string& event)
 	{
 		std::lock_guard<std::mutex> guard(m_event_mutex);
@@ -881,4 +882,40 @@ namespace sio
 	{
 		m_impl->on_disconnect();
 	}
+=======
+    void socket::emit(std::string const& name, message::list const& msglist, std::function<void (message::list const&)> const& ack)
+    {
+        m_impl->emit(name, msglist,ack);
+    }
+    
+    std::string const& socket::get_namespace() const
+    {
+        return m_impl->get_namespace();
+    }
+    
+    void socket::on_connected()
+    {
+        m_impl->on_connected();
+    }
+    
+    void socket::on_close()
+    {
+        m_impl->on_close();
+    }
+    
+    void socket::on_open()
+    {
+        m_impl->on_open();
+    }
+    
+    void socket::on_message_packet(packet const& p)
+    {
+        m_impl->on_message_packet(p);
+    }
+    
+    void socket::on_disconnect()
+    {
+        m_impl->on_disconnect();
+    }
+>>>>>>> parent of 1ad78b7 (Compatibility with socketio 3.0 and 4.0)
 }

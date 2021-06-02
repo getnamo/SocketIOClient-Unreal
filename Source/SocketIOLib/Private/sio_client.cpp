@@ -263,11 +263,19 @@ namespace sio
 		m_impl->set_reconnect_delay(millis);
 	}
 
+<<<<<<< HEAD
 	void client::set_reconnect_delay_max(unsigned millis)
 	{
 		m_impl->set_reconnect_delay_max(millis);
 	}
 =======
+=======
+	std::string const& client::get_url() const
+	{
+		return m_impl->get_current_url();
+	}
+
+>>>>>>> parent of 1ad78b7 (Compatibility with socketio 3.0 and 4.0)
 	void client::set_reconnect_attempts(int attempts)
     {
         m_impl->set_reconnect_attempts(attempts);
@@ -288,6 +296,7 @@ namespace sio
 	{
 		m_path = path;
 	}
+<<<<<<< HEAD
 <<<<<<< HEAD
 
 	void client::stop()
@@ -311,11 +320,16 @@ namespace sio
 	}
 
 =======
+=======
+>>>>>>> parent of 1ad78b7 (Compatibility with socketio 3.0 and 4.0)
    
    void client::stop()
    {
        m_impl->stop();
    }
     
+<<<<<<< HEAD
+>>>>>>> parent of 1ad78b7 (Compatibility with socketio 3.0 and 4.0)
+=======
 >>>>>>> parent of 1ad78b7 (Compatibility with socketio 3.0 and 4.0)
 }

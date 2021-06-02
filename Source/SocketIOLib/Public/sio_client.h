@@ -190,6 +190,9 @@ namespace sio
         client_impl* m_impl;
 		std::string m_path;
     };
+<<<<<<< HEAD
+>>>>>>> parent of 1ad78b7 (Compatibility with socketio 3.0 and 4.0)
+=======
 >>>>>>> parent of 1ad78b7 (Compatibility with socketio 3.0 and 4.0)
 
 }

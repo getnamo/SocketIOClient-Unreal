@@ -78,15 +78,21 @@ namespace sio
         vector<shared_ptr<const string> > _buffers;
     public:
         packet(string const& nsp,message::ptr const& msg,int pack_id = -1,bool isAck = false);//message type constructor.
+<<<<<<< HEAD
+>>>>>>> parent of 1ad78b7 (Compatibility with socketio 3.0 and 4.0)
+=======
 >>>>>>> parent of 1ad78b7 (Compatibility with socketio 3.0 and 4.0)
 
 		packet(frame_type frame);
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 		packet(type type, string const& nsp = string(), message::ptr const& msg = message::ptr());//other message types constructor.
 		//empty constructor for parse.
 		packet();
 =======
+=======
+>>>>>>> parent of 1ad78b7 (Compatibility with socketio 3.0 and 4.0)
         packet(type type,string const& nsp= string(),message::ptr const& msg = message::ptr());//other message types constructor.
         //empty constructor for parse.
         packet();
@@ -101,7 +107,11 @@ namespace sio
 		bool parse_buffer(string const& buf_payload);
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 		bool accept(string& payload_ptr, vector<shared_ptr<const string> >& buffers); //return true if has binary buffers.
+=======
+        bool accept(string& payload_ptr, vector<shared_ptr<const string> >&buffers); //return true if has binary buffers.
+>>>>>>> parent of 1ad78b7 (Compatibility with socketio 3.0 and 4.0)
 =======
         bool accept(string& payload_ptr, vector<shared_ptr<const string> >&buffers); //return true if has binary buffers.
 >>>>>>> parent of 1ad78b7 (Compatibility with socketio 3.0 and 4.0)
@@ -129,6 +139,9 @@ namespace sio
     public:
         typedef function<void (bool,shared_ptr<const string> const&)> encode_callback_function;
         typedef  function<void (packet const&)> decode_callback_function;
+<<<<<<< HEAD
+>>>>>>> parent of 1ad78b7 (Compatibility with socketio 3.0 and 4.0)
+=======
 >>>>>>> parent of 1ad78b7 (Compatibility with socketio 3.0 and 4.0)
 
 		void set_decode_callback(decode_callback_function const& decode_callback);
@@ -136,7 +149,11 @@ namespace sio
 		void set_encode_callback(encode_callback_function const& encode_callback);
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 		void encode(packet& pack, encode_callback_function const& override_encode_callback = encode_callback_function()) const;
+=======
+        void encode(packet& pack,encode_callback_function const& override_encode_callback = encode_callback_function()) const;
+>>>>>>> parent of 1ad78b7 (Compatibility with socketio 3.0 and 4.0)
 =======
         void encode(packet& pack,encode_callback_function const& override_encode_callback = encode_callback_function()) const;
 >>>>>>> parent of 1ad78b7 (Compatibility with socketio 3.0 and 4.0)

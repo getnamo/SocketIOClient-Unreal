@@ -44,6 +44,9 @@ namespace sio
     using namespace rapidjson;
     using namespace std;
     void accept_message(message const& msg,Value& val, Document& doc,vector<shared_ptr<const string> >& buffers);
+<<<<<<< HEAD
+>>>>>>> parent of 1ad78b7 (Compatibility with socketio 3.0 and 4.0)
+=======
 >>>>>>> parent of 1ad78b7 (Compatibility with socketio 3.0 and 4.0)
 
 	void accept_bool_message(bool_message const& msg, Value& val)
@@ -56,6 +59,7 @@ namespace sio
 		val.SetNull();
 	}
 
+<<<<<<< HEAD
 <<<<<<< HEAD
 	void accept_int_message(int_message const& msg, Value& val)
 	{
@@ -128,6 +132,8 @@ namespace sio
 			break;
 		}
 =======
+=======
+>>>>>>> parent of 1ad78b7 (Compatibility with socketio 3.0 and 4.0)
     void accept_int_message(int_message const& msg, Value& val)
     {
         val.SetInt64(msg.get_int());
@@ -204,6 +210,9 @@ namespace sio
             accept_string_message(*(static_cast<const string_message*>(msg_ptr)), val);
             break;
         }
+<<<<<<< HEAD
+>>>>>>> parent of 1ad78b7 (Compatibility with socketio 3.0 and 4.0)
+=======
 >>>>>>> parent of 1ad78b7 (Compatibility with socketio 3.0 and 4.0)
 		case message::flag_boolean:
 		{
@@ -215,6 +224,7 @@ namespace sio
 			accept_null_message(val);
 			break;
 		}
+<<<<<<< HEAD
 <<<<<<< HEAD
 		case message::flag_binary:
 		{
@@ -616,6 +626,8 @@ namespace sio
 		}
 	}
 =======
+=======
+>>>>>>> parent of 1ad78b7 (Compatibility with socketio 3.0 and 4.0)
         case message::flag_binary:
         {
             accept_binary_message(*(static_cast<const binary_message*>(msg_ptr)), val,doc,buffers);
