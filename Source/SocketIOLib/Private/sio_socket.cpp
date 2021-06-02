@@ -13,7 +13,7 @@
 #endif
 
 #if !defined(LOG)
-#define LOG(x)
+    #define LOG(x)
 #endif
 
 /* For this code, we will use standalone ASIO
@@ -24,18 +24,9 @@
 #include "sio_socket.h"
 #include "internal/sio_packet.h"
 #include "internal/sio_client_impl.h"
-#include <asio/steady_timer.hpp>
-#include <asio/error_code.hpp>
+#include <asio/system_timer.hpp>
 #include <queue>
-#include <chrono>
 #include <cstdarg>
-#include <functional>
-
-#if DEBUG || _DEBUG
-#define LOG(x) std::cout << x
-#else
-#define LOG(x)
-#endif
 
 #define NULL_GUARD(_x_)  \
     if(_x_ == NULL) return
@@ -149,6 +140,7 @@ namespace sio
 		SYNTHESIS_SETTER(error_listener, error_listener) //socket io errors
 
 #undef SYNTHESIS_SETTER
+<<<<<<< HEAD
 
 			void on_error(error_listener const& l);
 
@@ -331,6 +323,195 @@ namespace sio
 			m_client->on_socket_opened(m_nsp);
 
 			while (true) {
+=======
+        
+        void on_error(error_listener const& l);
+        
+        void off_error();
+        
+        void close();
+        
+        void emit(std::string const& name, message::list const& msglist, std::function<void (message::list const&)> const& ack);
+        
+        std::string const& get_namespace() const {return m_nsp;}
+        
+    protected:
+        void on_connected();
+        
+        void on_close();
+        
+        void on_open();
+        
+        void on_message_packet(packet const& packet);
+        
+        void on_disconnect();
+        
+    private:
+        
+        // Message Parsing callbacks.
+        void on_socketio_event(const std::string& nsp, int msgId,const std::string& name, message::list&& message);
+        void on_socketio_ack(int msgId, message::list const& message);
+        void on_socketio_error(message::ptr const& err_message);
+        
+        event_listener get_bind_listener_locked(string const& event);
+        
+        void ack(int msgId,string const& name,message::list const& ack_message);
+        
+        void timeout_connection(const lib::error_code &ec);
+        
+        void send_connect();
+        
+        void send_packet(packet& p);
+        
+        static event_listener s_null_event_listener;
+        
+        static unsigned int s_global_event_id;
+        
+        sio::client_impl *m_client;
+        
+        bool m_connected;
+        std::string m_nsp;
+        
+        std::map<unsigned int, std::function<void (message::list const&)> > m_acks;
+        
+        std::map<std::string, event_listener> m_event_binding;
+        
+        error_listener m_error_listener;
+        
+        std::unique_ptr<asio::system_timer> m_connection_timer;
+        
+        std::queue<packet> m_packet_queue;
+        
+        std::mutex m_event_mutex;
+
+		std::mutex m_packet_mutex;
+        
+        friend class socket;
+    };
+    
+    void socket::impl::on(std::string const& event_name,event_listener_aux const& func)
+    {
+        this->on(event_name,event_adapter::do_adapt(func));
+    }
+    
+    void socket::impl::on(std::string const& event_name,event_listener const& func)
+    {
+        std::lock_guard<std::mutex> guard(m_event_mutex);
+        m_event_binding[event_name] = func;
+    }
+    
+    void socket::impl::off(std::string const& event_name)
+    {
+        std::lock_guard<std::mutex> guard(m_event_mutex);
+        auto it = m_event_binding.find(event_name);
+        if(it!=m_event_binding.end())
+        {
+            m_event_binding.erase(it);
+        }
+    }
+    
+    void socket::impl::off_all()
+    {
+        std::lock_guard<std::mutex> guard(m_event_mutex);
+        m_event_binding.clear();
+    }
+    
+    void socket::impl::on_error(error_listener const& l)
+    {
+        m_error_listener = l;
+    }
+    
+    void socket::impl::off_error()
+    {
+        m_error_listener = nullptr;
+    }
+    
+    socket::impl::impl(client_impl *client,std::string const& nsp):
+        m_client(client),
+        m_connected(false),
+        m_nsp(nsp)
+    {
+        NULL_GUARD(client);
+        if(m_client->opened())
+        {
+            send_connect();
+        }
+    }
+    
+    socket::impl::~impl()
+    {
+        
+    }
+    
+    unsigned int socket::impl::s_global_event_id = 1;
+    
+    void socket::impl::emit(std::string const& name, message::list const& msglist, std::function<void (message::list const&)> const& ack)
+    {
+        NULL_GUARD(m_client);
+        message::ptr msg_ptr = msglist.to_array_message(name);
+        int pack_id;
+        if(ack)
+        {
+            pack_id = s_global_event_id++;
+            std::lock_guard<std::mutex> guard(m_event_mutex);
+            m_acks[pack_id] = ack;
+        }
+        else
+        {
+            pack_id = -1;
+        }
+        packet p(m_nsp, msg_ptr,pack_id);
+        send_packet(p);
+    }
+    
+    void socket::impl::send_connect()
+    {
+        NULL_GUARD(m_client);
+        if(m_nsp == "/")
+        {
+            return;
+        }
+        packet p(packet::type_connect,m_nsp);
+        m_client->send(p);
+        m_connection_timer.reset(new asio::system_timer(m_client->get_io_service()));
+        lib::error_code ec;
+        m_connection_timer->expires_from_now(std::chrono::milliseconds(20000), ec);
+        m_connection_timer->async_wait(std::bind(&socket::impl::timeout_connection,this, std::placeholders::_1));
+    }
+    
+    void socket::impl::close()
+    {
+        NULL_GUARD(m_client);
+        if(m_connected)
+        {
+            packet p(packet::type_disconnect,m_nsp);
+            send_packet(p);
+            
+            if(!m_connection_timer)
+            {
+				m_connection_timer.reset(new asio::system_timer(m_client->get_io_service()));
+            }
+
+            lib::error_code ec;
+            m_connection_timer->expires_from_now(std::chrono::milliseconds(3000), ec);
+            m_connection_timer->async_wait(lib::bind(&socket::impl::on_close, this));
+        }
+    }
+    
+    void socket::impl::on_connected()
+    {
+        if(m_connection_timer)
+        {
+            m_connection_timer->cancel();
+            m_connection_timer.reset();
+        }
+        if(!m_connected)
+        {
+            m_connected = true;
+            m_client->on_socket_opened(m_nsp);
+
+            while (true) {
+>>>>>>> parent of 1ad78b7 (Compatibility with socketio 3.0 and 4.0)
 				m_packet_mutex.lock();
 				if (m_packet_queue.empty())
 				{
@@ -443,6 +624,7 @@ namespace sio
 				{
 					this->on_socketio_ack(p.get_pack_id(), message::list(ptr));
 				}
+<<<<<<< HEAD
 				break;
 			}
 			// Error
@@ -515,6 +697,80 @@ namespace sio
 		if (m_connected)
 		{
 			while (true) {
+=======
+                break;
+            }
+                // Error
+            case packet::type_error:
+            {
+                LOG("Received Message type (ERROR)"<<std::endl);
+                this->on_socketio_error(p.get_message());
+                break;
+            }
+            default:
+                break;
+            }
+        }
+    }
+    
+    void socket::impl::on_socketio_event(const std::string& nsp,int msgId,const std::string& name, message::list && message)
+    {
+        bool needAck = msgId >= 0;
+        event ev = event_adapter::create_event(nsp,name, std::move(message),needAck);
+        event_listener func = this->get_bind_listener_locked(name);
+        if(func)func(ev);
+        if(needAck)
+        {
+            this->ack(msgId, name, ev.get_ack_message());
+        }
+    }
+    
+    void socket::impl::ack(int msgId, const string &name, const message::list &ack_message)
+    {
+        packet p(m_nsp, ack_message.to_array_message(),msgId,true);
+        send_packet(p);
+    }
+    
+    void socket::impl::on_socketio_ack(int msgId, message::list const& message)
+    {
+        std::function<void (message::list const&)> l;
+        {
+            std::lock_guard<std::mutex> guard(m_event_mutex);
+            auto it = m_acks.find(msgId);
+            if(it!=m_acks.end())
+            {
+                l = it->second;
+                m_acks.erase(it);
+            }
+        }
+        if(l)l(message);
+    }
+    
+    void socket::impl::on_socketio_error(message::ptr const& err_message)
+    {
+        if(m_error_listener)m_error_listener(err_message);
+    }
+    
+    void socket::impl::timeout_connection(const lib::error_code &ec)
+    {
+        NULL_GUARD(m_client);
+        if(ec)
+        {
+            return;
+        }
+        m_connection_timer.reset();
+        LOG("Connection timeout,close socket."<<std::endl);
+        //Should close socket if no connected message arrive.Otherwise we'll never ask for open again.
+        this->on_close();
+    }
+    
+    void socket::impl::send_packet(sio::packet &p)
+    {
+        NULL_GUARD(m_client);
+        if(m_connected)
+        {
+            while (true) {
+>>>>>>> parent of 1ad78b7 (Compatibility with socketio 3.0 and 4.0)
 				m_packet_mutex.lock();
 				if (m_packet_queue.empty())
 				{
@@ -626,7 +882,3 @@ namespace sio
 		m_impl->on_disconnect();
 	}
 }
-
-
-
-

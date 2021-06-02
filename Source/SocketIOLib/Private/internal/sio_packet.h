@@ -7,6 +7,7 @@
 
 #ifndef SIO_PACKET_H
 #define SIO_PACKET_H
+
 #include <sstream>
 #include "sio_message.h"
 #include <functional>
@@ -29,6 +30,7 @@ namespace sio
 			frame_noop = 6
 		};
 
+<<<<<<< HEAD
 		enum type
 		{
 			type_min = 0,
@@ -52,12 +54,43 @@ namespace sio
 		vector<shared_ptr<const string> > _buffers;
 	public:
 		packet(string const& nsp, message::ptr const& msg, int pack_id = -1, bool isAck = false);//message type constructor.
+=======
+        enum type
+        {
+            type_min = 0,
+            type_connect = 0,
+            type_disconnect = 1,
+            type_event = 2,
+            type_ack = 3,
+            type_error = 4,
+            type_binary_event = 5,
+            type_binary_ack = 6,
+            type_max = 6,
+            type_undetermined = 0x10 //undetermined mask bit
+        };
+    private:
+        frame_type _frame;
+        int _type;
+        string _nsp;
+        int _pack_id;
+        message::ptr _message;
+        unsigned _pending_buffers;
+        vector<shared_ptr<const string> > _buffers;
+    public:
+        packet(string const& nsp,message::ptr const& msg,int pack_id = -1,bool isAck = false);//message type constructor.
+>>>>>>> parent of 1ad78b7 (Compatibility with socketio 3.0 and 4.0)
 
 		packet(frame_type frame);
 
+<<<<<<< HEAD
 		packet(type type, string const& nsp = string(), message::ptr const& msg = message::ptr());//other message types constructor.
 		//empty constructor for parse.
 		packet();
+=======
+        packet(type type,string const& nsp= string(),message::ptr const& msg = message::ptr());//other message types constructor.
+        //empty constructor for parse.
+        packet();
+>>>>>>> parent of 1ad78b7 (Compatibility with socketio 3.0 and 4.0)
 
 		frame_type get_frame() const;
 
@@ -67,7 +100,11 @@ namespace sio
 
 		bool parse_buffer(string const& buf_payload);
 
+<<<<<<< HEAD
 		bool accept(string& payload_ptr, vector<shared_ptr<const string> >& buffers); //return true if has binary buffers.
+=======
+        bool accept(string& payload_ptr, vector<shared_ptr<const string> >&buffers); //return true if has binary buffers.
+>>>>>>> parent of 1ad78b7 (Compatibility with socketio 3.0 and 4.0)
 
 		string const& get_nsp() const;
 
@@ -80,17 +117,29 @@ namespace sio
 		static bool is_binary_message(string const& payload_ptr);
 	};
 
+<<<<<<< HEAD
 	class packet_manager
 	{
 	public:
 		typedef function<void(bool, shared_ptr<const string> const&)> encode_callback_function;
 		typedef  function<void(packet const&)> decode_callback_function;
+=======
+    class packet_manager
+    {
+    public:
+        typedef function<void (bool,shared_ptr<const string> const&)> encode_callback_function;
+        typedef  function<void (packet const&)> decode_callback_function;
+>>>>>>> parent of 1ad78b7 (Compatibility with socketio 3.0 and 4.0)
 
 		void set_decode_callback(decode_callback_function const& decode_callback);
 
 		void set_encode_callback(encode_callback_function const& encode_callback);
 
+<<<<<<< HEAD
 		void encode(packet& pack, encode_callback_function const& override_encode_callback = encode_callback_function()) const;
+=======
+        void encode(packet& pack,encode_callback_function const& override_encode_callback = encode_callback_function()) const;
+>>>>>>> parent of 1ad78b7 (Compatibility with socketio 3.0 and 4.0)
 
 		void put_payload(string const& payload);
 

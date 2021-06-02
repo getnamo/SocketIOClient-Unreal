@@ -43,14 +43,18 @@ using namespace std;
 
 #define LOG(x)
 
-using std::chrono::milliseconds;
+
 
 namespace sio
 {
 	/*************************public:*************************/
+<<<<<<< HEAD
 	template<typename client_type>
 	client_impl<client_type>::client_impl(const string& uri) :
 		m_base_url(uri),
+=======
+	client_impl::client_impl() :
+>>>>>>> parent of 1ad78b7 (Compatibility with socketio 3.0 and 4.0)
 		m_ping_interval(0),
 		m_ping_timeout(0),
 		m_network_thread(),
@@ -59,17 +63,26 @@ namespace sio
 		m_reconn_delay_max(25000),
 		m_reconn_attempts(0xFFFFFFFF),
 		m_reconn_made(0),
+<<<<<<< HEAD
 		m_path("socket.io")
+=======
+		m_tcp_no_delay(true)	//nagle's algorithm disabled by default
+>>>>>>> parent of 1ad78b7 (Compatibility with socketio 3.0 and 4.0)
 	{
 		using websocketpp::log::alevel;
 #ifndef DEBUG
 		m_client.clear_access_channels(alevel::all);
+<<<<<<< HEAD
 		m_client.set_access_channels(alevel::connect | alevel::disconnect | alevel::app);
+=======
+		m_client.set_access_channels(alevel::connect|alevel::disconnect|alevel::app);
+>>>>>>> parent of 1ad78b7 (Compatibility with socketio 3.0 and 4.0)
 #endif
 		// Initialize the Asio transport policy
 		m_client.init_asio();
 
 		// Bind the clients we are using
+<<<<<<< HEAD
 		using std::placeholders::_1;
 		using std::placeholders::_2;
 
@@ -98,14 +111,51 @@ namespace sio
 	{
 
 		if (m_reconn_timer)
+=======
+		using websocketpp::lib::placeholders::_1;
+		using websocketpp::lib::placeholders::_2;
+		m_client.set_open_handler(lib::bind(&client_impl::on_open,this,_1));
+		m_client.set_close_handler(lib::bind(&client_impl::on_close,this,_1));
+		m_client.set_fail_handler(lib::bind(&client_impl::on_fail,this,_1));
+		m_client.set_message_handler(lib::bind(&client_impl::on_message,this,_1,_2));
+#if defined(SIO_TLS)
+		m_client.set_tls_init_handler(lib::bind(&client_impl::on_tls_init,this,_1));
+#endif
+		m_packet_mgr.set_decode_callback(lib::bind(&client_impl::on_decode,this,_1));
+
+		m_packet_mgr.set_encode_callback(lib::bind(&client_impl::on_encode,this,_1,_2));
+	}
+
+	client_impl::~client_impl()
+	{
+		sync_close();
+	}
+
+	void client_impl::connect(const string& uri, const map<string,string>& query, const map<string, string>& headers, const std::string& path)
+	{
+		//reset connection attempts to last set
+		m_reconn_attempts = m_reconn_attempts_when_closed;
+
+		if(m_reconn_timer)
+>>>>>>> parent of 1ad78b7 (Compatibility with socketio 3.0 and 4.0)
 		{
 			m_reconn_timer->cancel();
 			m_reconn_timer.reset();
 		}
+<<<<<<< HEAD
 		if (m_network_thread)
 		{
 			if (m_con_state == con_closing || m_con_state == con_closed)
 			{
+=======
+		if(m_network_thread)
+		{
+			if(m_con_state == con_closing||m_con_state == con_closed)
+			{
+				//if client is closing, join to wait.
+				//if client is closed, still need to join,
+				//but in closed case,join will return immediately.
+>>>>>>> parent of 1ad78b7 (Compatibility with socketio 3.0 and 4.0)
 				m_network_thread->join();
 				m_network_thread.reset();//defensive
 			}
@@ -116,6 +166,7 @@ namespace sio
 			}
 		}
 		m_con_state = con_opening;
+<<<<<<< HEAD
 		m_reconn_made = 0;
 
 		if (!uri.empty())
@@ -157,6 +208,40 @@ namespace sio
 		else if (nsp[0] != '/')
 		{
 			aux.append("/", 1);
+=======
+		m_base_url = uri;
+		m_reconn_made = 0;
+
+		string query_str;
+		for(map<string,string>::const_iterator it=query.begin();it!=query.end();++it){
+			query_str.append("&");
+			query_str.append(it->first);
+			query_str.append("=");
+			query_str.append(it->second);
+		}
+		m_query_string=move(query_str);
+
+		m_http_headers = headers;
+		m_path = path;
+
+		this->reset_states();
+		m_client.get_io_service().dispatch(lib::bind(&client_impl::connect_impl,this,uri,m_query_string));
+		m_network_thread.reset(new thread(lib::bind(&client_impl::run_loop,this)));//uri lifecycle?
+
+	}
+
+	socket::ptr const& client_impl::socket(string const& nsp)
+	{
+		lock_guard<mutex> guard(m_socket_mutex);
+		string aux;
+		if(nsp == "")
+		{
+			aux = "/";
+		}
+		else if( nsp[0] != '/')
+		{
+			aux.append("/",1);
+>>>>>>> parent of 1ad78b7 (Compatibility with socketio 3.0 and 4.0)
 			aux.append(nsp);
 		}
 		else
@@ -165,18 +250,27 @@ namespace sio
 		}
 
 		auto it = m_sockets.find(aux);
+<<<<<<< HEAD
 		if (it != m_sockets.end())
+=======
+		if(it!= m_sockets.end())
+>>>>>>> parent of 1ad78b7 (Compatibility with socketio 3.0 and 4.0)
 		{
 			return it->second;
 		}
 		else
 		{
+<<<<<<< HEAD
 			shared_ptr<sio::socket> newSocket = shared_ptr<sio::socket>(new sio::socket(this, aux));
 			pair<const string, socket::ptr> p(aux, newSocket);
+=======
+			pair<const string, socket::ptr> p(aux,shared_ptr<sio::socket>(new sio::socket(this,aux)));
+>>>>>>> parent of 1ad78b7 (Compatibility with socketio 3.0 and 4.0)
 			return (m_sockets.insert(p).first)->second;
 		}
 	}
 
+<<<<<<< HEAD
 	template<typename client_type>
 	void client_impl<client_type>::close()
 	{
@@ -192,12 +286,31 @@ namespace sio
 		this->sockets_invoke_void(&sio::socket::close);
 		m_client.get_io_service().dispatch(std::bind(&client_impl<client_type>::close_impl, this, close::status::normal, "End by user"));
 		if (m_network_thread)
+=======
+	void client_impl::close()
+	{
+		//don't ever try to close with multiple reconnect attempts
+		//m_reconn_attempts_when_closed = m_reconn_attempts;
+		//this->set_reconnect_attempts(0);
+
+		m_con_state = con_closing;
+		this->sockets_invoke_void(&sio::socket::close);
+		m_client.get_io_service().dispatch(lib::bind(&client_impl::close_impl, this, close::status::normal,"End by user"));
+		m_client.get_io_service().stop();
+	}
+
+	void client_impl::sync_close()
+	{
+		this->close();
+		if(m_network_thread)
+>>>>>>> parent of 1ad78b7 (Compatibility with socketio 3.0 and 4.0)
 		{
 			m_network_thread->join();
 			m_network_thread.reset();
 		}
 	}
 
+<<<<<<< HEAD
 	template<typename client_type>
 	void client_impl<client_type>::set_logs_default()
 	{
@@ -220,27 +333,44 @@ namespace sio
 	/*************************protected:*************************/
 	template<typename client_type>
 	void client_impl<client_type>::send(packet& p)
+=======
+	/*************************protected:*************************/
+	void client_impl::send(packet& p)
+>>>>>>> parent of 1ad78b7 (Compatibility with socketio 3.0 and 4.0)
 	{
 		m_packet_mgr.encode(p);
 	}
 
+<<<<<<< HEAD
 	template<typename client_type>
 	void client_impl<client_type>::remove_socket(string const& nsp)
 	{
 		lock_guard<mutex> guard(m_socket_mutex);
 		auto it = m_sockets.find(nsp);
 		if (it != m_sockets.end())
+=======
+	void client_impl::remove_socket(string const& nsp)
+	{
+		lock_guard<mutex> guard(m_socket_mutex);
+		auto it = m_sockets.find(nsp);
+		if(it!= m_sockets.end())
+>>>>>>> parent of 1ad78b7 (Compatibility with socketio 3.0 and 4.0)
 		{
 			m_sockets.erase(it);
 		}
 	}
 
+<<<<<<< HEAD
 	template<typename client_type>
 	asio::io_service& client_impl<client_type>::get_io_service()
+=======
+	asio::io_service& client_impl::get_io_service()
+>>>>>>> parent of 1ad78b7 (Compatibility with socketio 3.0 and 4.0)
 	{
 		return m_client.get_io_service();
 	}
 
+<<<<<<< HEAD
 	template<typename client_type>
 	void client_impl<client_type>::on_socket_closed(string const& nsp)
 	{
@@ -256,11 +386,26 @@ namespace sio
 	/*************************private:*************************/
 	template<typename client_type>
 	void client_impl<client_type>::run_loop()
+=======
+	void client_impl::on_socket_closed(string const& nsp)
+	{
+		if(m_socket_close_listener)m_socket_close_listener(nsp);
+	}
+
+	void client_impl::on_socket_opened(string const& nsp)
+	{
+		if(m_socket_open_listener)m_socket_open_listener(nsp);
+	}
+
+	/*************************private:*************************/
+	void client_impl::run_loop()
+>>>>>>> parent of 1ad78b7 (Compatibility with socketio 3.0 and 4.0)
 	{
 
 		m_client.run();
 		m_client.reset();
 		m_client.get_alog().write(websocketpp::log::alevel::devel,
+<<<<<<< HEAD
 			"run loop end");
 	}
 
@@ -755,3 +900,428 @@ namespace sio
 		return ss.str();
 	}
 }
+=======
+								  "run loop end");
+	}
+
+	void client_impl::connect_impl(const string& uri, const string& queryString)
+	{
+		do{
+			websocketpp::uri uo(uri);
+			ostringstream ss;
+#if defined(SIO_TLS)
+			ss<<"wss://";
+#else
+			ss<<"ws://";
+#endif
+			 const std::string host(uo.get_host());
+			// As per RFC2732, literal IPv6 address should be enclosed in "[" and "]".
+			if(host.find(':')!=std::string::npos){
+				ss<<"["<<uo.get_host()<<"]";
+			} else {
+				ss<<uo.get_host();
+			}
+			ss<<":"<<uo.get_port()<<"/" << m_path << "/?EIO=4&transport=websocket";
+			if(m_sid.size()>0){
+				ss<<"&sid="<<m_sid;
+			}
+			ss<<"&t="<<time(NULL)<<queryString;
+			lib::error_code ec;
+			client_type::connection_ptr con = m_client.get_connection(ss.str(), ec);
+			if (ec) {
+				m_client.get_alog().write(websocketpp::log::alevel::app,
+										  "Get Connection Error: "+ec.message());
+				break;
+			}
+
+			for( auto&& header: m_http_headers ) {
+				con->replace_header(header.first, header.second);
+			}
+
+			m_client.connect(con);
+			return;
+		}
+		while(0);
+		if(m_fail_listener)
+		{
+			m_fail_listener();
+		}
+	}
+
+	void client_impl::close_impl(close::status::value const& code,string const& reason)
+	{
+		DEBUG_LOG(LogTemp, Log, TEXT("Close by reason: %s"), *FString(reason.c_str()));
+		if(m_reconn_timer)
+		{
+			m_reconn_timer->cancel();
+			m_reconn_timer.reset();
+		}
+		if (m_con.expired())
+		{
+			DEBUG_LOG(LogTemp, Warning, TEXT("close_impl::Error: No active session: %s"), *FString(reason.c_str()));
+		}
+		else
+		{
+			lib::error_code ec;
+			m_client.close(m_con, code, reason, ec);
+		}
+	}
+	
+	void client_impl::stop()
+	{
+		m_client.stop();
+	}
+
+	void client_impl::send_impl(shared_ptr<const string> const& payload_ptr,frame::opcode::value opcode)
+	{
+		if(m_con_state == con_opened)
+		{
+			lib::error_code ec;
+			m_client.send(m_con,*payload_ptr,opcode,ec);
+			if(ec)
+			{
+				DEBUG_LOG(LogTemp, Warning, TEXT("Send failed,reason: %s"), *FString(ec.message().c_str()));
+			}
+		}
+	}
+
+	void client_impl::ping(const lib::error_code& ec)
+	{
+		if(ec || m_con.expired())
+		{
+			if (ec != asio::error::operation_aborted)
+				//LOG("ping exit,con is expired?"<<m_con.expired()<<",ec:"<<ec.message()<<endl);
+			return;
+		}
+		packet p(packet::frame_ping);
+		m_packet_mgr.encode(p,
+							[&](bool isBin,shared_ptr<const string> payload)
+		{
+			lib::error_code ecl;
+			this->m_client.send(this->m_con, *payload, frame::opcode::text, ecl);
+		});
+
+		lib::error_code e_code = lib::error_code(asio::error::operation_aborted);
+		if(m_ping_timer)
+		{
+			m_ping_timer->expires_from_now(std::chrono::milliseconds(m_ping_interval), e_code);
+			m_ping_timer->async_wait(lib::bind(&client_impl::ping,this,lib::placeholders::_1));
+			DEBUG_LOG(LogTemp, Log, TEXT("Starting ping timeout 1"));
+		}
+		if (!m_ping_timeout_timer)
+		{
+			m_ping_timeout_timer.reset(new asio::system_timer(m_client.get_io_service()));
+		}
+
+		m_ping_timeout_timer->expires_from_now(std::chrono::milliseconds(m_ping_timeout), e_code);
+		m_ping_timeout_timer->async_wait(lib::bind(&client_impl::timeout_pong, this, lib::placeholders::_1));
+		DEBUG_LOG(LogTemp, Log, TEXT("Starting m_ping_timeout_timer timeout 1"));
+	}
+
+	void client_impl::timeout_pong(const lib::error_code &ec)
+	{
+		if(ec)
+		{
+			if (ec != asio::error::operation_aborted)
+			{
+				DEBUG_LOG(LogTemp, Warning, TEXT("timeout_pong err: %d"), ec.value());
+			}
+			else
+			{
+				DEBUG_LOG(LogTemp, Warning, TEXT("timeout_pong aborted: %d"), ec.value());
+			}
+			return;
+		}
+		DEBUG_LOG(LogTemp, Log, TEXT("Pong timeout => closing connection with %d"), ec.value());
+
+		m_client.get_io_service().dispatch(lib::bind(&client_impl::close_impl, this, close::status::policy_violation,"Pong timeout"));
+	}
+
+	void client_impl::timeout_reconnect(lib::error_code const& ec)
+	{
+		if(ec)
+		{
+			return;
+		}
+		if(m_con_state == con_closed)
+		{
+			m_con_state = con_opening;
+			m_reconn_made++;
+			this->reset_states();
+			//DEBUG_LOG(LogTemp, Log, TEXT("Reconnecting..."));
+			if(m_reconnecting_listener) m_reconnecting_listener();
+			m_client.get_io_service().dispatch(lib::bind(&client_impl::connect_impl, this, m_base_url, m_query_string));
+		}
+	}
+
+	unsigned client_impl::next_delay() const
+	{
+		//no jitter, fixed power root.
+		unsigned reconn_made = min<unsigned>(m_reconn_made,32);//protect the pow result to be too big.
+		return static_cast<unsigned>(min<double>(m_reconn_delay * pow(1.5,reconn_made),m_reconn_delay_max));
+	}
+
+	socket::ptr client_impl::get_socket_locked(string const& nsp)
+	{
+		lock_guard<mutex> guard(m_socket_mutex);
+		auto it = m_sockets.find(nsp);
+		if(it != m_sockets.end())
+		{
+			return it->second;
+		}
+		else
+		{
+			return socket::ptr();
+		}
+	}
+
+	void client_impl::sockets_invoke_void(void (sio::socket::*fn)(void))
+	{
+		map<const string,socket::ptr> socks;
+		{
+			lock_guard<mutex> guard(m_socket_mutex);
+			socks.insert(m_sockets.begin(),m_sockets.end());
+		}
+		for (auto it = socks.begin(); it!=socks.end(); ++it) {
+			((*(it->second)).*fn)();
+		}
+	}
+
+	void client_impl::on_fail(connection_hdl con)
+	{
+		m_con.reset();
+		m_con_state = con_closed;
+		this->sockets_invoke_void(&sio::socket::on_disconnect);
+		//DEBUG_LOG(LogTemp, Log, TEXT("Connection failed."));
+		if(m_reconn_made<m_reconn_attempts)
+		{
+			//DEBUG_LOG(LogTemp, Log, TEXT("Reconnect for attempt:%d"), m_reconn_made);
+			unsigned delay = this->next_delay();
+			if(m_reconnect_listener) m_reconnect_listener(m_reconn_made,delay);
+			m_reconn_timer.reset(new asio::system_timer(m_client.get_io_service()));
+			lib::error_code ec;
+			m_reconn_timer->expires_from_now(std::chrono::milliseconds(delay), ec);
+			m_reconn_timer->async_wait(lib::bind(&client_impl::timeout_reconnect,this,lib::placeholders::_1));
+		}
+		else
+		{
+			if(m_fail_listener)m_fail_listener();
+		}
+	}
+
+	void client_impl::on_open(connection_hdl con)
+	{
+		DEBUG_LOG(LogTemp, Log, TEXT("Connected."));
+		m_con_state = con_opened;
+		m_con = con;
+
+		if (m_tcp_no_delay) {
+			m_client.get_con_from_hdl(con)->get_next_layer().set_option(
+				websocketpp::lib::asio::ip::tcp::no_delay{ true });
+		}
+
+		m_reconn_made = 0;
+		this->sockets_invoke_void(&sio::socket::on_open);
+		this->socket("");
+		if(m_open_listener)m_open_listener();
+	}
+
+	void client_impl::on_close(connection_hdl con)
+	{
+		//DEBUG_LOG(LogTemp, Log, TEXT("Client Disconnected."));
+		m_con_state = con_closed;
+		lib::error_code ec;
+		close::status::value code = close::status::normal;
+		client_type::connection_ptr conn_ptr  = m_client.get_con_from_hdl(con, ec);
+		if (ec) {
+			DEBUG_LOG(LogTemp, Log, TEXT("OnClose get conn failed: %d"), ec.value());
+		}
+		else
+		{
+			code = conn_ptr->get_local_close_code();
+		}
+
+		m_con.reset();
+		this->clear_timers();
+		client::close_reason reason;
+		if(code == close::status::normal)
+		{
+			this->sockets_invoke_void(&sio::socket::on_disconnect);
+			reason = client::close_reason_normal;
+		}
+		else
+		{
+			this->sockets_invoke_void(&sio::socket::on_disconnect);
+			if(m_reconn_made<m_reconn_attempts)
+			{
+				//DEBUG_LOG(LogTemp, Log, TEXT("Reconnect for attempt: %d"), m_reconn_made);
+				unsigned delay = this->next_delay();
+				if(m_reconnect_listener) m_reconnect_listener(m_reconn_made,delay);
+				m_reconn_timer.reset(new asio::system_timer(m_client.get_io_service()));
+				lib::error_code ecl;
+				m_reconn_timer->expires_from_now(std::chrono::milliseconds(delay), ecl);
+				m_reconn_timer->async_wait(lib::bind(&client_impl::timeout_reconnect, this, lib::placeholders::_1));
+				return;
+			}
+			reason = client::close_reason_drop;
+		}
+
+		if(m_close_listener)
+		{
+			m_close_listener(reason);
+		}
+	}
+
+	void client_impl::on_message(connection_hdl con, client_type::message_ptr msg)
+	{
+		if (m_ping_timeout_timer) 
+		{
+			//just reset/ clear the timeout on the ping_timeout and wait for next ping
+			m_ping_timeout_timer->cancel();
+			m_ping_timeout_timer.reset();
+			DEBUG_LOG(LogTemp, Log, TEXT("Cancelled m_ping_timeout_timer timeout from on_message"));
+		}
+		// Parse the incoming message according to socket.IO rules
+		m_packet_mgr.put_payload(msg->get_payload());
+	}
+
+	void client_impl::on_handshake(message::ptr const& message)
+	{
+		if(message && message->get_flag() == message::flag_object)
+		{
+			const object_message* obj_ptr =static_cast<object_message*>(message.get());
+			const map<string,message::ptr>* values = &(obj_ptr->get_map());
+			auto it = values->find("sid");
+			if (it!= values->end()) {
+				m_sid = static_pointer_cast<string_message>(it->second)->get_string();
+			}
+			else
+			{
+				goto failed;
+			}
+			it = values->find("pingInterval");
+			if (it!= values->end()&&it->second->get_flag() == message::flag_integer) {
+				m_ping_interval = (unsigned)static_pointer_cast<int_message>(it->second)->get_int();
+			}
+			else
+			{
+				m_ping_interval = 25000;
+			}
+			//DEBUG: override ping interval to be shorter for testing
+			//m_ping_interval = 5000;
+
+			it = values->find("pingTimeout");
+
+			if (it!=values->end()&&it->second->get_flag() == message::flag_integer) {
+				m_ping_timeout = (unsigned) static_pointer_cast<int_message>(it->second)->get_int();
+			}
+			else
+			{
+				m_ping_timeout = 60000;
+			}
+
+			m_ping_timer.reset(new asio::system_timer(m_client.get_io_service()));
+
+			lib::error_code ec;
+			m_ping_timer->expires_from_now(std::chrono::milliseconds(m_ping_interval), ec);
+			if (ec) {
+				DEBUG_LOG(LogTemp, Log, TEXT("on_handshake ec: %s"), ec.message().c_str());
+			}
+			//DEBUG_LOG(LogTemp, Log, TEXT("Started ping timeout due to on_handshake"));
+
+			m_ping_timer->async_wait(lib::bind(&client_impl::ping,this,lib::placeholders::_1));
+			//DEBUG_LOG(LogTemp, Log, TEXT("On handshake,sid: %s, ping interval: %d, ping timeout: %d "), *FString(m_sid.c_str()), m_ping_interval, m_ping_timeout);
+			return;
+		}
+failed:
+		//just close it.
+		m_client.get_io_service().dispatch(lib::bind(&client_impl::close_impl, this,close::status::policy_violation,"Handshake error"));
+	}
+
+	void client_impl::on_pong()
+	{
+		DEBUG_LOG(LogTemp, Log, TEXT("Received pong"));
+		if(m_ping_timeout_timer)
+		{
+			lib::error_code ec;
+			m_ping_timeout_timer->cancel(ec);
+			m_ping_timeout_timer.reset();
+			DEBUG_LOG(LogTemp, Log, TEXT("m_ping_timeout_timer cancelled by on_pong (ec %d)"), ec.value());
+		}
+	}
+
+	void client_impl::on_decode(packet const& p)
+	{
+		switch(p.get_frame())
+		{
+		case packet::frame_message:
+		{
+			socket::ptr so_ptr = get_socket_locked(p.get_nsp());
+			if(so_ptr)so_ptr->on_message_packet(p);
+			break;
+		}
+		case packet::frame_open:
+			this->on_handshake(p.get_message());
+			break;
+		case packet::frame_close:
+			//FIXME how to deal?
+			this->close_impl(close::status::abnormal_close, "End by server");
+			break;
+		case packet::frame_pong:
+			this->on_pong();
+			break;
+
+		default:
+			break;
+		}
+	}
+
+	void client_impl::on_encode(bool isBinary,shared_ptr<const string> const& payload)
+	{
+		//LOG("encoded payload length:"<<payload->length()<<endl);
+		m_client.get_io_service().dispatch(lib::bind(&client_impl::send_impl, this, payload, isBinary ? frame::opcode::binary : frame::opcode::text));
+	}
+
+	void client_impl::clear_timers()
+	{
+		//DEBUG_LOG(LogTemp, Log, TEXT("clear timers"));
+		lib::error_code ec;
+		if(m_ping_timeout_timer)
+		{
+			m_ping_timeout_timer->cancel(ec);
+			m_ping_timeout_timer.reset();
+			//DEBUG_LOG(LogTemp, Log, TEXT("m_ping_timeout_timer cleared: %d"), ec.value());
+		}
+		if(m_ping_timer)
+		{
+			m_ping_timer->cancel(ec);
+			m_ping_timer.reset();
+			//DEBUG_LOG(LogTemp, Log, TEXT("m_ping_timer cleared: %d"), ec.value());
+		}
+	}
+
+	void client_impl::reset_states()
+	{
+		m_client.reset();
+		m_sid.clear();
+		m_packet_mgr.reset();
+	}
+
+#if defined(SIO_TLS)
+	client_impl::context_ptr client_impl::on_tls_init(connection_hdl conn)
+	{
+		context_ptr ctx = context_ptr(new  asio::ssl::context(asio::ssl::context::tlsv1));
+		lib::error_code ec;
+		ctx->set_options(asio::ssl::context::default_workarounds |
+							 asio::ssl::context::no_sslv2 |
+							 asio::ssl::context::single_dh_use,ec);
+		if(ec)
+		{
+			cerr<<"Init tls failed,reason:"<< ec.message()<<endl;
+		}
+
+		return ctx;
+	}
+#endif
+}
+>>>>>>> parent of 1ad78b7 (Compatibility with socketio 3.0 and 4.0)
