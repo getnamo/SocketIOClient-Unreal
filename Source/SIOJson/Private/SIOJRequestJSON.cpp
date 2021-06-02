@@ -4,6 +4,10 @@
 // Copyright 2014 Vladimir Alyamkin. All Rights Reserved.
 
 #include "SIOJRequestJSON.h"
+<<<<<<< HEAD
+=======
+#include "SIOJLibrary.h"
+>>>>>>> parent of ee6875b (Added missing include)
 #include "SIOJsonValue.h"
 #include "SIOJsonObject.h"
 
