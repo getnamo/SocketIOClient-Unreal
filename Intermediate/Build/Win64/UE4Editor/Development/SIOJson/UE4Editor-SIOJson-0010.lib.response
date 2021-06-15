@@ -1,0 +1,14 @@
+/NOLOGO
+/errorReport:prompt
+/MACHINE:x64
+/SUBSYSTEM:WINDOWS
+/DEF
+/NAME:"UE4Editor-SIOJson-0010.dll"
+/IGNORE:4221
+/NODEFAULTLIB
+"C:\EPIC GAMES\UnrealEngine-4.26.2-release\Engine\Intermediate\Build\Win64\UE4Editor\Development\Engine\SharedPCH.Engine.ShadowErrors.h.obj"
+"E:\git hub\CryptoHero_Land\public\RemakeOnUE4\CryptoHeroes2\Plugins\SocketIO_UE4.26-main\Intermediate\Build\Win64\UE4Editor\Development\SIOJson\Module.SIOJson.cpp.obj"
+"E:\git hub\CryptoHero_Land\public\RemakeOnUE4\CryptoHeroes2\Plugins\SocketIO_UE4.26-main\Intermediate\Build\Win64\UE4Editor\Development\SIOJson\Module.SIOJson.gen.cpp.obj"
+"C:\EPIC GAMES\UnrealEngine-4.26.2-release\Engine\Intermediate\Build\Win64\UE4Editor\Development\Default.rc2.res"
+/OUT:"E:\git hub\CryptoHero_Land\public\RemakeOnUE4\CryptoHeroes2\Plugins\SocketIO_UE4.26-main\Intermediate\Build\Win64\UE4Editor\Development\SIOJson\UE4Editor-SIOJson-0010.lib"
+/INCLUDE:IMPLEMENT_MODULE_SIOJson

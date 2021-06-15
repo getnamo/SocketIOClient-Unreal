@@ -1,0 +1,22 @@
+{
+	"RemapUnityFiles": 
+	{
+		"Module.SIOJson.cpp.obj": [
+			"SIOJConvert.cpp.obj",
+			"SIOJLibrary.cpp.obj",
+			"SIOJRequestJSON.cpp.obj",
+			"SIOJson.cpp.obj",
+			"SIOJsonObject.cpp.obj",
+			"SIOJsonValue.cpp.obj"
+		],
+		"Module.SIOJson.gen.cpp.obj": [
+			"SIOJConvert.gen.cpp.obj",
+			"SIOJLibrary.gen.cpp.obj",
+			"SIOJRequestJSON.gen.cpp.obj",
+			"SIOJson.init.gen.cpp.obj",
+			"SIOJsonObject.gen.cpp.obj",
+			"SIOJsonValue.gen.cpp.obj",
+			"SIOJTypes.gen.cpp.obj"
+		]
+	}
+}

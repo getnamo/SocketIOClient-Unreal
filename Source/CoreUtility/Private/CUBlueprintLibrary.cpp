@@ -18,7 +18,6 @@
 #include "CULambdaRunnable.h"
 #include "CUOpusCoder.h"
 #include "CUMeasureTimer.h"
-#include "Hash/CityHash.h"
 
 #pragma warning( push )
 #pragma warning( disable : 5046)
@@ -418,11 +417,6 @@ FString UCUBlueprintLibrary::NowUTCString()
 FString UCUBlueprintLibrary::GetLoginId()
 {
 	return FPlatformMisc::GetLoginId();
-}
-
-int32 UCUBlueprintLibrary::ToHashCode(const FString& String)
-{
-	return (int32)CityHash32(TCHAR_TO_ANSI(*String), String.Len());
 }
 
 void UCUBlueprintLibrary::MeasureTimerStart(const FString& Category /*= TEXT("TimeTaken")*/)

@@ -1,0 +1,19 @@
+{
+	"RemapUnityFiles": 
+	{
+		"Module.SocketIOClient.cpp.obj": [
+			"SIOMessageConvert.cpp.obj",
+			"SocketIOClient.cpp.obj",
+			"SocketIOClientComponent.cpp.obj",
+			"SocketIOFunctionLibrary.cpp.obj",
+			"SocketIONative.cpp.obj"
+		],
+		"Module.SocketIOClient.gen.cpp.obj": [
+			"SIOMessageConvert.gen.cpp.obj",
+			"SocketIOClient.init.gen.cpp.obj",
+			"SocketIOClientComponent.gen.cpp.obj",
+			"SocketIOFunctionLibrary.gen.cpp.obj",
+			"SocketIONative.gen.cpp.obj"
+		]
+	}
+}

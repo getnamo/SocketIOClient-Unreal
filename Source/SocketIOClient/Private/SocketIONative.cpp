@@ -34,7 +34,7 @@ void FSocketIONative::Connect(const FString& InAddressAndPort, const TSharedPtr<
 	}
 
 	//Connect to the server on a background thread so it never blocks
-	FCULambdaRunnable::RunLambdaOnBackGroundThread([&, StdAddressString, Query, Headers]
+	FCULambdaRunnable::RunLambdaOnBackGroundThread([&, StdAddressString, Query, Headers, Path]
 	{
 		std::map<std::string, std::string> QueryMap = {};
 		std::map<std::string, std::string> HeadersMap = {};
@@ -52,6 +52,9 @@ void FSocketIONative::Connect(const FString& InAddressAndPort, const TSharedPtr<
 
 		PrivateClient->set_reconnect_attempts(MaxReconnectionAttempts);
 		PrivateClient->set_reconnect_delay(ReconnectionDelay);
+		
+		if (!Path.IsEmpty())
+			PrivateClient->set_path(TCHAR_TO_ANSI(*Path));
 
 		//close and reconnect if different url
 		if(PrivateClient->opened())

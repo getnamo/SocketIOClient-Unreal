@@ -1,0 +1,59 @@
+/Zc:inline
+/nologo
+/Oi
+/c
+/Gw
+/Gy
+/Zm1000
+/wd4819
+/D_CRT_STDIO_LEGACY_WIDE_SPECIFIERS=1
+/D_SILENCE_STDEXT_HASH_DEPRECATION_WARNINGS=1
+/D_WINDLL
+/D_DISABLE_EXTENDED_ALIGNED_STORAGE
+/source-charset:utf-8
+/execution-charset:utf-8
+/Ob2
+/Ox
+/Ot
+/GF
+/errorReport:prompt
+/EHsc
+/Z7
+/MD
+/bigobj
+/fp:fast
+/Zo
+/Zp8
+/we4456
+/we4458
+/we4459
+/wd4463
+/wd4244
+/wd4838
+/I .
+/I "E:\git hub\CryptoHero_Land\public\RemakeOnUE4\CryptoHeroes2\Plugins\SocketIO_UE4.26-main\Source\SocketIOLib\Private"
+/I "E:\git hub\CryptoHero_Land\public\RemakeOnUE4\CryptoHeroes2\Plugins\SocketIO_UE4.26-main\Source\SocketIOLib\Private\internal"
+/I "E:\git hub\CryptoHero_Land\public\RemakeOnUE4\CryptoHeroes2\Plugins\SocketIO_UE4.26-main\Source\ThirdParty\websocketpp"
+/I "E:\git hub\CryptoHero_Land\public\RemakeOnUE4\CryptoHeroes2\Plugins\SocketIO_UE4.26-main\Source\ThirdParty\asio\asio\include"
+/I "E:\git hub\CryptoHero_Land\public\RemakeOnUE4\CryptoHeroes2\Plugins\SocketIO_UE4.26-main\Source\ThirdParty\rapidjson\include"
+/I "E:\git hub\CryptoHero_Land\public\RemakeOnUE4\CryptoHeroes2\Plugins\SocketIO_UE4.26-main\Source\ThirdParty\openssl\x64\include"
+/I "E:\git hub\CryptoHero_Land\public\RemakeOnUE4\CryptoHeroes2\Plugins\SocketIO_UE4.26-main\Source"
+/I "E:\git hub\CryptoHero_Land\public\RemakeOnUE4\CryptoHeroes2\Plugins\SocketIO_UE4.26-main\Source\SocketIOLib\Public"
+/I Runtime
+/I Runtime\TraceLog\Public
+/I Runtime\Core\Public
+/I "C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\VC\Tools\MSVC\14.28.29910\INCLUDE"
+/I "C:\Program Files (x86)\Windows Kits\NETFXSDK\4.6.2\include\um"
+/I "C:\Program Files (x86)\Windows Kits\10\include\10.0.19041.0\ucrt"
+/I "C:\Program Files (x86)\Windows Kits\10\include\10.0.19041.0\shared"
+/I "C:\Program Files (x86)\Windows Kits\10\include\10.0.19041.0\um"
+/I "C:\Program Files (x86)\Windows Kits\10\include\10.0.19041.0\winrt"
+/FI"C:\EPIC GAMES\UnrealEngine-4.26.2-release\Engine\Intermediate\Build\Win64\UE4Editor\Development\Core\SharedPCH.Core.RTTI.ShadowErrors.h"
+/Yu"C:\EPIC GAMES\UnrealEngine-4.26.2-release\Engine\Intermediate\Build\Win64\UE4Editor\Development\Core\SharedPCH.Core.RTTI.ShadowErrors.h"
+/Fp"C:\EPIC GAMES\UnrealEngine-4.26.2-release\Engine\Intermediate\Build\Win64\UE4Editor\Development\Core\SharedPCH.Core.RTTI.ShadowErrors.h.pch"
+"E:\git hub\CryptoHero_Land\public\RemakeOnUE4\CryptoHeroes2\Plugins\SocketIO_UE4.26-main\Intermediate\Build\Win64\UE4Editor\Development\SocketIOLib\Module.SocketIOLib.cpp"
+/FI"E:\git hub\CryptoHero_Land\public\RemakeOnUE4\CryptoHeroes2\Plugins\SocketIO_UE4.26-main\Intermediate\Build\Win64\UE4Editor\Development\SocketIOLib\Definitions.SocketIOLib.h"
+/Fo"E:\git hub\CryptoHero_Land\public\RemakeOnUE4\CryptoHeroes2\Plugins\SocketIO_UE4.26-main\Intermediate\Build\Win64\UE4Editor\Development\SocketIOLib\Module.SocketIOLib.cpp.obj"
+/TP
+/GR
+/W4

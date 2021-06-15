@@ -1,0 +1,56 @@
+E:\git hub\CryptoHero_Land\public\RemakeOnUE4\CryptoHeroes2\Plugins\SocketIO_UE4.26-main\Intermediate\Build\Win64\UE4Editor\Development\SocketIOClient\Definitions.SocketIOClient.h
+E:/git hub/CryptoHero_Land/public/RemakeOnUE4/CryptoHeroes2/Plugins/SocketIO_UE4.26-main/Source/SocketIOClient/Private/SIOMessageConvert.cpp
+E:\git hub\CryptoHero_Land\public\RemakeOnUE4\CryptoHeroes2\Plugins\SocketIO_UE4.26-main\Source\SocketIOClient\Public\SIOMessageConvert.h
+E:\git hub\CryptoHero_Land\public\RemakeOnUE4\CryptoHeroes2\Plugins\SocketIO_UE4.26-main\Source\SocketIOLib\Public\sio_client.h
+C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\VC\Tools\MSVC\14.28.29910\INCLUDE\string
+C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\VC\Tools\MSVC\14.28.29910\INCLUDE\xstring
+C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\VC\Tools\MSVC\14.28.29910\INCLUDE\iosfwd
+C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\VC\Tools\MSVC\14.28.29910\INCLUDE\cstdio
+C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\VC\Tools\MSVC\14.28.29910\INCLUDE\cwchar
+C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\VC\Tools\MSVC\14.28.29910\INCLUDE\xmemory
+C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\VC\Tools\MSVC\14.28.29910\INCLUDE\limits
+C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\VC\Tools\MSVC\14.28.29910\INCLUDE\cfloat
+C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\VC\Tools\MSVC\14.28.29910\INCLUDE\isa_availability.h
+C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\VC\Tools\MSVC\14.28.29910\INCLUDE\xutility
+C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\VC\Tools\MSVC\14.28.29910\INCLUDE\utility
+C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\VC\Tools\MSVC\14.28.29910\INCLUDE\cctype
+C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\VC\Tools\MSVC\14.28.29910\INCLUDE\functional
+C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\VC\Tools\MSVC\14.28.29910\INCLUDE\tuple
+E:\git hub\CryptoHero_Land\public\RemakeOnUE4\CryptoHeroes2\Plugins\SocketIO_UE4.26-main\Source\SocketIOLib\Public\sio_message.h
+C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\VC\Tools\MSVC\14.28.29910\INCLUDE\memory
+C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\VC\Tools\MSVC\14.28.29910\INCLUDE\vector
+C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\VC\Tools\MSVC\14.28.29910\INCLUDE\map
+C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\VC\Tools\MSVC\14.28.29910\INCLUDE\xtree
+C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\VC\Tools\MSVC\14.28.29910\INCLUDE\cassert
+C:\Program Files (x86)\Windows Kits\10\include\10.0.19041.0\ucrt\assert.h
+E:\git hub\CryptoHero_Land\public\RemakeOnUE4\CryptoHeroes2\Plugins\SocketIO_UE4.26-main\Source\SocketIOLib\Public\sio_socket.h
+E:\git hub\CryptoHero_Land\public\RemakeOnUE4\CryptoHeroes2\Plugins\SocketIO_UE4.26-main\Intermediate\Build\Win64\UE4Editor\Inc\SocketIOClient\SIOMessageConvert.generated.h
+E:\git hub\CryptoHero_Land\public\RemakeOnUE4\CryptoHeroes2\Plugins\SocketIO_UE4.26-main\Source\SIOJson\Public\SIOJsonValue.h
+E:\git hub\CryptoHero_Land\public\RemakeOnUE4\CryptoHeroes2\Plugins\SocketIO_UE4.26-main\Intermediate\Build\Win64\UE4Editor\Inc\SIOJson\SIOJsonValue.generated.h
+E:/git hub/CryptoHero_Land/public/RemakeOnUE4/CryptoHeroes2/Plugins/SocketIO_UE4.26-main/Source/SocketIOClient/Private/SocketIOClient.cpp
+E:\git hub\CryptoHero_Land\public\RemakeOnUE4\CryptoHeroes2\Plugins\SocketIO_UE4.26-main\Source\SocketIOClient\Public\SocketIOClient.h
+E:\git hub\CryptoHero_Land\public\RemakeOnUE4\CryptoHeroes2\Plugins\SocketIO_UE4.26-main\Source\SocketIOClient\Public\SocketIONative.h
+E:\git hub\CryptoHero_Land\public\RemakeOnUE4\CryptoHeroes2\Plugins\SocketIO_UE4.26-main\Source\SIOJson\Public\SIOJsonObject.h
+E:\git hub\CryptoHero_Land\public\RemakeOnUE4\CryptoHeroes2\Plugins\SocketIO_UE4.26-main\Intermediate\Build\Win64\UE4Editor\Inc\SIOJson\SIOJsonObject.generated.h
+E:\git hub\CryptoHero_Land\public\RemakeOnUE4\CryptoHeroes2\Plugins\SocketIO_UE4.26-main\Source\SIOJson\Public\SIOJConvert.h
+E:\git hub\CryptoHero_Land\public\RemakeOnUE4\CryptoHeroes2\Plugins\SocketIO_UE4.26-main\Intermediate\Build\Win64\UE4Editor\Inc\SIOJson\SIOJConvert.generated.h
+E:\git hub\CryptoHero_Land\public\RemakeOnUE4\CryptoHeroes2\Plugins\SocketIO_UE4.26-main\Source\CoreUtility\Public\CULambdaRunnable.h
+C:\EPIC GAMES\UnrealEngine-4.26.2-release\Engine\Source\Runtime\Engine\Public\LatentActions.h
+E:/git hub/CryptoHero_Land/public/RemakeOnUE4/CryptoHeroes2/Plugins/SocketIO_UE4.26-main/Source/SocketIOClient/Private/SocketIOClientComponent.cpp
+E:\git hub\CryptoHero_Land\public\RemakeOnUE4\CryptoHeroes2\Plugins\SocketIO_UE4.26-main\Source\SocketIOClient\Public\SocketIOClientComponent.h
+E:\git hub\CryptoHero_Land\public\RemakeOnUE4\CryptoHeroes2\Plugins\SocketIO_UE4.26-main\Intermediate\Build\Win64\UE4Editor\Inc\SocketIOClient\SocketIOClientComponent.generated.h
+E:\git hub\CryptoHero_Land\public\RemakeOnUE4\CryptoHeroes2\Plugins\SocketIO_UE4.26-main\Source\SIOJson\Public\SIOJRequestJSON.h
+C:\EPIC GAMES\UnrealEngine-4.26.2-release\Engine\Source\Runtime\Online\HTTP\Public\Http.h
+C:\EPIC GAMES\UnrealEngine-4.26.2-release\Engine\Source\Runtime\Online\HTTP\Public\HttpModule.h
+C:\EPIC GAMES\UnrealEngine-4.26.2-release\Engine\Source\Runtime\Online\HTTP\Public\Interfaces/IHttpRequest.h
+C:\EPIC GAMES\UnrealEngine-4.26.2-release\Engine\Source\Runtime\Online\HTTP\Public\Interfaces/IHttpBase.h
+C:\EPIC GAMES\UnrealEngine-4.26.2-release\Engine\Source\Runtime\Online\HTTP\Public\Interfaces/IHttpResponse.h
+C:\EPIC GAMES\UnrealEngine-4.26.2-release\Engine\Source\Runtime\Online\HTTP\Public\PlatformHttp.h
+C:\EPIC GAMES\UnrealEngine-4.26.2-release\Engine\Source\Runtime\Online\HTTP\Public\Windows/WindowsPlatformHttp.h
+C:\EPIC GAMES\UnrealEngine-4.26.2-release\Engine\Source\Runtime\Online\HTTP\Public\GenericPlatform/GenericPlatformHttp.h
+E:\git hub\CryptoHero_Land\public\RemakeOnUE4\CryptoHeroes2\Plugins\SocketIO_UE4.26-main\Source\SIOJson\Public\SIOJTypes.h
+E:\git hub\CryptoHero_Land\public\RemakeOnUE4\CryptoHeroes2\Plugins\SocketIO_UE4.26-main\Intermediate\Build\Win64\UE4Editor\Inc\SIOJson\SIOJRequestJSON.generated.h
+E:/git hub/CryptoHero_Land/public/RemakeOnUE4/CryptoHeroes2/Plugins/SocketIO_UE4.26-main/Source/SocketIOClient/Private/SocketIOFunctionLibrary.cpp
+E:\git hub\CryptoHero_Land\public\RemakeOnUE4\CryptoHeroes2\Plugins\SocketIO_UE4.26-main\Source\SocketIOClient\Public\SocketIOFunctionLibrary.h
+E:\git hub\CryptoHero_Land\public\RemakeOnUE4\CryptoHeroes2\Plugins\SocketIO_UE4.26-main\Intermediate\Build\Win64\UE4Editor\Inc\SocketIOClient\SocketIOFunctionLibrary.generated.h
+E:/git hub/CryptoHero_Land/public/RemakeOnUE4/CryptoHeroes2/Plugins/SocketIO_UE4.26-main/Source/SocketIOClient/Private/SocketIONative.cpp

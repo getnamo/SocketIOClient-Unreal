@@ -1,0 +1,276 @@
+/Zc:inline
+/nologo
+/Oi
+/c
+/Gw
+/Gy
+/Zm1000
+/wd4819
+/D_CRT_STDIO_LEGACY_WIDE_SPECIFIERS=1
+/D_SILENCE_STDEXT_HASH_DEPRECATION_WARNINGS=1
+/D_WINDLL
+/D_DISABLE_EXTENDED_ALIGNED_STORAGE
+/source-charset:utf-8
+/execution-charset:utf-8
+/Ob2
+/Ox
+/Ot
+/GF
+/errorReport:prompt
+/EHsc
+/Z7
+/MD
+/bigobj
+/fp:fast
+/Zo
+/Zp8
+/we4456
+/we4458
+/we4459
+/wd4463
+/wd4244
+/wd4838
+/I .
+/I "E:\git hub\CryptoHero_Land\public\RemakeOnUE4\CryptoHeroes2\Plugins\SocketIO_UE4.26-main\Source\CoreUtility\Private"
+/I ..\Intermediate\Build\Win64\UE4Editor\Inc\CoreUObject
+/I Runtime
+/I Runtime\CoreUObject\Public
+/I Runtime\TraceLog\Public
+/I Runtime\Core\Public
+/I ..\Intermediate\Build\Win64\UE4Editor\Inc\Engine
+/I Runtime\Engine\Classes
+/I Runtime\Engine\Public
+/I ..\Intermediate\Build\Win64\UE4Editor\Inc\NetCore
+/I Runtime\Net
+/I Runtime\Net\Core\Classes
+/I Runtime\Net\Core\Public
+/I Runtime\ApplicationCore\Public
+/I Runtime\RHI\Public
+/I Runtime\Json\Public
+/I ..\Intermediate\Build\Win64\UE4Editor\Inc\SlateCore
+/I Runtime\SlateCore\Public
+/I ..\Intermediate\Build\Win64\UE4Editor\Inc\InputCore
+/I Runtime\InputCore\Classes
+/I Runtime\InputCore\Public
+/I ..\Intermediate\Build\Win64\UE4Editor\Inc\Slate
+/I Runtime\Slate\Public
+/I ..\Intermediate\Build\Win64\UE4Editor\Inc\ImageWrapper
+/I Runtime\ImageWrapper\Public
+/I Runtime\Messaging\Public
+/I Runtime\MessagingCommon\Public
+/I Runtime\RenderCore\Public
+/I Runtime\Analytics
+/I Runtime\Analytics\AnalyticsET\Public
+/I Runtime\Analytics\Analytics\Public
+/I Runtime\Sockets\Public
+/I Runtime\Net\Common\Public
+/I ..\Intermediate\Build\Win64\UE4Editor\Inc\AssetRegistry
+/I Runtime\AssetRegistry\Public
+/I ..\Intermediate\Build\Win64\UE4Editor\Inc\EngineMessages
+/I Runtime\EngineMessages\Public
+/I ..\Intermediate\Build\Win64\UE4Editor\Inc\EngineSettings
+/I Runtime\EngineSettings\Classes
+/I Runtime\EngineSettings\Public
+/I Runtime\SynthBenchmark\Public
+/I ..\Intermediate\Build\Win64\UE4Editor\Inc\Renderer
+/I Runtime\Renderer\Public
+/I ..\Intermediate\Build\Win64\UE4Editor\Inc\GameplayTags
+/I Runtime\GameplayTags\Classes
+/I Runtime\GameplayTags\Public
+/I ..\Intermediate\Build\Win64\UE4Editor\Inc\PacketHandler
+/I Runtime\PacketHandlers
+/I Runtime\PacketHandlers\PacketHandler\Classes
+/I Runtime\PacketHandlers\PacketHandler\Public
+/I Runtime\PacketHandlers\ReliabilityHandlerComponent\Public
+/I ..\Intermediate\Build\Win64\UE4Editor\Inc\AudioPlatformConfiguration
+/I Runtime\AudioPlatformConfiguration\Public
+/I ..\Intermediate\Build\Win64\UE4Editor\Inc\MeshDescription
+/I Runtime\MeshDescription\Public
+/I ..\Intermediate\Build\Win64\UE4Editor\Inc\StaticMeshDescription
+/I Runtime\StaticMeshDescription\Public
+/I Runtime\PakFile\Public
+/I Runtime\RSA\Public
+/I Runtime\NetworkReplayStreaming
+/I Runtime\NetworkReplayStreaming\NetworkReplayStreaming\Public
+/I ..\Intermediate\Build\Win64\UE4Editor\Inc\PhysicsCore
+/I Runtime\PhysicsCore\Public
+/I ..\Intermediate\Build\Win64\UE4Editor\Inc\DeveloperSettings
+/I Runtime\DeveloperSettings\Public
+/I ..\Intermediate\Build\Win64\UE4Editor\Inc\Chaos
+/I Runtime\Experimental
+/I Runtime\Experimental\Chaos\Public
+/I Runtime\Experimental\ChaosCore\Public
+/I ThirdParty\Intel
+/I Runtime\Experimental\Voronoi\Public
+/I ThirdParty
+/I Runtime\SignalProcessing\Public
+/I ..\Intermediate\Build\Win64\UE4Editor\Inc\AudioExtensions
+/I Runtime\AudioExtensions\Public
+/I Runtime\AudioMixerCore\Public
+/I ..\Intermediate\Build\Win64\UE4Editor\Inc\PropertyAccess
+/I Runtime\PropertyAccess\Public
+/I ..\Intermediate\Build\Win64\UE4Editor\Inc\UnrealEd
+/I Editor
+/I Programs\UnrealLightmass\Public
+/I Developer\Android\AndroidDeviceDetection\Public\Interfaces
+/I Editor\UnrealEd\Classes
+/I Editor\UnrealEd\Public
+/I Developer
+/I Developer\DirectoryWatcher\Public
+/I Editor\Documentation\Public
+/I Runtime\Projects\Public
+/I Runtime\SandboxFile\Public
+/I ..\Intermediate\Build\Win64\UE4Editor\Inc\EditorStyle
+/I Editor\EditorStyle\Public
+/I ..\Intermediate\Build\Win64\UE4Editor\Inc\SourceControl
+/I Developer\SourceControl\Public
+/I ..\Intermediate\Build\Win64\UE4Editor\Inc\UnrealEdMessages
+/I Editor\UnrealEdMessages\Classes
+/I Editor\UnrealEdMessages\Public
+/I ..\Intermediate\Build\Win64\UE4Editor\Inc\GameplayDebugger
+/I Developer\GameplayDebugger\Public
+/I ..\Intermediate\Build\Win64\UE4Editor\Inc\BlueprintGraph
+/I Editor\BlueprintGraph\Classes
+/I Editor\BlueprintGraph\Public
+/I ..\Intermediate\Build\Win64\UE4Editor\Inc\EditorSubsystem
+/I Editor\EditorSubsystem\Public
+/I Runtime\Online
+/I Runtime\Online\HTTP\Public
+/I Runtime\UnrealAudio\Public
+/I ..\Intermediate\Build\Win64\UE4Editor\Inc\FunctionalTesting
+/I Developer\FunctionalTesting\Classes
+/I Developer\FunctionalTesting\Public
+/I ..\Intermediate\Build\Win64\UE4Editor\Inc\AutomationController
+/I Developer\AutomationController\Public
+/I ..\Intermediate\Build\Win64\UE4Editor\Inc\Localization
+/I Developer\Localization\Public
+/I ..\Intermediate\Build\Win64\UE4Editor\Inc\AudioEditor
+/I Editor\AudioEditor\Classes
+/I Editor\AudioEditor\Public
+/I ..\Intermediate\Build\Win64\UE4Editor\Inc\AudioMixer
+/I Runtime\AudioMixer\Classes
+/I Runtime\AudioMixer\Public
+/I Developer\TargetPlatform\Public
+/I ..\Intermediate\Build\Win64\UE4Editor\Inc\LevelEditor
+/I Editor\LevelEditor\Public
+/I Developer\Settings\Public
+/I ..\Intermediate\Build\Win64\UE4Editor\Inc\IntroTutorials
+/I Editor\IntroTutorials\Public
+/I ..\Intermediate\Build\Win64\UE4Editor\Inc\HeadMountedDisplay
+/I Runtime\HeadMountedDisplay\Public
+/I ..\Intermediate\Build\Win64\UE4Editor\Inc\VREditor
+/I Editor\VREditor
+/I Editor\VREditor\Public
+/I Editor\CommonMenuExtensions\Public
+/I ..\Intermediate\Build\Win64\UE4Editor\Inc\Landscape
+/I Runtime\Landscape\Classes
+/I Runtime\Landscape\Public
+/I ..\Intermediate\Build\Win64\UE4Editor\Inc\PropertyEditor
+/I Editor\PropertyEditor\Public
+/I Editor\ActorPickerMode\Public
+/I Editor\SceneDepthPickerMode\Public
+/I ..\Intermediate\Build\Win64\UE4Editor\Inc\DetailCustomizations
+/I Editor\DetailCustomizations\Public
+/I ..\Intermediate\Build\Win64\UE4Editor\Inc\ClassViewer
+/I Editor\ClassViewer\Public
+/I ..\Intermediate\Build\Win64\UE4Editor\Inc\GraphEditor
+/I Editor\GraphEditor\Public
+/I ..\Intermediate\Build\Win64\UE4Editor\Inc\StructViewer
+/I Editor\StructViewer\Public
+/I ..\Intermediate\Build\Win64\UE4Editor\Inc\ContentBrowser
+/I Editor\ContentBrowser\Public
+/I ..\Intermediate\Build\Win64\UE4Editor\Inc\ContentBrowserData
+/I Editor\ContentBrowserData\Public
+/I Developer\CollectionManager\Public
+/I ThirdParty\libSampleRate\Public
+/I Runtime\NetworkFileSystem\Public
+/I ..\Intermediate\Build\Win64\UE4Editor\Inc\UMG
+/I Runtime\UMG\Public
+/I ..\Intermediate\Build\Win64\UE4Editor\Inc\MovieScene
+/I Runtime\MovieScene\Public
+/I ..\Intermediate\Build\Win64\UE4Editor\Inc\TimeManagement
+/I Runtime\TimeManagement\Public
+/I ..\Intermediate\Build\Win64\UE4Editor\Inc\MovieSceneTracks
+/I Runtime\MovieSceneTracks\Public
+/I ..\Intermediate\Build\Win64\UE4Editor\Inc\AnimationCore
+/I Runtime\AnimationCore\Public
+/I ..\Intermediate\Build\Win64\UE4Editor\Inc\PropertyPath
+/I Runtime\PropertyPath\Public
+/I ..\Intermediate\Build\Win64\UE4Editor\Inc\NavigationSystem
+/I Runtime\NavigationSystem\Public
+/I Developer\MeshBuilder\Public
+/I ..\Intermediate\Build\Win64\UE4Editor\Inc\MaterialShaderQualitySettings
+/I Runtime\MaterialShaderQualitySettings\Classes
+/I ..\Intermediate\Build\Win64\UE4Editor\Inc\InteractiveToolsFramework
+/I Runtime\Experimental\InteractiveToolsFramework\Public
+/I ..\Intermediate\Build\Win64\UE4Editor\Inc\ToolMenusEditor
+/I Editor\ToolMenusEditor\Public
+/I ..\Intermediate\Build\Win64\UE4Editor\Inc\ToolMenus
+/I Developer\ToolMenus\Public
+/I Runtime\Windows
+/I Runtime\Windows\XAudio2\Public
+/I Editor\AssetTagsEditor\Public
+/I ..\Intermediate\Build\Win64\UE4Editor\Inc\AddContentDialog
+/I Editor\AddContentDialog\Public
+/I ThirdParty\Intel\Embree\Embree2140\Win64\include
+/I Developer\MeshUtilities\Public
+/I Developer\MeshMergeUtilities\Public
+/I Developer\HierarchicalLODUtilities\Public
+/I Developer\MeshReductionInterface\Public
+/I ..\Intermediate\Build\Win64\UE4Editor\Inc\AssetTools
+/I Developer\AssetTools\Public
+/I Editor\KismetCompiler\Public
+/I ..\Intermediate\Build\Win64\UE4Editor\Inc\GameplayTasks
+/I Runtime\GameplayTasks\Classes
+/I Runtime\GameplayTasks\Public
+/I ..\Intermediate\Build\Win64\UE4Editor\Inc\AIModule
+/I Runtime\AIModule\Public
+/I Runtime\AIModule\Classes
+/I ..\Intermediate\Build\Win64\UE4Editor\Inc\Kismet
+/I Editor\Kismet\Classes
+/I Editor\Kismet\Public
+/I ..\Intermediate\Build\Win64\UE4Editor\Inc\ClothingSystemRuntimeInterface
+/I Runtime\ClothingSystemRuntimeInterface\Public
+/I ThirdParty\libOpus\opus-1.1\include
+/I "E:\git hub\CryptoHero_Land\public\RemakeOnUE4\CryptoHeroes2\Plugins\SocketIO_UE4.26-main\Intermediate\Build\Win64\UE4Editor\Inc\CoreUtility"
+/I "E:\git hub\CryptoHero_Land\public\RemakeOnUE4\CryptoHeroes2\Plugins\SocketIO_UE4.26-main\Source"
+/I "E:\git hub\CryptoHero_Land\public\RemakeOnUE4\CryptoHeroes2\Plugins\SocketIO_UE4.26-main\Source\CoreUtility\Public"
+/I ThirdParty\PhysX3\PxShared\include
+/I ThirdParty\PhysX3\PxShared\include\cudamanager
+/I ThirdParty\PhysX3\PxShared\include\filebuf
+/I ThirdParty\PhysX3\PxShared\include\foundation
+/I ThirdParty\PhysX3\PxShared\include\pvd
+/I ThirdParty\PhysX3\PxShared\include\task
+/I ThirdParty\PhysX3\PhysX_3.4\Include
+/I ThirdParty\PhysX3\PhysX_3.4\Include\cooking
+/I ThirdParty\PhysX3\PhysX_3.4\Include\common
+/I ThirdParty\PhysX3\PhysX_3.4\Include\extensions
+/I ThirdParty\PhysX3\PhysX_3.4\Include\geometry
+/I ThirdParty\PhysX3\APEX_1.4\include
+/I ThirdParty\PhysX3\APEX_1.4\include\clothing
+/I ThirdParty\PhysX3\APEX_1.4\include\nvparameterized
+/I ThirdParty\PhysX3\APEX_1.4\include\legacy
+/I ThirdParty\PhysX3\APEX_1.4\include\PhysX3
+/I ThirdParty\PhysX3\APEX_1.4\common\include
+/I ThirdParty\PhysX3\APEX_1.4\common\include\autogen
+/I ThirdParty\PhysX3\APEX_1.4\framework\include
+/I ThirdParty\PhysX3\APEX_1.4\framework\include\autogen
+/I ThirdParty\PhysX3\APEX_1.4\shared\general\RenderDebug\public
+/I ThirdParty\PhysX3\APEX_1.4\shared\general\PairFilter\include
+/I ThirdParty\PhysX3\APEX_1.4\shared\internal\include
+/I ThirdParty\Ogg\libogg-1.2.2\include
+/I "C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\VC\Tools\MSVC\14.28.29910\INCLUDE"
+/I "C:\Program Files (x86)\Windows Kits\NETFXSDK\4.6.2\include\um"
+/I "C:\Program Files (x86)\Windows Kits\10\include\10.0.19041.0\ucrt"
+/I "C:\Program Files (x86)\Windows Kits\10\include\10.0.19041.0\shared"
+/I "C:\Program Files (x86)\Windows Kits\10\include\10.0.19041.0\um"
+/I "C:\Program Files (x86)\Windows Kits\10\include\10.0.19041.0\winrt"
+/FI"C:\EPIC GAMES\UnrealEngine-4.26.2-release\Engine\Intermediate\Build\Win64\UE4Editor\Development\Engine\SharedPCH.Engine.ShadowErrors.h"
+/Yu"C:\EPIC GAMES\UnrealEngine-4.26.2-release\Engine\Intermediate\Build\Win64\UE4Editor\Development\Engine\SharedPCH.Engine.ShadowErrors.h"
+/Fp"C:\EPIC GAMES\UnrealEngine-4.26.2-release\Engine\Intermediate\Build\Win64\UE4Editor\Development\Engine\SharedPCH.Engine.ShadowErrors.h.pch"
+"E:\git hub\CryptoHero_Land\public\RemakeOnUE4\CryptoHeroes2\Plugins\SocketIO_UE4.26-main\Intermediate\Build\Win64\UE4Editor\Development\CoreUtility\Module.CoreUtility.cpp"
+/FI"E:\git hub\CryptoHero_Land\public\RemakeOnUE4\CryptoHeroes2\Plugins\SocketIO_UE4.26-main\Intermediate\Build\Win64\UE4Editor\Development\CoreUtility\Definitions.CoreUtility.h"
+/Fo"E:\git hub\CryptoHero_Land\public\RemakeOnUE4\CryptoHeroes2\Plugins\SocketIO_UE4.26-main\Intermediate\Build\Win64\UE4Editor\Development\CoreUtility\Module.CoreUtility.cpp.obj"
+/TP
+/GR-
+/W4

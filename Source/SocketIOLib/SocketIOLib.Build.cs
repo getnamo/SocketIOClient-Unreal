@@ -33,7 +33,8 @@ namespace UnrealBuildTool.Rules
 					Path.Combine(ThirdPartyPath, "websocketpp"),
 					Path.Combine(ThirdPartyPath, "asio/asio/include"),
 					Path.Combine(ThirdPartyPath, "rapidjson/include"),
-	            }
+					Path.Combine(ThirdPartyPath, "openssl/x64/include")
+				}
 	            );
 
 
@@ -48,29 +49,41 @@ namespace UnrealBuildTool.Rules
 	        PrivateDependencyModuleNames.AddRange(
 	            new string[]
 	            {
-	            "CoreUObject",
-	            "Engine",
-				"OpenSSL"
 	            }
 	            );
 
-			DynamicallyLoadedModuleNames.AddRange(
+
+	        DynamicallyLoadedModuleNames.AddRange(
 	            new string[]
 	            {
 	            }
 	            );
 
-			/*
-			//Setup TLS support | Maybe other platforms work as well (untested)
-			if (Target.Platform == UnrealTargetPlatform.Win64 ||
-				Target.Platform == UnrealTargetPlatform.Win32 ||
-				Target.Platform == UnrealTargetPlatform.Mac ||
-				Target.Platform == UnrealTargetPlatform.IOS
-				)
-			{
+
+			if (Target.Platform == UnrealTargetPlatform.Win64)
+			{ // setup TLS support 
+
 				PublicDefinitions.Add("SIO_TLS");
+
+				if (Target.Type == TargetType.Editor)
+				{
+					PublicAdditionalLibraries.Add(Path.Combine(ThirdPartyPath, "openssl/x64/lib/libcrypto.lib"));
+					PublicAdditionalLibraries.Add(Path.Combine(ThirdPartyPath, "openssl/x64/lib/libssl.lib"));
+				}
+				RuntimeDependencies.Add(Path.Combine(ThirdPartyPath, "openssl/x64/bin/libcrypto-1_1-x64.dll"));
+				RuntimeDependencies.Add(Path.Combine(ThirdPartyPath, "openssl/x64/bin/libssl-1_1-x64.dll"));
+
+				RuntimeDependencies.Add(Path.Combine(PluginDirectory, "Binaries/Win64/libcrypto-1_1-x64.dll"),
+					Path.Combine(ThirdPartyPath, "openssl/x64/bin/libcrypto-1_1-x64.dll"));
+				RuntimeDependencies.Add(Path.Combine(PluginDirectory, "Binaries/Win64/libssl-1_1-x64.dll"),
+					Path.Combine(ThirdPartyPath, "openssl/x64/bin//libssl-1_1-x64.dll"));
+
+				RuntimeDependencies.Add("$(TargetOutputDir)/libcrypto-1_1-x64.dll",
+					Path.Combine(ThirdPartyPath, "openssl/x64/bin/libcrypto-1_1-x64.dll"));
+				RuntimeDependencies.Add("$(TargetOutputDir)/libssl-1_1-x64.dll", 
+					Path.Combine(ThirdPartyPath, "openssl/x64/bin/libssl-1_1-x64.dll"));
+
 			}
-			*/
-	    }
+		}
 	}
 }

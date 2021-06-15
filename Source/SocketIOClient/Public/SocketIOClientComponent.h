@@ -415,8 +415,11 @@ public:
 
 	~USocketIOClientComponent();
 	
-protected:
+
 	void SetupCallbacks();
+
+protected:
+
 	void ClearCallbacks();
 	void InitializeNative();
 

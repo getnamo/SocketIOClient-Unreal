@@ -1,0 +1,13 @@
+/NOLOGO
+/errorReport:prompt
+/MACHINE:x64
+/SUBSYSTEM:WINDOWS
+/DEF
+/NAME:"UE4Editor-SocketIOLib-0012.dll"
+/IGNORE:4221
+/NODEFAULTLIB
+"C:\EPIC GAMES\UnrealEngine-4.26.2-release\Engine\Intermediate\Build\Win64\UE4Editor\Development\Core\SharedPCH.Core.RTTI.ShadowErrors.h.obj"
+"E:\git hub\CryptoHero_Land\public\RemakeOnUE4\CryptoHeroes2\Plugins\SocketIO_UE4.26-main\Intermediate\Build\Win64\UE4Editor\Development\SocketIOLib\Module.SocketIOLib.cpp.obj"
+"C:\EPIC GAMES\UnrealEngine-4.26.2-release\Engine\Intermediate\Build\Win64\UE4Editor\Development\Default.rc2.res"
+/OUT:"E:\git hub\CryptoHero_Land\public\RemakeOnUE4\CryptoHeroes2\Plugins\SocketIO_UE4.26-main\Intermediate\Build\Win64\UE4Editor\Development\SocketIOLib\UE4Editor-SocketIOLib-0012.lib"
+/INCLUDE:IMPLEMENT_MODULE_SocketIOLib

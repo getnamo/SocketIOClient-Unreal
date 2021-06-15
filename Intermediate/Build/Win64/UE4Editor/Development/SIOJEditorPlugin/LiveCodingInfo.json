@@ -1,0 +1,13 @@
+{
+	"RemapUnityFiles": 
+	{
+		"Module.SIOJEditorPlugin.cpp.obj": [
+			"SIOJ_BreakJson.cpp.obj",
+			"SIOJEditorPlugin.cpp.obj"
+		],
+		"Module.SIOJEditorPlugin.gen.cpp.obj": [
+			"SIOJ_BreakJson.gen.cpp.obj",
+			"SIOJEditorPlugin.init.gen.cpp.obj"
+		]
+	}
+}

@@ -11,7 +11,7 @@ Socket.IO Lib uses _asio_, _rapidjson_, and _websocketpp_. SIOJson is originally
 [Unreal Forum Thread](https://forums.unrealengine.com/showthread.php?110680-Plugin-Socket-io-Client)
 
 
-Recommended socket.io server version: 3.0+
+Recommended socket.io server version: 1.4+.
 
 *Tip: This is a sizeable readme, quickly find your topic with ```Ctrl+F``` and a search term e.g. namespaces*
 
@@ -22,31 +22,8 @@ Current platform issues:
 * Xbox/PS4 platform untested - see [issue 117](https://github.com/getnamo/socketio-client-ue4/issues/117)
 * Lumin platform untested - see [issue 114](https://github.com/getnamo/socketio-client-ue4/issues/114)
 
-HTTPS is only supported through a little change in the source code.
-* OpenSSL Support - <a href="https://github.com/dobby5/socketio-client-ue4/blob/0d3420f626704802d457e125bf01d0d4d26bbfe3/Source/SocketIOLib/SocketIOLib.Build.cs#L63-L73">Remove this declaration and compile the code, that's all.</a>
 
-## Compatibility table
-
-<table>
-  <tr>
-    <th rowspan="2">UE4 Socket.IO plugin version</th>
-    <th colspan="2">Socket.IO server version</th>
-  </tr>
-  <tr>
-    <td align="center">1.x / 2.x</td>
-    <td align="center">3.x / 4.x</td>
-  </tr>
-  <tr>
-    <td><a href="https://github.com/getnamo/socketio-client-ue4/releases/tag/1.5.5">Up to tag 1.5.5</a></td>
-    <td align="center">YES</td>
-    <td align="center">NO</td>
-  </tr>
-  <tr>
-    <td><a href="https://github.com/dobby5/socketio-client-ue4">1.6+ (master branch)</a></td>
-    <td align="center">NO</td>
-    <td align="center">YES</td>
-  </tr>
-</table>
+* OpenSSL Support allready
 
 ## Quick Install & Setup ##
 

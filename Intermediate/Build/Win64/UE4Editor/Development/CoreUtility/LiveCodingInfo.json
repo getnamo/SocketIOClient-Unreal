@@ -1,0 +1,18 @@
+{
+	"RemapUnityFiles": 
+	{
+		"Module.CoreUtility.cpp.obj": [
+			"CUBlueprintLibrary.cpp.obj",
+			"CUFileComponent.cpp.obj",
+			"CULambdaRunnable.cpp.obj",
+			"CUMeasureTimer.cpp.obj",
+			"CUOpusCoder.cpp.obj",
+			"FCoreUtility.cpp.obj"
+		],
+		"Module.CoreUtility.gen.cpp.obj": [
+			"CoreUtility.init.gen.cpp.obj",
+			"CUBlueprintLibrary.gen.cpp.obj",
+			"CUFileComponent.gen.cpp.obj"
+		]
+	}
+}

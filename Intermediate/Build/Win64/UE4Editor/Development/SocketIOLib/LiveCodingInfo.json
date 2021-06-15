@@ -1,0 +1,12 @@
+{
+	"RemapUnityFiles": 
+	{
+		"Module.SocketIOLib.cpp.obj": [
+			"sio_client_impl.cpp.obj",
+			"sio_packet.cpp.obj",
+			"sio_client.cpp.obj",
+			"sio_socket.cpp.obj",
+			"SocketIOLib.cpp.obj"
+		]
+	}
+}
