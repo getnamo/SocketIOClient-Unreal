@@ -40,6 +40,28 @@ FString UCUFileComponent::ExternalSaveDirectory()
 #endif
 }
 
+void UCUFileComponent::SplitFullPath(const FString& InFullPath, FString& OutDirectory, FString& OutFileName)
+{
+	bool bDidSplit = InFullPath.Split(TEXT("/"), &OutDirectory, &OutFileName, ESearchCase::CaseSensitive, ESearchDir::FromEnd);
+
+	if (!bDidSplit) 
+	{
+		//search by backslash
+		InFullPath.Split(TEXT("\\\\"), &OutDirectory, &OutFileName, ESearchCase::CaseSensitive, ESearchDir::FromEnd);
+	}
+}
+
+void UCUFileComponent::ProjectRelativePath(const FString& InFullPath, FString& OutProjectRelativePath)
+{
+	const FString PathToProject = ProjectDirectory();
+
+	FString Before, After;
+
+	InFullPath.Split(PathToProject, &Before, &After);
+
+	OutProjectRelativePath = After;
+}
+
 bool UCUFileComponent::SaveBytesToFile(const TArray<uint8>& Bytes, const FString& Directory, const FString& FileName, bool bLogSave)
 {
 	//bool AllowOverwriting = false;

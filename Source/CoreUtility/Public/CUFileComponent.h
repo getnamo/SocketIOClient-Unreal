@@ -31,6 +31,12 @@ public:
 	UFUNCTION(BlueprintPure, Category = FileUtility)
 	FString ExternalSaveDirectory();
 
+	UFUNCTION(BlueprintPure, Category = FileUtility)
+	void SplitFullPath(const FString& InFullPath, FString& OutDirectory, FString& OutFileName);
+
+	UFUNCTION(BlueprintPure, Category = FileUtility)
+	void ProjectRelativePath(const FString& InFullPath, FString& OutProjectRelativePath);
+
 	/** Save array of bytes to file at specified directory */
 	UFUNCTION(BlueprintCallable, Category = FileUtility)
 	bool SaveBytesToFile(const TArray<uint8>& Bytes, const FString& Directory, const FString& FileName, bool bLogSave = false);
