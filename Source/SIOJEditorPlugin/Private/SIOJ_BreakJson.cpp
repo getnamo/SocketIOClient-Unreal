@@ -69,7 +69,7 @@ public:
 
 				FBPTerminal* FieldNameTerm = Context.CreateLocalTerminal(ETerminalSpecification::TS_Literal);
 				FieldNameTerm->Type.PinCategory = CompilerContext.GetSchema()->PC_String;
-#if ENGINE_MINOR_VERSION >= 13
+#if ENGINE_MAJOR_VERSION > 4
 				FieldNameTerm->SourcePin = Pin;
 #else
 				FieldNameTerm->Source = Pin;

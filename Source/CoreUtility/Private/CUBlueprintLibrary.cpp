@@ -294,7 +294,7 @@ void UCUBlueprintLibrary::SetSoundWaveFromWavBytes(USoundWaveProcedural* InSound
 TFuture<UTexture2D*> UCUBlueprintLibrary::Conv_BytesToTexture_Async(const TArray<uint8>& InBytes)
 {
 	//Running this on a background thread
-#if ENGINE_MINOR_VERSION < 23
+#if ENGINE_MAJOR_VERSION > 5
 	return Async<UTexture2D*>(EAsyncExecution::Thread,[InBytes]
 #else
 	return Async(EAsyncExecution::Thread, [InBytes]

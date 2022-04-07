@@ -17,7 +17,7 @@ TSharedPtr<FJsonValue> USIOMessageConvert::ToJsonValue(const sio::message::ptr& 
 	{
 		return MakeShareable(new FJsonValueNull());
 	}
-
+	
 	auto flag = Message->get_flag();
 
 	if (flag == sio::message::flag_integer)

@@ -68,10 +68,10 @@ FString USIOJsonObject::EncodeJsonToSingleString() const
 	FString OutputString = EncodeJson();
 
 	// Remove line terminators
-	OutputString.Replace(LINE_TERMINATOR, TEXT(""));
+	(void)OutputString.Replace(LINE_TERMINATOR, TEXT(""));
 	
 	// Remove tabs
-	OutputString.Replace(LINE_TERMINATOR, TEXT("\t"));
+	(void)OutputString.Replace(LINE_TERMINATOR, TEXT("\t"));
 
 	return OutputString;
 }

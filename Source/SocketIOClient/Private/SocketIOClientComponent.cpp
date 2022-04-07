@@ -433,13 +433,13 @@ void USocketIOClientComponent::LeaveNamespace(const FString& Namespace)
 #pragma region Emit
 #endif
 
-void USocketIOClientComponent::Emit(const FString& EventName, USIOJsonValue* Message, const FString& Namespace /*= FString(TEXT("/"))*/)
+void USocketIOClientComponent::Emit(const FString& EventName, const FString& Message, const FString& Namespace /*= FString(TEXT("/"))*/)
 {
 	//Set the message is not null
 	TSharedPtr<FJsonValue> JsonMessage = nullptr;
-	if (Message != nullptr)
+	if (Message != "")
 	{
-		JsonMessage = Message->GetRootValue();
+		JsonMessage = USIOJConvert::JsonStringToJsonValue(Message);
 	}
 	else
 	{
@@ -569,7 +569,7 @@ void USocketIOClientComponent::BindEventToGenericEvent(const FString& EventName,
 		USIOJsonValue* NewValue = NewObject<USIOJsonValue>();
 		TSharedPtr<FJsonValue> NonConstValue = EventValue;
 		NewValue->SetRootValue(NonConstValue);
-		OnGenericEvent.Broadcast(Event, NewValue);
+		OnGenericEvent.Broadcast(Event, NewValue->AsString());
 	}, Namespace);
 }
 

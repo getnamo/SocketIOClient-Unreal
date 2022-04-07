@@ -2,7 +2,6 @@
 	"FileVersion": 3,
 	"Version": 1,
 	"VersionName": "1.5.5",
-	"EngineVersion" : "4.26.0",
 	"FriendlyName": "Socket.IO Client",
 	"Description": "Real-time networking library Socket.IO Client usable from blueprints and c++.",
 	"Category": "Networking",
@@ -22,7 +21,6 @@
 			"LoadingPhase": "Default",
 			"WhitelistPlatforms": [
 				"Win64",
-				"Win32",
 				"Linux",
 				"Mac",
 				"Android",
@@ -35,7 +33,7 @@
 			"LoadingPhase": "PreDefault",
 			"WhitelistPlatforms": [
 				"Win64",
-				"Win32",
+				
 				"Linux",
 				"Mac",
 				"Android",
@@ -48,7 +46,7 @@
 			"LoadingPhase": "PreDefault",
 			"WhitelistPlatforms": [
 				"Win64",
-				"Win32",
+				
 				"Linux",
 				"Mac",
 				"Android",
@@ -61,7 +59,7 @@
 			"LoadingPhase": "PreDefault",
 			"WhitelistPlatforms": [
 				"Win64",
-				"Win32",
+				
 				"Linux",
 				"Mac",
 				"Android",
@@ -74,7 +72,7 @@
 			"LoadingPhase": "Default",
 			"WhitelistPlatforms": [
 				"Win64",
-				"Win32",
+				
 				"Linux",
 				"Mac",
 			]
