@@ -257,8 +257,8 @@ namespace
 		else if (FStructProperty *StructProperty = CastField<FStructProperty>(Property))
 		{
 			static const FName NAME_DateTime(TEXT("DateTime"));
-			static const FName NAME_Color(TEXT("Color"));
-			static const FName NAME_LinearColor(TEXT("LinearColor"));
+			static const FName NAME_Color_Local(TEXT("Color"));
+			static const FName NAME_LinearColor_Local(TEXT("LinearColor"));
 			if (JsonValue->Type == EJson::Object)
 			{
 				TSharedPtr<FJsonObject> Obj = JsonValue->AsObject();
@@ -269,7 +269,7 @@ namespace
 					return false;
 				}
 			}
-			else if (JsonValue->Type == EJson::String && StructProperty->Struct->GetFName() == NAME_LinearColor)
+			else if (JsonValue->Type == EJson::String && StructProperty->Struct->GetFName() == NAME_LinearColor_Local)
 			{
 				FLinearColor& ColorOut = *(FLinearColor*)OutValue;
 				FString ColorString = JsonValue->AsString();
