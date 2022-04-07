@@ -1,10 +1,10 @@
-# socketio-client-ue4
-Socket.io client plugin for UE4.
+# socketio-client-unreal
+Socket.io client plugin for the Unreal Engine.
 
-[![GitHub release](https://img.shields.io/github/release/getnamo/socketio-client-ue4.svg)](https://github.com/getnamo/socketio-client-ue4/releases)
-[![Github All Releases](https://img.shields.io/github/downloads/getnamo/socketio-client-ue4/total.svg)](https://github.com/getnamo/socketio-client-ue4/releases)
+[![GitHub release](https://img.shields.io/github/release/getnamo/socketio-client-unreal.svg)](https://github.com/getnamo/socketio-client-unreal/releases)
+[![Github All Releases](https://img.shields.io/github/downloads/getnamo/socketio-client-unreal/total.svg)](https://github.com/getnamo/socketio-client-unreal/releases)
 
-[Socket.io](http://socket.io/) is a performant real-time bi-directional communication library. There are two parts, the server written in node.js and the client typically javascript for the web. There are alternative client implementations and this repo uses the [C++11 client library](https://github.com/socketio/socket.io-client-cpp) ported to UE4.
+[Socket.io](http://socket.io/) is a performant real-time bi-directional communication library. There are two parts, the server written in node.js and the client typically javascript for the web. There are alternative client implementations and this repo uses the [C++11 client library](https://github.com/socketio/socket.io-client-cpp) ported to Unreal.
 
 Socket.IO Lib uses _asio_, _rapidjson_, and _websocketpp_. SIOJson is originally forked from ufna's [VaRest](https://github.com/ufna/VaRest)
 
@@ -19,16 +19,16 @@ Recommended socket.io server version: 1.4+.
 
 Current platform issues:
 
-* Xbox/PS4 platform untested - see [issue 117](https://github.com/getnamo/socketio-client-ue4/issues/117)
-* Lumin platform untested - see [issue 114](https://github.com/getnamo/socketio-client-ue4/issues/114)
+* Xbox/PS4 platform untested - see [issue 117](https://github.com/getnamo/socketio-client-unreal/issues/117)
+* Lumin platform untested - see [issue 114](https://github.com/getnamo/socketio-client-unreal/issues/114)
 
 HTTPS currently not yet supported
-* OpenSSL Support - Available under separate branch https://github.com/getnamo/socketio-client-ue4/tree/ssl. Issue tracked here: [issue39](https://github.com/getnamo/socketio-client-ue4/issues/39)
+* OpenSSL Support - Available under separate branch https://github.com/getnamo/socketio-client-unreal/tree/ssl. Issue tracked here: [issue39](https://github.com/getnamo/socketio-client-unreal/issues/39)
 
 ## Quick Install & Setup ##
 
 ### Via Github Releases
- 1. [Download Latest Release](https://github.com/getnamo/socketio-client-ue4/releases)
+ 1. [Download Latest Release](https://github.com/getnamo/socketio-client-unreal/releases)
  2. Create new or choose project.
  3. Browse to your project folder (typically found at Documents/Unreal Project/{Your Project Root})
  4. Copy *Plugins* folder into your Project root.
@@ -45,11 +45,11 @@ HTTPS currently not yet supported
  3. Create a *Plugins* in your project root folder and use that path for step 4. command.
  4. Git clone. Repository uses submodules, so recommended command is:
  
-```git clone https://github.com/getnamo/socketio-client-ue4.git --recurse-submodules```
+```git clone https://github.com/getnamo/socketio-client-unreal.git --recurse-submodules```
 
 ## Example Project - Chat
 
-For an example project check out https://github.com/getnamo/socketio-client-ue4-example which contains both server and client parts required to try out socket.io based chat, from UE4 to any other client and vice versa.
+For an example project check out https://github.com/getnamo/socketio-client-unreal-example which contains both server and client parts required to try out socket.io based chat, from Unreal to any other client and vice versa.
 
 ## How to use - BP Basics
 
@@ -75,7 +75,7 @@ Keep in mind that you can have this be a proper function instead of a custom eve
 
 ![IMG](https://i.imgur.com/QyItHsG.png)
 
-For the receiving type, if it's known, you can specify the exact type (like String in the example above see https://github.com/getnamo/socketio-client-ue4#emit-with-callback for supported signatures), or if you're not sure or it's a complex type (e.g. a struct) you set it to a SIOJsonValue and use functions to decode it (see https://github.com/getnamo/socketio-client-ue4#decoding-responses for details)
+For the receiving type, if it's known, you can specify the exact type (like String in the example above see https://github.com/getnamo/socketio-client-unreal#emit-with-callback for supported signatures), or if you're not sure or it's a complex type (e.g. a struct) you set it to a SIOJsonValue and use functions to decode it (see https://github.com/getnamo/socketio-client-unreal#decoding-responses for details)
 
 ![IMG](https://i.imgur.com/nNQTZ6j.png)
 
@@ -261,7 +261,7 @@ See https://socket.io/docs/server-api/#socket-on-eventName-callback for detailed
 
 ### Binding Events to Functions
 
-Instead of using the event graph and comparing strings, you can bind an event directly to a function. The format to make the function is the same as [callbacks](https://github.com/getnamo/socketio-client-ue4#emit-with-callback).
+Instead of using the event graph and comparing strings, you can bind an event directly to a function. The format to make the function is the same as [callbacks](https://github.com/getnamo/socketio-client-unreal#emit-with-callback).
 
 ![IMG](http://i.imgur.com/7fA1qca.png)
 
@@ -271,7 +271,7 @@ Since v1.1.0 use ```Bind Event to Function``` and change the thread override opt
 
 ![](https://user-images.githubusercontent.com/542365/69472108-f95c1280-0d5a-11ea-9667-579b22d77ac3.png)
 
-NB: You cannot make or destroy uobjects on non-gamethreads and be mindful of your access patterns across threads to ensure you don't get a race condition. See https://github.com/getnamo/socketio-client-ue4#blueprint-multithreading for other types of threading utility.
+NB: You cannot make or destroy uobjects on non-gamethreads and be mindful of your access patterns across threads to ensure you don't get a race condition. See https://github.com/getnamo/socketio-client-unreal#blueprint-multithreading for other types of threading utility.
 
 
 ### Namespaces
@@ -316,7 +316,7 @@ If you want your connection to survive level transitions, you can tick the class
 
 ![plugin scoped connection](https://i.imgur.com/lE8BHbN.png)
 
-This does mean that you may not receive events during times your actor does not have a world (such as a level transition without using a persistent parent map to which the socket.io component actor belongs). If this doesn't work for you consider switching to C++ and using [FSocketIONative](https://github.com/getnamo/socketio-client-ue4#c-fsocketionative), which doesn't doesn't depend on using an actor component.
+This does mean that you may not receive events during times your actor does not have a world (such as a level transition without using a persistent parent map to which the socket.io component actor belongs). If this doesn't work for you consider switching to C++ and using [FSocketIONative](https://github.com/getnamo/socketio-client-unreal#c-fsocketionative), which doesn't doesn't depend on using an actor component.
 
 ### Statically Constructed SocketIOClient Component
 
@@ -342,7 +342,7 @@ Plugin contains the CoreUtility module with a variety of useful C++ and blueprin
 
 Provides and easy way to save/load files to common project directories. Example usecase: Encode a received message to JSON and pass the bytes in to ```SaveBytesToFile``` to store your response.
 
-See https://github.com/getnamo/socketio-client-ue4/blob/master/Source/CoreUtility/Public/CUFileComponent.h for details.
+See https://github.com/getnamo/socketio-client-unreal/blob/master/Source/CoreUtility/Public/CUFileComponent.h for details.
 
 #### CULambdaRunnable
 
@@ -363,15 +363,15 @@ FCULambdaRunnable::RunLambdaOnBackGroundThread([]
 });
 ```
 
-See https://github.com/getnamo/socketio-client-ue4/blob/master/Source/CoreUtility/Public/CULambdaRunnable.h for full API.
+See https://github.com/getnamo/socketio-client-unreal/blob/master/Source/CoreUtility/Public/CULambdaRunnable.h for full API.
 
-For blueprint multi-threading see https://github.com/getnamo/socketio-client-ue4#blueprint-multithreading.
+For blueprint multi-threading see https://github.com/getnamo/socketio-client-unreal#blueprint-multithreading.
 
 #### CUMeasureTimer
 
 Static string tagged measurement of durations. Useful for sprinkling your code with duration messages for optimization. CUBlueprintLibrary exposes this utility to blueprint.
 
-See https://github.com/getnamo/socketio-client-ue4/blob/master/Source/CoreUtility/Public/CUBlueprintLibrary.h for details.
+See https://github.com/getnamo/socketio-client-unreal/blob/master/Source/CoreUtility/Public/CUBlueprintLibrary.h for details.
 
 #### CUBlueprintLibrary
 
@@ -399,7 +399,7 @@ The first task prepares an array with a million floats, the second sums them up.
 
 Standalone opus coder that doesn't depend on the online subsystem. Useful for custom VOIP solutions.
 
-See https://github.com/getnamo/socketio-client-ue4/blob/master/Source/CoreUtility/Public/CUOpusCoder.h for details.
+See https://github.com/getnamo/socketio-client-unreal/blob/master/Source/CoreUtility/Public/CUOpusCoder.h for details.
 
 ## How to use - C++
 
@@ -411,7 +411,7 @@ To use the C++ code from the plugin add _SocketIOClient_, _SocketIOLib_, and _Js
 PublicDependencyModuleNames.AddRange(new string[] { "Core", "CoreUObject", "Engine", "InputCore", "SocketIOClient", "SocketIOLib", "Json", "SIOJson" });
 ```
 
-This guide assumes you want to use the client component method. See the [_FSocketIONative_](https://github.com/getnamo/socketio-client-ue4#c-fsocketionative) section for non-actor based C++ details.
+This guide assumes you want to use the client component method. See the [_FSocketIONative_](https://github.com/getnamo/socketio-client-unreal#c-fsocketionative) section for non-actor based C++ details.
 
 ```#include "SocketIOClientComponent.h"``` and add *USocketIoClientComponent* to your actor of choice via e.g. a UProperty
 
@@ -478,7 +478,7 @@ Note that this is equivalent to the blueprint ```BindEventToFunction``` function
 
 ### Emitting Events
 
-In C++ you can use *EmitNative*, *EmitRaw*, or *EmitRawBinary*. *EmitNative* is fully overloaded and expects all kinds of native UE4 data types and is the recommended method.
+In C++ you can use *EmitNative*, *EmitRaw*, or *EmitRawBinary*. *EmitNative* is fully overloaded and expects all kinds of native Unreal data types and is the recommended method.
 
 #### String
 
@@ -630,7 +630,7 @@ SIOClientComponent->EmitNative(TEXT("callbackTest"),  FTestCppStruct::StaticStru
 
 ## C++ FSocketIONative
 
-If you do not wish to use UE4 AActors or UObjects, you can use the native base class [FSocketIONative](https://github.com/getnamo/socketio-client-ue4/blob/master/Source/SocketIOClient/Public/SocketIONative.h). Please see the class header for API. It generally follows a similar pattern to ```USocketIOClientComponent``` with the exception of native callbacks which you can for example see in use here: https://github.com/getnamo/socketio-client-ue4/blob/master/Source/SocketIOClient/Private/SocketIOClientComponent.cpp#L81
+If you do not wish to use Unreal AActors or UObjects, you can use the native base class [FSocketIONative](https://github.com/getnamo/socketio-client-unreal/blob/master/Source/SocketIOClient/Public/SocketIONative.h). Please see the class header for API. It generally follows a similar pattern to ```USocketIOClientComponent``` with the exception of native callbacks which you can for example see in use here: https://github.com/getnamo/socketio-client-unreal/blob/master/Source/SocketIOClient/Private/SocketIOClientComponent.cpp#L81
 
 ### Example FSocketIONative Custom Game Instance
 
@@ -796,7 +796,7 @@ If you're using non-ssl connections (which as of 1.0 is all that is supported), 
 
 ![IOS platform setting](https://i.imgur.com/J7Xzy2j.png)
 
-Its possible you may also need to convert your IP4 to IP6, see https://github.com/getnamo/socketio-client-ue4/issues/136#issuecomment-515337500
+Its possible you may also need to convert your IP4 to IP6, see https://github.com/getnamo/socketio-client-unreal/issues/136#issuecomment-515337500
 
 ### Android
 
@@ -805,4 +805,4 @@ Minimum/Target SDK 21 or higher is recommended, but not required.
 
 ## License
 
-[![license](https://img.shields.io/github/license/getnamo/socketio-client-ue4.svg)](https://github.com/getnamo/socketio-client-ue4/blob/master/LICENSE)
+[![license](https://img.shields.io/github/license/getnamo/socketio-client-unreal.svg)](https://github.com/getnamo/socketio-client-unreal/blob/master/LICENSE)
