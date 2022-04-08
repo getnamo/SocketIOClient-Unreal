@@ -360,9 +360,13 @@ Game Instances do *not* have actor owners and therefore cannot register and init
 
 Non actor-owners such as Game Instances cannot receive the graph callbacks due to invalid world context. This only affects this one callback method, other methods work as usual.
 
-### HTTPS/SSL
+### HTTPS/TLS
 
-For connections that require SSL use the toggle ```bShouldUseTLS``` on ```SocketIOClientComponent``` (or c++ native variants). Then on connect, your component will use TLS. NB CertificateVerification does NOT currently work and  ```bShouldSkipCertificateVerification``` should be set to true or it will always fail to connect, see https://github.com/getnamo/SocketIOClient-Unreal/issues/303 for progress.
+For connections that require TLS use the toggle ```bShouldUseTLS``` on ```SocketIOClientComponent``` (or c++ native variants). Then on connect, your component will use TLS. 
+
+NB CertificateVerification does NOT currently work and  ```bShouldSkipCertificateVerification``` should be set to true or it will always fail to connect, see https://github.com/getnamo/SocketIOClient-Unreal/issues/303 for progress.
+
+Gist with example node.js TLS server and instructions for self signing certificate for testing purposes: https://gist.github.com/getnamo/fe6c9574dc971066813fd291c363ee04
 
 ## CoreUtility
 
