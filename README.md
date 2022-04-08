@@ -362,7 +362,7 @@ Non actor-owners such as Game Instances cannot receive the graph callbacks due t
 
 ### HTTPS/SSL
 
-On the connections that requires SSL use the toggle ```bShouldUseTlsLibraries``` on the ```SocketIOClientComponent``` (or c++ native variants). Then on connection, your component will use SSL.
+On connections that require SSL use the toggle ```bShouldUseTlsLibraries``` on the ```SocketIOClientComponent``` (or c++ native variants). Then on connection, your component will use SSL.
 
 ## CoreUtility
 
