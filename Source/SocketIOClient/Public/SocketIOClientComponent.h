@@ -76,7 +76,7 @@ public:
 	bool bShouldUseTLS;
 
 	/**
-		* If `Should Use TLS Libraries` is set to true, setting this to true
+		* If `Should Use TLS` is set to true, setting this to true
 		* will not verify the authenticity of the SSL certificate (i.e. asio::ssl::verify_none).
 		* NOTE: Certification verification is currently not implemented; setting to false will
 		* always fail verification.
