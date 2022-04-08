@@ -360,7 +360,7 @@ Game Instances do *not* have actor owners and therefore cannot register and init
 
 Non actor-owners such as Game Instances cannot receive the graph callbacks due to invalid world context. This only affects this one callback method, other methods work as usual.
 
-### HTTPS/TLS/SSL
+## HTTPS/TLS/SSL Support
 
 For connections that require TLS use the toggle ```bShouldUseTLS``` on ```SocketIOClientComponent``` (or c++ native variants). Then on connect, your component will use TLS. 
 
