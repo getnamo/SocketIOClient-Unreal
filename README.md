@@ -40,12 +40,12 @@ Some features in later versions of this plugin are not supported by earlier vers
     <td align="center">3.x / 4.x</td>
   </tr>
   <tr>
-    <td><a href="https://github.com/getnamo/socketio-client-ue4/releases/tag/v2.0.1">v2.0.1 and earlier</a></td>
+    <td><a href="https://github.com/getnamo/socketio-client-ue4/releases/tag/v1.5.5">v1.5.5 and earlier</a></td>
     <td align="center">YES</td>
     <td align="center">NO</td>
   </tr>
   <tr>
-    <td><a href="https://github.com/dobby5/socketio-client-ue4">v2.1.0 and later</a></td>
+    <td><a href="https://github.com/dobby5/socketio-client-ue4">v1.6.0 and later</a></td>
     <td align="center">NO</td>
     <td align="center">YES</td>
   </tr>
