@@ -124,7 +124,7 @@ void FSocketIOClientModule::ReleaseNativePointer(TSharedPtr<FSocketIONative> Poi
 	}
 
 	//Release the pointer on the background thread pool, this can take ~ 1 sec per connection
-	FCULambdaRunnable::RunLambdaOnBackGroundThreadPool([PointerToRelease, this]
+	FCULambdaRunnable::RunLambdaOnBackGroundThread([PointerToRelease, this]
 	{
 		if (PointerToRelease.IsValid())
 		{
