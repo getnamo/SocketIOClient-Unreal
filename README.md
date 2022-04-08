@@ -1,10 +1,10 @@
 # SocketIOClient-Unreal
-Socket.io client plugin for the Unreal Engine.
+Socket.IO client plugin for the Unreal Engine.
 
 [![GitHub release](https://img.shields.io/github/release/getnamo/SocketIOClient-Unreal.svg)](https://github.com/getnamo/SocketIOClient-Unreal/releases)
 [![Github All Releases](https://img.shields.io/github/downloads/getnamo/SocketIOClient-Unreal/total.svg)](https://github.com/getnamo/SocketIOClient-Unreal/releases)
 
-[Socket.io](http://socket.io/) is a performant real-time bi-directional communication library. There are two parts, the server written in node.js and the client typically javascript for the web. There are alternative client implementations and this repo uses the [C++11 client library](https://github.com/socketio/socket.io-client-cpp) ported to Unreal.
+[Socket.IO](http://socket.io/) is a performant real-time bi-directional communication library. There are two parts, the server written in node.js and the client typically javascript for the web. There are alternative client implementations and this repo uses the [C++11 client library](https://github.com/socketio/socket.io-client-cpp) ported to Unreal.
 
 Socket.IO Lib uses _asio_, _rapidjson_, and _websocketpp_. SIOJson is originally forked from ufna's [VaRest](https://github.com/ufna/VaRest)
 
