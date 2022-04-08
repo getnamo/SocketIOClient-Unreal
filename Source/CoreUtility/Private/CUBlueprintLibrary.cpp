@@ -390,18 +390,18 @@ bool UCUBlueprintLibrary::Conv_TextureToBytes(UTexture2D* Texture, TArray<uint8>
 	IImageWrapperModule& ImageWrapperModule = FModuleManager::LoadModuleChecked<IImageWrapperModule>(FName("ImageWrapper"));
 	TSharedPtr<IImageWrapper> ImageWrapper = ImageWrapperModule.CreateImageWrapper((EImageFormat)Format);
 
-	int32 Width = Texture->GetPlatformData()->Mips[0].SizeX;
-	int32 Height = Texture->GetPlatformData()->Mips[0].SizeY;
+	int32 Width = Texture->PlatformData->Mips[0].SizeX;
+	int32 Height = Texture->PlatformData->Mips[0].SizeY;
 	int32 DataLength = Width * Height * 4;
 
-	void* TextureDataPointer = Texture->GetPlatformData()->Mips[0].BulkData.Lock(LOCK_READ_ONLY);
+	void* TextureDataPointer = Texture->PlatformData->Mips[0].BulkData.Lock(LOCK_READ_ONLY);
 
 	ImageWrapper->SetRaw(TextureDataPointer, DataLength, Width, Height, ERGBFormat::BGRA, 8);
 
 	//This part can take a while, has performance implications
 	OutBuffer = ImageWrapper->GetCompressed();
 
-	Texture->GetPlatformData()->Mips[0].BulkData.Unlock();
+	Texture->PlatformData->Mips[0].BulkData.Unlock();
 
 	return true;
 }
