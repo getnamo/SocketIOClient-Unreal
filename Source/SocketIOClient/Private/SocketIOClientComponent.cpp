@@ -11,11 +11,12 @@
 
 USocketIOClientComponent::USocketIOClientComponent(const FObjectInitializer &init) : UActorComponent(init)
 {
-	bShouldUseTlsLibraries = false;
-	bShouldSkipCertificateVerification = false;
-	bShouldAutoConnect = true;
 	bWantsInitializeComponent = true;
 	bAutoActivate = true;
+
+	bShouldUseTLS = false;
+	bShouldSkipCertificateVerification = true;	//until verification is implemented, this should default to true
+	bShouldAutoConnect = true;
 	NativeClient = nullptr;
 	bLimitConnectionToGameWorld = true;
 	AddressAndPort = FString(TEXT("http://localhost:3000"));	//default to 127.0.0.1
@@ -65,14 +66,14 @@ void USocketIOClientComponent::InitializeNative()
 {
 	if (bPluginScopedConnection)
 	{
-		NativeClient = ISocketIOClientModule::Get().ValidSharedNativePointer(PluginScopedId, bShouldUseTlsLibraries, bShouldSkipCertificateVerification);
+		NativeClient = ISocketIOClientModule::Get().ValidSharedNativePointer(PluginScopedId, bShouldUseTLS, bShouldSkipCertificateVerification);
 
 		//Enforcement: This is the default FSocketIONative option value, but this component depends on it being true.
 		NativeClient->bCallbackOnGameThread = true;
 	}
 	else
 	{
-		NativeClient = ISocketIOClientModule::Get().NewValidNativePointer(bShouldUseTlsLibraries, bShouldSkipCertificateVerification);
+		NativeClient = ISocketIOClientModule::Get().NewValidNativePointer(bShouldUseTLS, bShouldSkipCertificateVerification);
 	}
 
 	SetupCallbacks();

@@ -73,7 +73,7 @@ public:
 		* Ignored if TLS/SSL libraries are not compiled in (SIO_TLS isn't defined)
 		*/
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "SocketIO Connection Properties")
-	bool bShouldUseTlsLibraries;
+	bool bShouldUseTLS;
 
 	/**
 		* If `Should Use TLS Libraries` is set to true, setting this to true
@@ -82,7 +82,7 @@ public:
 		* always fail verification.
 		*/
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "SocketIO Connection Properties")
-	bool bShouldSkipCertificateVerification = true;
+	bool bShouldSkipCertificateVerification;
 
 	/** If true will auto-connect on begin play to address specified in AddressAndPort. */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "SocketIO Connection Properties")
