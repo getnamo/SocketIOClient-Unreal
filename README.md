@@ -362,7 +362,7 @@ Non actor-owners such as Game Instances cannot receive the graph callbacks due t
 
 ### HTTPS/SSL
 
-For connections that require SSL use the toggle ```bShouldUseTlsLibraries``` on ```SocketIOClientComponent``` (or c++ native variants). Then on connect, your component should use TLS.
+For connections that require SSL use the toggle ```bShouldUseTLS``` on ```SocketIOClientComponent``` (or c++ native variants). Then on connect, your component will use TLS. NB CertificateVerification does NOT currently work and  ```bShouldSkipCertificateVerification``` should be set to true or it will always fail to connect, see https://github.com/getnamo/SocketIOClient-Unreal/issues/303 for progress.
 
 ## CoreUtility
 
