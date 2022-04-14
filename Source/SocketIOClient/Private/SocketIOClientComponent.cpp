@@ -364,7 +364,7 @@ bool USocketIOClientComponent::CallBPFunctionWithMessage(UObject* Target, const 
 #pragma region Connect
 #endif
 
-void USocketIOClientComponent::Connect(const FString& InAddressAndPort, const FString& Path, USIOJsonObject* Query /*= nullptr*/, USIOJsonObject* Headers /*= nullptr*/)
+void USocketIOClientComponent::Connect(const FString& InAddressAndPort, const FString& Path, USIOJsonObject* Query /*= nullptr*/, USIOJsonObject* Headers /*= nullptr*/, USIOJsonObject* Auth /*= nullptr*/)
 {
 	//Check if we're limiting this component
 	if (bLimitConnectionToGameWorld)
@@ -387,6 +387,7 @@ void USocketIOClientComponent::Connect(const FString& InAddressAndPort, const FS
 	}
 	TSharedPtr<FJsonObject> QueryFJson;
 	TSharedPtr<FJsonObject> HeadersFJson;
+	TSharedPtr<FJsonObject> AuthFJson;
 
 	if (Query != nullptr)
 	{
@@ -398,17 +399,22 @@ void USocketIOClientComponent::Connect(const FString& InAddressAndPort, const FS
 		HeadersFJson = Headers->GetRootObject();
 	}
 
+	if (Auth != nullptr)
+	{
+		AuthFJson = Auth->GetRootObject();
+	}
+
 	//Ensure we sync our native max/reconnection attempts before connecting
 	NativeClient->MaxReconnectionAttempts = MaxReconnectionAttempts;
 	NativeClient->ReconnectionDelay = ReconnectionDelayInMs;
 	NativeClient->VerboseLog = bVerboseConnectionLog;
 
-	ConnectNative(InAddressAndPort, Path, QueryFJson, HeadersFJson);
+	ConnectNative(InAddressAndPort, Path, QueryFJson, HeadersFJson, AuthFJson);
 }
 
-void USocketIOClientComponent::ConnectNative(const FString& InAddressAndPort, const FString& Path, const TSharedPtr<FJsonObject>& Query /*= nullptr*/, const TSharedPtr<FJsonObject>& Headers /*= nullptr*/)
+void USocketIOClientComponent::ConnectNative(const FString& InAddressAndPort, const FString& Path, const TSharedPtr<FJsonObject>& Query /*= nullptr*/, const TSharedPtr<FJsonObject>& Headers /*= nullptr*/, const TSharedPtr<FJsonObject>& Auth /*= nullptr*/)
 {
-	NativeClient->Connect(InAddressAndPort, Query, Headers, Path);
+	NativeClient->Connect(InAddressAndPort, Query, Headers, Auth, Path);
 }
 
 void USocketIOClientComponent::Disconnect()

@@ -147,13 +147,15 @@ public:
 	* @param Path optional ws:// trailing path for socket.io connection
 	* @param Query http query as a SIOJsonObject with string keys and values
 	* @param Headers http header as a SIOJsonObject with string keys and values
+	* @param Auth socket.io authorization option as a SIOJsonObject with string keys and values
 	*
 	*/
 	UFUNCTION(BlueprintCallable, Category = "SocketIO Functions")
 	void Connect(	const FString& InAddressAndPort,
 					const FString& Path = TEXT("socket.io"),
 					USIOJsonObject* Query = nullptr, 
-					USIOJsonObject* Headers = nullptr);
+					USIOJsonObject* Headers = nullptr,
+					USIOJsonObject* Auth = nullptr);
 
 	/**
 	* Disconnect from current socket.io server. This is an asynchronous action,
@@ -279,7 +281,8 @@ public:
 	void ConnectNative(	const FString& InAddressAndPort, 
 						const FString& Path = TEXT("socket.io"),
 						const TSharedPtr<FJsonObject>& Query = nullptr, 
-						const TSharedPtr<FJsonObject>& Headers = nullptr);
+						const TSharedPtr<FJsonObject>& Headers = nullptr,
+						const TSharedPtr<FJsonObject>& Auth = nullptr);
 
 
 	/**

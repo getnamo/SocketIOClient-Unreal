@@ -89,7 +89,7 @@ namespace sio
     }
 
     template<typename client_type>
-    void client_impl<client_type>::connect(const string& uri, const map<string, string>& query, const map<string, string>& headers, const std::string& path /*= "socket.io"*/)
+    void client_impl<client_type>::connect(const string& uri, const map<string, string>& query, const map<string, string>& headers, const message::ptr& auth, const std::string& path /*= "socket.io"*/)
     {
 
         if (m_reconn_timer)
@@ -132,6 +132,7 @@ namespace sio
         m_query_string = move(query_str);
 
         m_http_headers = headers;
+		m_auth = auth;
 
         if (path != ""){
             m_path = path;
@@ -169,7 +170,7 @@ namespace sio
         }
         else
         {
-            shared_ptr<sio::socket> newSocket = shared_ptr<sio::socket>(new sio::socket(this, aux));
+            shared_ptr<sio::socket> newSocket = shared_ptr<sio::socket>(new sio::socket(this, aux, m_auth));
             pair<const string, socket::ptr> p(aux, newSocket);
             return (m_sockets.insert(p).first)->second;
         }
@@ -730,9 +731,9 @@ namespace sio
         }
     }
 
-    socket* client_impl_base::new_socket(const string& nsp)
+    socket* client_impl_base::new_socket(const string& nsp,const message::ptr& auth)
     {
-        return new sio::socket(this, nsp);
+        return new sio::socket(this, nsp, auth);
     }
 
     void client_impl_base::socket_on_message_packet(socket::ptr& s, const packet& p)

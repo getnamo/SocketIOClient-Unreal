@@ -113,7 +113,7 @@
             // used by sio::client
             virtual void clear_con_listeners() {};
             virtual void clear_socket_listeners() {};
-            virtual void connect(const string& uri, const map<string, string>& query, const map<string, string>& headers, const std::string& path = "socket.io") {};
+            virtual void connect(const string& uri, const map<string, string>& query, const map<string, string>& headers, const message::ptr& auth, const std::string& path = "socket.io") {};
 
             virtual sio::socket::ptr const& socket(const std::string& nsp) = 0;
             virtual void close() {};
@@ -146,7 +146,7 @@
 
         protected:
             // Wrap protected member functions of sio::socket because only client_impl_base is friended.
-            sio::socket* new_socket(std::string const&);
+            sio::socket* new_socket(std::string const&, message::ptr const&);
             void socket_on_message_packet(sio::socket::ptr&, packet const&);
             typedef void (sio::socket::* socket_void_fn)(void);
             inline socket_void_fn socket_on_close() { return &sio::socket::on_close; }
@@ -166,7 +166,7 @@
 
         //set listeners and event bindings.
         void connect(const std::string& uri, const std::map<std::string, std::string>& queryString,
-            const std::map<std::string, std::string>& httpExtraHeaders, const std::string& path = "socket.io");
+            const std::map<std::string, std::string>& httpExtraHeaders, const message::ptr& auth, const std::string& path = "socket.io");
 
         sio::socket::ptr const& socket(const std::string& nsp);
 
@@ -281,6 +281,7 @@
         std::string m_base_url;
         std::string m_query_string;
         std::map<std::string, std::string> m_http_headers;
+		message::ptr m_auth;
 
         unsigned int m_ping_interval;
         unsigned int m_ping_timeout;

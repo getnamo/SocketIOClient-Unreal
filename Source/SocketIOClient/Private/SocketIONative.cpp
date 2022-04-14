@@ -38,7 +38,7 @@ void FSocketIONative::Connect(const FString& InAddressAndPort, const TSharedPtr<
 	{
 		std::map<std::string, std::string> QueryMap = {};
 		std::map<std::string, std::string> HeadersMap = {};
-		sio::message::ptr AuthMessage = nullptr;
+		sio::message::ptr AuthMessage = {};
 
 		//fill the headers, query, and auth if they're not null
 		if (Headers.IsValid())
@@ -53,7 +53,8 @@ void FSocketIONative::Connect(const FString& InAddressAndPort, const TSharedPtr<
 
 		if (Auth.IsValid())
 		{
-			AuthMessage = USIOMessageConvert::ToSIOMessage(Auth);
+			TSharedPtr<FJsonValue> authPtr = MakeShareable(new FJsonValueObject(Auth));
+			AuthMessage = USIOMessageConvert::ToSIOMessage(authPtr);
 		}
 
 		PrivateClient->set_reconnect_attempts(MaxReconnectionAttempts);
