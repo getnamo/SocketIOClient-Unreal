@@ -117,8 +117,9 @@ public:
 	*/
 	void Connect(	
 		const FString& InAddressAndPort,
-		const TSharedPtr<FJsonObject>& Query, 
+		const TSharedPtr<FJsonObject>& Query,
 		const TSharedPtr<FJsonObject>& Headers,
+		const TSharedPtr<FJsonObject>& Auth,
 		const FString& Path = "socket.io");
 
 	/** 

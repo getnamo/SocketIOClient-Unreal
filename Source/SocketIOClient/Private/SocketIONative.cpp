@@ -25,7 +25,7 @@ FSocketIONative::FSocketIONative(const bool bShouldUseTlsLibraries, const bool b
 	ClearCallbacks();
 }
 
-void FSocketIONative::Connect(const FString& InAddressAndPort, const TSharedPtr<FJsonObject>& Query /*= nullptr*/, const TSharedPtr<FJsonObject>& Headers /*= nullptr*/, const FString& Path)
+void FSocketIONative::Connect(const FString& InAddressAndPort, const TSharedPtr<FJsonObject>& Query /*= nullptr*/, const TSharedPtr<FJsonObject>& Headers /*= nullptr*/, const TSharedPtr<FJsonObject>& Auth /*= nullptr*/, const FString& Path)
 {
 	std::string StdAddressString = USIOMessageConvert::StdString(InAddressAndPort);
 	if (InAddressAndPort.IsEmpty())
@@ -34,12 +34,13 @@ void FSocketIONative::Connect(const FString& InAddressAndPort, const TSharedPtr<
 	}
 
 	//Connect to the server on a background thread so it never blocks
-	FCULambdaRunnable::RunLambdaOnBackGroundThread([&, StdAddressString, Query, Headers]
+	FCULambdaRunnable::RunLambdaOnBackGroundThread([&, StdAddressString, Query, Headers,Auth]
 	{
 		std::map<std::string, std::string> QueryMap = {};
 		std::map<std::string, std::string> HeadersMap = {};
+		sio::message::ptr AuthMessage = nullptr;
 
-		//fill the headers and query if they're not null
+		//fill the headers, query, and auth if they're not null
 		if (Headers.IsValid())
 		{
 			HeadersMap = USIOMessageConvert::JsonObjectToStdStringMap(Headers);
@@ -48,6 +49,11 @@ void FSocketIONative::Connect(const FString& InAddressAndPort, const TSharedPtr<
 		if (Query.IsValid())
 		{
 			QueryMap = USIOMessageConvert::JsonObjectToStdStringMap(Query);
+		}
+
+		if (Auth.IsValid())
+		{
+			AuthMessage = USIOMessageConvert::ToSIOMessage(Auth);
 		}
 
 		PrivateClient->set_reconnect_attempts(MaxReconnectionAttempts);
@@ -68,7 +74,7 @@ void FSocketIONative::Connect(const FString& InAddressAndPort, const TSharedPtr<
 				return;
 			}
 		}
-		PrivateClient->connect(StdAddressString, QueryMap, HeadersMap);
+		PrivateClient->connect(StdAddressString, QueryMap, HeadersMap,AuthMessage);
 	});
 
 }
@@ -77,8 +83,9 @@ void FSocketIONative::Connect(const FString& InAddressAndPort)
 {
 	TSharedPtr<FJsonObject> Query = MakeShareable(new FJsonObject);
 	TSharedPtr<FJsonObject> Headers = MakeShareable(new FJsonObject);
+	TSharedPtr<FJsonObject> Auth = MakeShareable(new FJsonObject);
 
-	Connect(InAddressAndPort, Query, Headers);
+	Connect(InAddressAndPort, Query, Headers, Auth);
 }
 
 void FSocketIONative::JoinNamespace(const FString& Namespace)
