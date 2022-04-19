@@ -155,6 +155,16 @@ USIOJsonValue* USIOJLibrary::Conv_BoolToJsonValue(bool InBool)
 }
 
 
+FString USIOJLibrary::Conv_JsonValueToString(class USIOJsonValue* InValue)
+{
+	if (InValue)
+	{
+		return InValue->AsString();
+	}
+
+	return TEXT("");
+}
+
 int32 USIOJLibrary::Conv_JsonValueToInt(USIOJsonValue* InValue)
 {
 	if(InValue)
