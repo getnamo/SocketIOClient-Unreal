@@ -24,31 +24,7 @@ enum ESIOThreadOverrideOption
 	USE_NETWORK_THREAD
 };
 
-//Wrapper function for TFunctions which can be hashed based on pointers. I.e. no duplicate functions allowed
-//NB: Not currently used
-template <typename T>
-struct TSetFunctionWrapper
-{
-	T Function;
-
-	bool operator==(const TSetFunctionWrapper<T>& Other) const
-	{
-		return GetTypeHash(Other) == GetTypeHash(this);
-	}
-
-	friend FORCEINLINE uint32 GetTypeHash(const TSetFunctionWrapper<T>& Key)
-	{
-		return ::PointerHash(&Key);
-	}
-
-	TSetFunctionWrapper() {}
-	TSetFunctionWrapper(T InFunction)
-	{
-		Function = InFunction;
-	}
-};
-
-//used for early binds
+//Used in early (pre-connection) binds and maintaining map if re-setting connection type
 struct FSIOBoundEvent
 {
 	TFunction< void(const FString&, const TSharedPtr<FJsonValue>&)> Function;
@@ -61,7 +37,6 @@ struct FSIOBoundEvent
 		ThreadOption = USE_DEFAULT;
 	}
 };
-
 
 class SOCKETIOCLIENT_API FSocketIONative
 {
