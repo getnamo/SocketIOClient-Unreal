@@ -53,12 +53,21 @@ struct FSIOBoundEvent
 {
 	TFunction< void(const FString&, const TSharedPtr<FJsonValue>&)> Function;
 	FString Namespace;
+	ESIOThreadOverrideOption ThreadOption;
+
+	FSIOBoundEvent()
+	{
+		Namespace = TEXT("/");
+		ThreadOption = USE_DEFAULT;
+	}
 };
 
 
 class SOCKETIOCLIENT_API FSocketIONative
 {
 public:
+	/** By default TLS verification is off. TLS mode will be set by URL on connect.*/
+	FSocketIONative(const bool bForceTLSMode = false, const bool bShouldVerifyTLSCertificate = false);
 
 	//Native Callbacks
 	TFunction<void(const FString& SessionId)> OnConnectedCallback;					//TFunction<void(const FString& SessionId)>
@@ -98,13 +107,14 @@ public:
 	/** Set true if connection currently configured for TLS */
 	bool bIsSetupForTLS;
 
+	/** If at initialization forcing is set true, it will use TLS despite URL used */
+	bool bForceTLSUse;
+
 	/** If true will attempt to verify certificate (NB: this currently doesn't work) */
 	bool bUsingTLSCertVerification;
 
 	/** If true all events are unbound on disconnect */
 	bool bUnbindEventsOnDisconnect;
-
-	FSocketIONative(const bool bShouldUseTlsLibraries, const bool bShouldVerifyTLSCertificate);
 
 	/**
 	* Connect to a socket.io server, optional method if auto-connect is set to true.
@@ -347,7 +357,8 @@ public:
 		ESIOThreadOverrideOption CallbackThread = USE_DEFAULT);
 
 	/**
-	* Call function callback on receiving raw event. C++ only.
+	* Call function callback on receiving raw event. C++ only. 
+	* NB: Does not get added to FSocketIONative event map (use OnEvent)!
 	*
 	* @param EventName	Event name
 	* @param TFunction	Lambda callback, raw flavor
@@ -359,14 +370,16 @@ public:
 		TFunction< void(const FString&, const sio::message::ptr&)> CallbackFunction,
 		const FString& Namespace = TEXT("/"),
 		ESIOThreadOverrideOption CallbackThread = USE_DEFAULT);
+
 	/**
 	* Call function callback on receiving binary event. C++ only.
+	* NB: Does not get added to FSocketIONative event map (use OnEvent)!
 	*
 	* @param EventName	Event name
 	* @param TFunction	Lambda callback, raw flavor
 	* @param Namespace	Optional namespace, defaults to default namespace
 	*/
-	void OnBinaryEvent(
+	void OnRawBinaryEvent(
 		const FString& EventName,
 		TFunction< void(const FString&, const TArray<uint8>&)> CallbackFunction,
 		const FString& Namespace = TEXT("/"));
@@ -380,9 +393,23 @@ public:
 
 protected:
 
+	/** On disconnect or mode change bound events become invalid */
 	void ClearInternalCallbacks();
+
+	/** Linkup PrivateClient callbacks to FSocketIONative */
 	void SetupInternalCallbacks();
+
+	void RebindCurrentEventMap();
+
+	/** Checks for https prepend */
 	bool IsTLSURL(const FString& URL);
+
+	/** If non-matching mode, this will:
+	- close the connection
+	- clear and re-link internal callbacks
+	- re-construct PrivateClient in the correct mode
+	NB: URL preference overwritten if bForceTLSUse is true*/
+	void SyncPrivateClientToTLSMode(const FString& URL);
 
 	void InitPrivateClient(const bool bShouldUseTlsLibraries = false, const bool bShouldVerifyTLSCertificate = false);
 

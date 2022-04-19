@@ -69,14 +69,21 @@ public:
 	FString AddressAndPort;
 
 	/**
-	* Whether or not to use the TLS/SSL libraries for the connection.
-	* Ignored if TLS/SSL libraries are not compiled in (SIO_TLS isn't defined)
+	* Will force using TLS even if url doesn't have https:// prepend.
 	*/
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "SocketIO Connection Properties")
-	bool bShouldUseTLS;
+	bool bForceTLS;
 
 	/**
-	* If `Should Use TLS` is set to true, setting this to false
+	* If true, all your bound events will unbind on disconnect. 
+	* Useful for cleanup if typically binding on connection and there
+	* are no early event binds (before connection).
+	*/
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "SocketIO Connection Properties")
+	bool bUnbindEventsOnDisconnect;
+
+	/**
+	* If using TLS a url (or forced), setting this to false
 	* will not verify the authenticity of the SSL certificate (i.e. asio::ssl::verify_none).
 	* NOTE: Certification verification is currently not implemented; setting to true will
 	* always fail verification.

@@ -14,7 +14,8 @@ USocketIOClientComponent::USocketIOClientComponent(const FObjectInitializer &ini
 	bWantsInitializeComponent = true;
 	bAutoActivate = true;
 
-	bShouldUseTLS = false;
+	bForceTLS = false;
+	bUnbindEventsOnDisconnect = false;
 	bShouldVerifyTLSCertificate = false;	//Until verification feature is implemented, this should default to false
 	bShouldAutoConnect = true;
 	NativeClient = nullptr;
@@ -66,14 +67,14 @@ void USocketIOClientComponent::InitializeNative()
 {
 	if (bPluginScopedConnection)
 	{
-		NativeClient = ISocketIOClientModule::Get().ValidSharedNativePointer(PluginScopedId, bShouldUseTLS, bShouldVerifyTLSCertificate);
+		NativeClient = ISocketIOClientModule::Get().ValidSharedNativePointer(PluginScopedId, bForceTLS, bShouldVerifyTLSCertificate);
 
 		//Enforcement: This is the default FSocketIONative option value, but this component depends on it being true.
 		NativeClient->bCallbackOnGameThread = true;
 	}
 	else
 	{
-		NativeClient = ISocketIOClientModule::Get().NewValidNativePointer(bShouldUseTLS, bShouldVerifyTLSCertificate);
+		NativeClient = ISocketIOClientModule::Get().NewValidNativePointer(bForceTLS, bShouldVerifyTLSCertificate);
 	}
 
 	SetupCallbacks();
@@ -212,7 +213,6 @@ void USocketIOClientComponent::ClearCallbacks()
 		NativeClient->ClearAllCallbacks();
 	}
 }
-
 
 
 bool USocketIOClientComponent::CallBPFunctionWithResponse(UObject* Target, const FString& FunctionName, TArray<TSharedPtr<FJsonValue>> Response)
@@ -402,6 +402,8 @@ void USocketIOClientComponent::Connect(const FString& InAddressAndPort, const FS
 	NativeClient->MaxReconnectionAttempts = MaxReconnectionAttempts;
 	NativeClient->ReconnectionDelay = ReconnectionDelayInMs;
 	NativeClient->VerboseLog = bVerboseConnectionLog;
+	NativeClient->bUnbindEventsOnDisconnect = bUnbindEventsOnDisconnect;
+	NativeClient->bForceTLSUse = bForceTLS;
 
 	ConnectNative(InAddressAndPort, Path, QueryFJson, HeadersFJson);
 }
