@@ -239,8 +239,8 @@ public:
 	UFUNCTION(BlueprintPure, meta = (DisplayName = "To JsonValue (Bytes)", CompactNodeTitle = "->", BlueprintAutocast), Category = "Utilities|SocketIO")
 	static USIOJsonValue* Conv_BytesToJsonValue(const TArray<uint8>& InBytes);
 
-	//To JsonValue (String) - doesn't autocast due to get display name
-	UFUNCTION(BlueprintPure, meta = (DisplayName = "To JsonValue (String)", BlueprintAutocast), Category = "Utilities|SocketIO")
+	//To JsonValue (String)
+	UFUNCTION(BlueprintPure, meta = (DisplayName = "To JsonValue (String)", CompactNodeTitle = "->", BlueprintAutocast), Category = "Utilities|SocketIO")
 	static USIOJsonValue* Conv_StringToJsonValue(const FString& InString);
 
 	//To JsonValue (Integer)
@@ -255,9 +255,9 @@ public:
 	UFUNCTION(BlueprintPure, meta = (DisplayName = "To JsonValue (Bool)", CompactNodeTitle = "->", BlueprintAutocast), Category = "Utilities|SocketIO")
 	static USIOJsonValue* Conv_BoolToJsonValue(bool InBool);
 
-	//To String (JsonValue)
-	UFUNCTION(BlueprintPure, meta = (DisplayName = "To String (JsonValue)", CompactNodeTitle = "->", BlueprintAutocast), Category = "a me first")
-	static FString Conv_JsonValueToString(class USIOJsonValue* InValue);
+	//To String (JsonValue) - doesn't autocast due to get display name
+	UFUNCTION(BlueprintPure, meta = (DisplayName = "To String (JsonValue)", BlueprintAutocast), Category = "Utilities|SocketIO")
+	static FString Conv_SIOJsonValueToString(class USIOJsonValue* InValue);
 
 	//To Integer (JsonValue)
 	UFUNCTION(BlueprintPure, meta = (DisplayName = "To Integer (JsonValue)", CompactNodeTitle = "->", BlueprintAutocast), Category = "Utilities|SocketIO")
@@ -276,8 +276,8 @@ public:
 	static TArray<uint8> Conv_JsonValueToBytes(class USIOJsonValue* InValue);
 
 	//To String (JsonObject) - doesn't autocast due to get display name
-	UFUNCTION(BlueprintPure, meta = (DisplayName = "To String (JsonObject)", BlueprintAutocast), Category = "Utilities|ASocketIO")
-	static FString Conv_JsonObjectToString(class USIOJsonObject* InObject);
+	UFUNCTION(BlueprintPure, meta = (DisplayName = "To String (JsonObject)", BlueprintAutocast), Category = "Utilities|SocketIO")
+	static FString Conv_SIOJsonObjectToString(class USIOJsonObject* InObject);
 
 	//To Object (JsonValue)
 	UFUNCTION(BlueprintPure, meta = (DisplayName = "To Object (JsonValue)", CompactNodeTitle = "->", BlueprintAutocast), Category = "Utilities|SocketIO")

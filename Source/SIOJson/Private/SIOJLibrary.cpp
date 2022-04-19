@@ -88,7 +88,7 @@ bool USIOJLibrary::StringToJsonValueArray(const FString& JsonString, TArray<USIO
 TMap<USIOJRequestJSON*, FSIOJCallResponse> USIOJLibrary::RequestMap;
 
 
-FString USIOJLibrary::Conv_JsonObjectToString(USIOJsonObject* InObject)
+FString USIOJLibrary::Conv_SIOJsonObjectToString(USIOJsonObject* InObject)
 {
 	if(InObject)
 	{
@@ -155,7 +155,7 @@ USIOJsonValue* USIOJLibrary::Conv_BoolToJsonValue(bool InBool)
 }
 
 
-FString USIOJLibrary::Conv_JsonValueToString(class USIOJsonValue* InValue)
+FString USIOJLibrary::Conv_SIOJsonValueToString(class USIOJsonValue* InValue)
 {
 	if (InValue)
 	{
