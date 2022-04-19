@@ -86,8 +86,9 @@ public:
 	bool bUnbindEventsOnDisconnect;
 
 	/**
-	* If using TLS a url (or forced), setting this to false
-	* will not verify the authenticity of the SSL certificate (i.e. asio::ssl::verify_none).
+	* If using a TLS url (or if forced) and setting this to false will not verify 
+	* the authenticity of the SSL certificate (i.e. asio::ssl::verify_none).
+	* 
 	* NOTE: Certification verification is currently not implemented; setting to true will
 	* always fail verification.
 	*/
