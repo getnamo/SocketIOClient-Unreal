@@ -136,7 +136,7 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "SIOJ|Json")
 	float AsNumber() const;
 
-	/** Returns this value as a number, throwing an error if this is not an Json String */
+	/** Returns this value as a string, throwing an error if this is not an Json String */
 	UFUNCTION(BlueprintCallable, Category = "SIOJ|Json")
 	FString AsString() const;
 
