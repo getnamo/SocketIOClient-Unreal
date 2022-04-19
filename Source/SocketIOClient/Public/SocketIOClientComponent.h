@@ -12,8 +12,11 @@ DECLARE_DYNAMIC_MULTICAST_DELEGATE(FSIOCEventSignature);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FSIOCSocketEventSignature, FString, Namespace);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FSIOCOpenEventSignature, FString, SessionId, bool, bIsReconnection);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FSIOCCloseEventSignature, TEnumAsByte<ESIOConnectionCloseReason>, Reason);
-DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FSIOCEventJsonSignature, FString, EventName, class USIOJsonValue*, MessageJson);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FSIOCEventJsonSignature, FString, EventName, class USIOJsonValue*, EventData);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_ThreeParams(FSIOConnectionProblemSignature, int32, Attempts, int32,  NextAttemptInMs, float, TimeSinceConnected);
+
+//For Direct Delegate Event Bind
+DECLARE_DYNAMIC_DELEGATE_OneParam(FSIOJsonValueSignature, USIOJsonValue*, EventData);
 
 UCLASS(BlueprintType, ClassGroup = "Networking", meta = (BlueprintSpawnableComponent))
 class SOCKETIOCLIENT_API USocketIOClientComponent : public UActorComponent
@@ -234,23 +237,32 @@ public:
 								USIOJsonValue* Message = nullptr,
 								const FString& Namespace = TEXT("/"));
 
+
+
 	/**
-	* Bind an event, then respond to it with 'OnGenericEvent' multi-cast delegate. If you want functions or custom events to receive the event, use Bind Event To Function.
+	* Bind an event directly to a matching delegate. Drag off from red box or
+	* use create event option.
+	* 
+	* @param EventName	Event name
+	* @param CallbackDelegate Delegate that needs to be bound
+	* @param Namespace	Optional namespace, defaults to default namespace
+	* @param ThreadOverride	Optional override to receive event on specified thread. Note NETWORK thread is lower latency but unsafe for a lot of blueprint use. Use with CAUTION.
+	*/
+	UFUNCTION(BlueprintCallable, Category = "SocketIO Functions")
+	void BindEventToDelegate(	const FString& EventName, 
+								const FSIOJsonValueSignature& CallbackDelegate, 
+								const FString& Namespace = TEXT("/"),
+								ESIOThreadOverrideOption ThreadOverride = USE_DEFAULT);
+
+	/**
+	* Bind an event, then respond to it with 'OnGenericEvent' multi-cast delegate.
+	* If you want functions or custom events to receive the event, use Bind Event To Function.
 	*
 	* @param EventName	Event name
 	* @param Namespace	Optional namespace, defaults to default namespace
 	*/
 	UFUNCTION(BlueprintCallable, Category = "SocketIO Functions")
 	void BindEventToGenericEvent(const FString& EventName, const FString& Namespace = TEXT("/"));
-
-	/**
-	* Unbind an event from whatever it was bound to (safe to call if not already bound)
-	*
-	* @param EventName	Event name
-	* @param Namespace	Optional namespace, defaults to default namespace
-	*/
-	UFUNCTION(BlueprintCallable, Category = "SocketIO Functions")
-	void UnbindEvent(const FString& EventName, const FString& Namespace = TEXT("/"));
 
 	/**
 	* Bind an event to a function with the given name.
@@ -269,6 +281,17 @@ public:
 								const FString& Namespace = TEXT("/"),
 								ESIOThreadOverrideOption ThreadOverride = USE_DEFAULT,
 								UObject* WorldContextObject = nullptr);
+
+	/**
+	* Unbind an event from whatever it was bound to (safe to call if not already bound)
+	*
+	* @param EventName	Event name
+	* @param Namespace	Optional namespace, defaults to default namespace
+	*/
+	UFUNCTION(BlueprintCallable, Category = "SocketIO Functions")
+	void UnbindEvent(const FString& EventName, const FString& Namespace = TEXT("/"));
+
+
 	//
 	//C++ functions
 	//

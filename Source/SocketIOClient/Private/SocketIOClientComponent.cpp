@@ -192,7 +192,6 @@ void USocketIOClientComponent::SetupCallbacks()
 				//Let's stop trying and disconnect if we're using timeouts
 				Disconnect();
 			}
-
 			OnConnectionProblems.Broadcast(AttemptCount, DelayInMs, ElapsedInSec);
 		}
 	};
@@ -578,10 +577,23 @@ void USocketIOClientComponent::BindEventToGenericEvent(const FString& EventName,
 	}, Namespace);
 }
 
-void USocketIOClientComponent::UnbindEvent(const FString& EventName, const FString& Namespace/* = TEXT("/")*/)
+void USocketIOClientComponent::BindEventToDelegate(const FString& EventName, 
+	const FSIOJsonValueSignature& CallbackDelegate, 
+	const FString& Namespace /*= TEXT("/")*/,
+	ESIOThreadOverrideOption ThreadOverride /*= USE_DEFAULT*/)
 {
-	NativeClient->UnbindEvent(EventName, Namespace);
+	const FSIOJsonValueSignature SafeCallback = CallbackDelegate;	//copy for lambda ref
+	OnNativeEvent(EventName, [&, SafeCallback](const FString& Event, const TSharedPtr<FJsonValue>& Message)
+	{
+		USIOJsonValue* Value = NewObject<USIOJsonValue>();
+		TSharedPtr<FJsonValue> NonConstValue = Message;
+		Value->SetRootValue(NonConstValue);
+
+		SafeCallback.ExecuteIfBound(Value);
+	}, Namespace, ThreadOverride);
 }
+
+
 
 void USocketIOClientComponent::BindEventToFunction(const FString& EventName,
 	const FString& FunctionName,
@@ -606,6 +618,11 @@ void USocketIOClientComponent::BindEventToFunction(const FString& EventName,
 		//if we forgot our function name, fallback to regular bind event
 		BindEventToGenericEvent(EventName, Namespace);
 	}
+}
+
+void USocketIOClientComponent::UnbindEvent(const FString& EventName, const FString& Namespace/* = TEXT("/")*/)
+{
+	NativeClient->UnbindEvent(EventName, Namespace);
 }
 
 void USocketIOClientComponent::OnNativeEvent(const FString& EventName,
