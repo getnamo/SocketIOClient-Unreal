@@ -19,10 +19,11 @@ FSocketIONative::FSocketIONative(const bool bShouldUseTlsLibraries, const bool b
 	MaxReconnectionAttempts = -1;
 	ReconnectionDelay = 5000;
 	bCallbackOnGameThread = true;
+	bUnbindEventsOnDisconnect = false;
 
 	PrivateClient = MakeShareable(new sio::client(bShouldUseTlsLibraries, bShouldSkipCertificateVerification));
 
-	ClearCallbacks();
+	ClearAllCallbacks();
 }
 
 void FSocketIONative::Connect(const FString& InAddressAndPort, const TSharedPtr<FJsonObject>& Query /*= nullptr*/, const TSharedPtr<FJsonObject>& Headers /*= nullptr*/, const FString& Path)
@@ -99,8 +100,19 @@ void FSocketIONative::Disconnect()
 		OnDisconnectedCallback(ESIOConnectionCloseReason::CLOSE_REASON_NORMAL);
 	}
 	bIsConnected = false;
-	ClearCallbacks();
-	PrivateClient->close();
+
+	if (bUnbindEventsOnDisconnect)
+	{
+		ClearAllCallbacks();
+		PrivateClient->close();
+	}
+	else
+	{
+		//only clear internal ones during close
+		PrivateClient->clear_socket_listeners();
+		PrivateClient->close();
+		SetupInternalCallbacks();
+	}
 }
 
 void FSocketIONative::SyncDisconnect()
@@ -110,11 +122,21 @@ void FSocketIONative::SyncDisconnect()
 		OnDisconnectedCallback(ESIOConnectionCloseReason::CLOSE_REASON_NORMAL);
 	}
 	bIsConnected = false;
-	ClearCallbacks();
-	PrivateClient->sync_close();
+
+	if (bUnbindEventsOnDisconnect)
+	{
+		ClearAllCallbacks();
+		PrivateClient->sync_close();
+	}
+	else
+	{
+		PrivateClient->clear_socket_listeners();
+		PrivateClient->sync_close();
+		SetupInternalCallbacks();
+	}
 }
 
-void FSocketIONative::ClearCallbacks()
+void FSocketIONative::ClearAllCallbacks()
 {
 	PrivateClient->clear_socket_listeners();
 	SetupInternalCallbacks();					//if clear socket listeners cleared our internal callbacks. reset them
@@ -545,4 +567,5 @@ void FSocketIONative::SetupInternalCallbacks()
 		}
 	}));
 }
+
 

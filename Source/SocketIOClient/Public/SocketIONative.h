@@ -95,6 +95,10 @@ public:
 	/** If true, all callbacks and events will occur on game thread. Default true. */
 	bool bCallbackOnGameThread;
 
+
+	/** If true all events are unbound on disconnect */
+	bool bUnbindEventsOnDisconnect;
+
 	FSocketIONative(const bool bShouldUseTlsLibraries, const bool bShouldSkipCertificateVerification);
 
 	/**
@@ -140,7 +144,7 @@ public:
 
 	void SyncDisconnect();
 
-	void ClearCallbacks();
+	void ClearAllCallbacks();
 
 	/**
 	* Emit an event with a JsonValue message
