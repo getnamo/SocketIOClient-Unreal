@@ -105,6 +105,14 @@ For the receiving type, if it's known, you can specify the exact type (like Stri
 
 ![IMG](https://i.imgur.com/nNQTZ6j.png)
 
+#### Receive To Delegate
+
+The other recommended way (available since v2.2.0) is to bind your event directly to a delegate.
+
+![IMG](https://i.imgur.com/3DWxDi1.png)
+
+See https://github.com/getnamo/SocketIOClient-Unreal#decoding-responses for data conversion nodes from SIOJsonValues.
+
 #### Receive To Generic Event
 
 You can also receive an event to a generic unreal event. First you bind the socket.io event to the generic event.
@@ -809,9 +817,9 @@ These request functions are available globally.
 
 ## TLS / SSL
 
-TLS is supported for both C++ and BP without recompiling the plugin to switch between no TLS and TLS. To use it, you must enable the `bShouldUseTlsLibraries` flag on the `SocketIOClientComponent` **and** specify a `https` or `wss` URL as the host.
+TLS is supported for both C++ and BP if your platform supports OpenSSL (see https://github.com/getnamo/SocketIOClient-Unreal/blob/master/Source/SocketIOLib/SocketIOLib.Build.cs#L64 for currently supported platforms). Simply use a `https` or `wss` URL for host target and it will use TLS by default. You can also force TLS on different URLs by using `bForceTLS` set to true. 
 
-Currently, certification verification is not implemented, so you must have `bShouldSkipCertificateVerification` enabled (currently the default). See [issue 303](https://github.com/getnamo/SocketIOClient-Unreal/issues/303).
+Certificate verification is currently not implemented; `bShouldVerifyTLSCertificate` is set to false by default, setting it to true will cause connections to fail. See [issue 303](https://github.com/getnamo/SocketIOClient-Unreal/issues/303).
 
 ## Packaging
 
