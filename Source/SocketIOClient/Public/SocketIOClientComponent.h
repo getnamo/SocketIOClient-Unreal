@@ -72,6 +72,13 @@ public:
 	FString AddressAndPort;
 
 	/**
+	* Path variable passed in on connect. Used on begin play auto connect, 
+	* or overwritten by user before connect. 
+	*/
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "SocketIO Connection Properties")
+	FString Path;
+
+	/**
 	* Will force using TLS even if url doesn't have https:// prepend.
 	*/
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "SocketIO Connection Properties")
@@ -162,7 +169,7 @@ public:
 	*/
 	UFUNCTION(BlueprintCallable, Category = "SocketIO Functions")
 	void Connect(	const FString& InAddressAndPort,
-					const FString& Path = TEXT("socket.io"),
+					const FString& InPath = TEXT("socket.io"),
 					USIOJsonObject* Query = nullptr, 
 					USIOJsonObject* Headers = nullptr);
 
@@ -308,7 +315,7 @@ public:
 	*
 	*/
 	void ConnectNative(	const FString& InAddressAndPort, 
-						const FString& Path = TEXT("socket.io"),
+						const FString& InPath = TEXT("socket.io"),
 						const TSharedPtr<FJsonObject>& Query = nullptr, 
 						const TSharedPtr<FJsonObject>& Headers = nullptr);
 

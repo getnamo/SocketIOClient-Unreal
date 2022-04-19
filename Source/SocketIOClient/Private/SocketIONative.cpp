@@ -38,31 +38,34 @@ void FSocketIONative::Connect(const FString& InAddressAndPort, const TSharedPtr<
 {
 	SyncPrivateClientToTLSMode(InAddressAndPort);
 	
+	//Fill std types before going to background thread.
+
 	std::string StdAddressString = USIOMessageConvert::StdString(InAddressAndPort);
+	std::string StdPathString = USIOMessageConvert::StdString(Path);
+	std::map<std::string, std::string> QueryMap = {};
+	std::map<std::string, std::string> HeadersMap = {};
+
+	if (Headers.IsValid())
+	{
+		HeadersMap = USIOMessageConvert::JsonObjectToStdStringMap(Headers);
+	}
+
+	if (Query.IsValid())
+	{
+		QueryMap = USIOMessageConvert::JsonObjectToStdStringMap(Query);
+	}
+
 	if (InAddressAndPort.IsEmpty())
 	{
 		StdAddressString = USIOMessageConvert::StdString(AddressAndPort);
 	}
 
 	//Connect to the server on a background thread so it never blocks
-	FCULambdaRunnable::RunLambdaOnBackGroundThread([&, StdAddressString, Query, Headers, Path]
+	FCULambdaRunnable::RunLambdaOnBackGroundThread([&, StdAddressString, StdPathString, QueryMap, HeadersMap]
 	{
-		std::map<std::string, std::string> QueryMap = {};
-		std::map<std::string, std::string> HeadersMap = {};
-
-		//fill the headers and query if they're not null
-		if (Headers.IsValid())
-		{
-			HeadersMap = USIOMessageConvert::JsonObjectToStdStringMap(Headers);
-		}
-
-		if (Query.IsValid())
-		{
-			QueryMap = USIOMessageConvert::JsonObjectToStdStringMap(Query);
-		}
-
 		PrivateClient->set_reconnect_attempts(MaxReconnectionAttempts);
 		PrivateClient->set_reconnect_delay(ReconnectionDelay);
+		PrivateClient->set_path(StdPathString);
 
 		//close and reconnect if different url
 		if(PrivateClient->opened())

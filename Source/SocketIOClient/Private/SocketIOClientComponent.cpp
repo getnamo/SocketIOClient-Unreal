@@ -20,8 +20,9 @@ USocketIOClientComponent::USocketIOClientComponent(const FObjectInitializer &ini
 	bShouldAutoConnect = true;
 	NativeClient = nullptr;
 	bLimitConnectionToGameWorld = true;
-	AddressAndPort = FString(TEXT("http://localhost:3000"));	//default to 127.0.0.1
-	SessionId = FString(TEXT("Invalid"));
+	AddressAndPort = TEXT("http://localhost:3000");	//default to 127.0.0.1
+	Path = TEXT("socket.io");
+	SessionId = TEXT("Invalid");
 	
 	//Plugin scoped utilities
 	bPluginScopedConnection = false;
@@ -87,7 +88,7 @@ void USocketIOClientComponent::BeginPlay()
 	//Auto-connect to default address if supported and not already connected
 	if (bShouldAutoConnect && !bIsConnected)
 	{
-		Connect(AddressAndPort);
+		Connect(AddressAndPort, Path);
 	}
 }
 
@@ -363,7 +364,7 @@ bool USocketIOClientComponent::CallBPFunctionWithMessage(UObject* Target, const 
 #pragma region Connect
 #endif
 
-void USocketIOClientComponent::Connect(const FString& InAddressAndPort, const FString& Path, USIOJsonObject* Query /*= nullptr*/, USIOJsonObject* Headers /*= nullptr*/)
+void USocketIOClientComponent::Connect(const FString& InAddressAndPort, const FString& InPath, USIOJsonObject* Query /*= nullptr*/, USIOJsonObject* Headers /*= nullptr*/)
 {
 	//Check if we're limiting this component
 	if (bLimitConnectionToGameWorld)
@@ -396,6 +397,7 @@ void USocketIOClientComponent::Connect(const FString& InAddressAndPort, const FS
 	{
 		HeadersFJson = Headers->GetRootObject();
 	}
+	Path = InPath;
 
 	//Ensure we sync our native max/reconnection attempts before connecting
 	NativeClient->MaxReconnectionAttempts = MaxReconnectionAttempts;
@@ -407,9 +409,9 @@ void USocketIOClientComponent::Connect(const FString& InAddressAndPort, const FS
 	ConnectNative(InAddressAndPort, Path, QueryFJson, HeadersFJson);
 }
 
-void USocketIOClientComponent::ConnectNative(const FString& InAddressAndPort, const FString& Path, const TSharedPtr<FJsonObject>& Query /*= nullptr*/, const TSharedPtr<FJsonObject>& Headers /*= nullptr*/)
+void USocketIOClientComponent::ConnectNative(const FString& InAddressAndPort, const FString& InPath, const TSharedPtr<FJsonObject>& Query /*= nullptr*/, const TSharedPtr<FJsonObject>& Headers /*= nullptr*/)
 {
-	NativeClient->Connect(InAddressAndPort, Query, Headers, Path);
+	NativeClient->Connect(InAddressAndPort, Query, Headers, InPath);
 }
 
 void USocketIOClientComponent::Disconnect()
