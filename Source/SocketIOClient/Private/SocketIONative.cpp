@@ -604,7 +604,7 @@ void FSocketIONative::RebindCurrentEventMap()
 
 bool FSocketIONative::IsTLSURL(const FString& URL)
 {
-	return (URL.StartsWith(TEXT("https://") || URL.StartsWith(TEXT("wss://"));
+	return URL.StartsWith(TEXT("https://")) || URL.StartsWith(TEXT("wss://"));
 }
 
 void FSocketIONative::SyncPrivateClientToTLSMode(const FString& URL)
