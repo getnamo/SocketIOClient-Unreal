@@ -95,11 +95,16 @@ public:
 	/** If true, all callbacks and events will occur on game thread. Default true. */
 	bool bCallbackOnGameThread;
 
+	/** Set true if connection currently configured for TLS */
+	bool bIsSetupForTLS;
+
+	/** If true will attempt to verify certificate (NB: this currently doesn't work) */
+	bool bUsingTLSCertVerification;
 
 	/** If true all events are unbound on disconnect */
 	bool bUnbindEventsOnDisconnect;
 
-	FSocketIONative(const bool bShouldUseTlsLibraries, const bool bShouldSkipCertificateVerification);
+	FSocketIONative(const bool bShouldUseTlsLibraries, const bool bShouldVerifyTLSCertificate);
 
 	/**
 	* Connect to a socket.io server, optional method if auto-connect is set to true.
@@ -374,7 +379,12 @@ public:
 	void UnbindEvent(const FString& EventName, const FString& Namespace = TEXT("/"));
 
 protected:
+
+	void ClearInternalCallbacks();
 	void SetupInternalCallbacks();
+	bool IsTLSURL(const FString& URL);
+
+	void InitPrivateClient(const bool bShouldUseTlsLibraries = false, const bool bShouldVerifyTLSCertificate = false);
 
 	TSharedPtr<sio::client> PrivateClient;
 };

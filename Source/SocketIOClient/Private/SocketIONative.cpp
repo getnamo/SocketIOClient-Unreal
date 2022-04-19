@@ -9,7 +9,7 @@
 #include "sio_message.h"
 #include "sio_socket.h"
 
-FSocketIONative::FSocketIONative(const bool bShouldUseTlsLibraries, const bool bShouldSkipCertificateVerification)
+FSocketIONative::FSocketIONative(const bool bShouldUseTlsLibraries, const bool bShouldVerifyTLSCertificate)
 {
 	PrivateClient = nullptr;
 	AddressAndPort = TEXT("http://localhost:3000");	//default to 127.0.0.1
@@ -20,14 +20,44 @@ FSocketIONative::FSocketIONative(const bool bShouldUseTlsLibraries, const bool b
 	ReconnectionDelay = 5000;
 	bCallbackOnGameThread = true;
 	bUnbindEventsOnDisconnect = false;
-
-	PrivateClient = MakeShareable(new sio::client(bShouldUseTlsLibraries, bShouldSkipCertificateVerification));
+	InitPrivateClient(bShouldUseTlsLibraries, bShouldVerifyTLSCertificate);
 
 	ClearAllCallbacks();
 }
 
+
+void FSocketIONative::InitPrivateClient(const bool bShouldUseTlsLibraries /*= false*/, const bool bShouldVerifyTLSCertificate /*= false*/)
+{
+	bIsSetupForTLS = bShouldUseTlsLibraries;
+	bUsingTLSCertVerification = bShouldVerifyTLSCertificate;
+	PrivateClient = MakeShareable(new sio::client(bShouldUseTlsLibraries, bUsingTLSCertVerification));
+}
+
 void FSocketIONative::Connect(const FString& InAddressAndPort, const TSharedPtr<FJsonObject>& Query /*= nullptr*/, const TSharedPtr<FJsonObject>& Headers /*= nullptr*/, const FString& Path)
 {
+	//check tls mode
+	if (IsTLSURL(InAddressAndPort))
+	{
+		//needs to swap to TLS
+		if (!bIsSetupForTLS)
+		{
+			ClearInternalCallbacks();
+			InitPrivateClient(true, bUsingTLSCertVerification);
+			SetupInternalCallbacks();
+		}
+	}
+	else
+	{
+		//Url not TLS, but we are setup for it
+		if (bIsSetupForTLS)
+		{
+			ClearInternalCallbacks();
+			InitPrivateClient(false, bUsingTLSCertVerification);
+			SetupInternalCallbacks();
+		}
+	}
+	
+
 	std::string StdAddressString = USIOMessageConvert::StdString(InAddressAndPort);
 	if (InAddressAndPort.IsEmpty())
 	{
@@ -109,7 +139,7 @@ void FSocketIONative::Disconnect()
 	else
 	{
 		//only clear internal ones during close
-		PrivateClient->clear_socket_listeners();
+		ClearInternalCallbacks();
 		PrivateClient->close();
 		SetupInternalCallbacks();
 	}
@@ -130,7 +160,7 @@ void FSocketIONative::SyncDisconnect()
 	}
 	else
 	{
-		PrivateClient->clear_socket_listeners();
+		ClearInternalCallbacks();
 		PrivateClient->sync_close();
 		SetupInternalCallbacks();
 	}
@@ -383,6 +413,11 @@ void FSocketIONative::UnbindEvent(const FString& EventName, const FString& Names
 	EventFunctionMap.Remove(EventName);
 }
 
+void FSocketIONative::ClearInternalCallbacks()
+{
+	PrivateClient->clear_socket_listeners();
+}
+
 void FSocketIONative::SetupInternalCallbacks()
 {
 	PrivateClient->set_open_listener(sio::client::con_listener([&]() 
@@ -566,6 +601,11 @@ void FSocketIONative::SetupInternalCallbacks()
 			}
 		}
 	}));
+}
+
+bool FSocketIONative::IsTLSURL(const FString& URL)
+{
+	return URL.StartsWith(TEXT("https://"));
 }
 
 

@@ -15,7 +15,7 @@ USocketIOClientComponent::USocketIOClientComponent(const FObjectInitializer &ini
 	bAutoActivate = true;
 
 	bShouldUseTLS = false;
-	bShouldSkipCertificateVerification = true;	//until verification is implemented, this should default to true
+	bShouldVerifyTLSCertificate = false;	//Until verification feature is implemented, this should default to false
 	bShouldAutoConnect = true;
 	NativeClient = nullptr;
 	bLimitConnectionToGameWorld = true;
@@ -66,14 +66,14 @@ void USocketIOClientComponent::InitializeNative()
 {
 	if (bPluginScopedConnection)
 	{
-		NativeClient = ISocketIOClientModule::Get().ValidSharedNativePointer(PluginScopedId, bShouldUseTLS, bShouldSkipCertificateVerification);
+		NativeClient = ISocketIOClientModule::Get().ValidSharedNativePointer(PluginScopedId, bShouldUseTLS, bShouldVerifyTLSCertificate);
 
 		//Enforcement: This is the default FSocketIONative option value, but this component depends on it being true.
 		NativeClient->bCallbackOnGameThread = true;
 	}
 	else
 	{
-		NativeClient = ISocketIOClientModule::Get().NewValidNativePointer(bShouldUseTLS, bShouldSkipCertificateVerification);
+		NativeClient = ISocketIOClientModule::Get().NewValidNativePointer(bShouldUseTLS, bShouldVerifyTLSCertificate);
 	}
 
 	SetupCallbacks();
@@ -209,7 +209,7 @@ void USocketIOClientComponent::ClearCallbacks()
 {
 	if (NativeClient.IsValid())
 	{
-		NativeClient->ClearCallbacks();
+		NativeClient->ClearAllCallbacks();
 	}
 }
 

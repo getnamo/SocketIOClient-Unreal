@@ -61,28 +61,28 @@ public:
 
 
 	/**
-		* Default connection address string in form e.g. http://localhost:80.
-		* If HTTPS/WSS is provided and TLS/SSL libraries aren't compiled, HTTP/WS
-		* will be used.
-		*/
+	* Default connection address string in form e.g. http://localhost:80.
+	* If HTTPS/WSS is provided and TLS/SSL libraries aren't compiled, HTTP/WS
+	* will be used.
+	*/
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "SocketIO Connection Properties")
 	FString AddressAndPort;
 
 	/**
-		* Whether or not to use the TLS/SSL libraries for the connection.
-		* Ignored if TLS/SSL libraries are not compiled in (SIO_TLS isn't defined)
-		*/
+	* Whether or not to use the TLS/SSL libraries for the connection.
+	* Ignored if TLS/SSL libraries are not compiled in (SIO_TLS isn't defined)
+	*/
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "SocketIO Connection Properties")
 	bool bShouldUseTLS;
 
 	/**
-		* If `Should Use TLS` is set to true, setting this to true
-		* will not verify the authenticity of the SSL certificate (i.e. asio::ssl::verify_none).
-		* NOTE: Certification verification is currently not implemented; setting to false will
-		* always fail verification.
-		*/
+	* If `Should Use TLS` is set to true, setting this to false
+	* will not verify the authenticity of the SSL certificate (i.e. asio::ssl::verify_none).
+	* NOTE: Certification verification is currently not implemented; setting to true will
+	* always fail verification.
+	*/
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "SocketIO Connection Properties")
-	bool bShouldSkipCertificateVerification;
+	bool bShouldVerifyTLSCertificate;
 
 	/** If true will auto-connect on begin play to address specified in AddressAndPort. */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "SocketIO Connection Properties")
