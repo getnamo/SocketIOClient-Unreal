@@ -7,6 +7,7 @@
 #include "SIOJsonObject.h"
 #include "SIOJsonValue.h"
 #include "SIOJConvert.h"
+#include "SIOMessageConvert.h"
 #include "CoreMinimal.h"
 
 UENUM(BlueprintType)
@@ -55,8 +56,8 @@ public:
 	//Map for all native functions bound to this socket
 	TMap<FString, FSIOBoundEvent> EventFunctionMap;
 
-	/** Default connection address string in form e.g. http://localhost:80. */
-	FString AddressAndPort;
+	/** Address& Port, Path, Query& Headers */
+	FSIOConnectParams URLParams;
 
 	/** The number of attempts before giving up. 0 = infinity. Set before connecting*/
 	uint32 MaxReconnectionAttempts;
@@ -109,11 +110,7 @@ public:
 	* @param Headers http header as a SIOJsonObject with string keys and values
 	*
 	*/
-	void Connect(	
-		const FString& InAddressAndPort,
-		const TSharedPtr<FJsonObject>& Query, 
-		const TSharedPtr<FJsonObject>& Headers,
-		const FString& Path = "socket.io");
+	void Connect(const FSIOConnectParams& ConnectParams);
 
 	/** 
 	* Join a desired namespace. Keep in mind that emitting to a namespace will auto-join it

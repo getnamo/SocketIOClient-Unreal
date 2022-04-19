@@ -12,7 +12,6 @@
 FSocketIONative::FSocketIONative(const bool bForceTLS, const bool bShouldVerifyTLSCertificate)
 {
 	PrivateClient = nullptr;
-	AddressAndPort = TEXT("http://localhost:3000");	//default to 127.0.0.1
 	SessionId = TEXT("Invalid");
 	LastSessionId = TEXT("None");
 	bIsConnected = false;
@@ -34,31 +33,25 @@ void FSocketIONative::InitPrivateClient(const bool bShouldUseTlsLibraries /*= fa
 	PrivateClient = MakeShareable(new sio::client(bShouldUseTlsLibraries, bUsingTLSCertVerification));
 }
 
-void FSocketIONative::Connect(const FString& InAddressAndPort, const TSharedPtr<FJsonObject>& Query /*= nullptr*/, const TSharedPtr<FJsonObject>& Headers /*= nullptr*/, const FString& Path)
+void FSocketIONative::Connect(const FSIOConnectParams& InConnectParams)
 {
-	SyncPrivateClientToTLSMode(InAddressAndPort);
+	//Special case: reconnect on current settings if address is empty
+	if (!InConnectParams.AddressAndPort.IsEmpty())
+	{
+		URLParams = InConnectParams;
+	}
+
+	SyncPrivateClientToTLSMode(URLParams.AddressAndPort);
 	
 	//Fill std types before going to background thread.
 
-	std::string StdAddressString = USIOMessageConvert::StdString(InAddressAndPort);
-	std::string StdPathString = USIOMessageConvert::StdString(Path);
+	std::string StdAddressString = USIOMessageConvert::StdString(URLParams.AddressAndPort);
+	std::string StdPathString = USIOMessageConvert::StdString(URLParams.Path);
 	std::map<std::string, std::string> QueryMap = {};
 	std::map<std::string, std::string> HeadersMap = {};
 
-	if (Headers.IsValid())
-	{
-		HeadersMap = USIOMessageConvert::JsonObjectToStdStringMap(Headers);
-	}
-
-	if (Query.IsValid())
-	{
-		QueryMap = USIOMessageConvert::JsonObjectToStdStringMap(Query);
-	}
-
-	if (InAddressAndPort.IsEmpty())
-	{
-		StdAddressString = USIOMessageConvert::StdString(AddressAndPort);
-	}
+	QueryMap = USIOMessageConvert::FStringMapToStdStringMap(URLParams.Query);
+	HeadersMap = USIOMessageConvert::FStringMapToStdStringMap(URLParams.Headers);
 
 	//Connect to the server on a background thread so it never blocks
 	FCULambdaRunnable::RunLambdaOnBackGroundThread([&, StdAddressString, StdPathString, QueryMap, HeadersMap]
@@ -88,10 +81,10 @@ void FSocketIONative::Connect(const FString& InAddressAndPort, const TSharedPtr<
 
 void FSocketIONative::Connect(const FString& InAddressAndPort)
 {
-	TSharedPtr<FJsonObject> Query = MakeShareable(new FJsonObject);
-	TSharedPtr<FJsonObject> Headers = MakeShareable(new FJsonObject);
+	FSIOConnectParams Params;
+	Params.AddressAndPort = InAddressAndPort;
 
-	Connect(InAddressAndPort, Query, Headers);
+	Connect(Params);
 }
 
 void FSocketIONative::JoinNamespace(const FString& Namespace)

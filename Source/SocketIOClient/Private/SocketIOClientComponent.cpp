@@ -20,8 +20,6 @@ USocketIOClientComponent::USocketIOClientComponent(const FObjectInitializer &ini
 	bShouldAutoConnect = true;
 	NativeClient = nullptr;
 	bLimitConnectionToGameWorld = true;
-	AddressAndPort = TEXT("http://localhost:3000");	//default to 127.0.0.1
-	Path = TEXT("socket.io");
 	SessionId = TEXT("Invalid");
 	
 	//Plugin scoped utilities
@@ -88,7 +86,7 @@ void USocketIOClientComponent::BeginPlay()
 	//Auto-connect to default address if supported and not already connected
 	if (bShouldAutoConnect && !bIsConnected)
 	{
-		Connect(AddressAndPort, Path);
+		ConnectWithParams(URLParams);
 	}
 }
 
@@ -129,7 +127,7 @@ void USocketIOClientComponent::SetupCallbacks()
 	if (bIsConnected)
 	{
 		SessionId = NativeClient->SessionId;
-		AddressAndPort = NativeClient->AddressAndPort;
+		URLParams = NativeClient->URLParams;
 	}
 
 	NativeClient->OnConnectedCallback = [this](const FString& InSessionId)
@@ -385,6 +383,9 @@ void USocketIOClientComponent::Connect(const FString& InAddressAndPort, const FS
 			return;
 		}
 	}
+
+	URLParams.AddressAndPort = InAddressAndPort;
+
 	TSharedPtr<FJsonObject> QueryFJson;
 	TSharedPtr<FJsonObject> HeadersFJson;
 
@@ -397,7 +398,10 @@ void USocketIOClientComponent::Connect(const FString& InAddressAndPort, const FS
 	{
 		HeadersFJson = Headers->GetRootObject();
 	}
-	Path = InPath;
+
+	URLParams.Query = USIOMessageConvert::JsonObjectToFStringMap(QueryFJson);
+	URLParams.Headers = USIOMessageConvert::JsonObjectToFStringMap(HeadersFJson);
+	URLParams.Path = InPath;
 
 	//Ensure we sync our native max/reconnection attempts before connecting
 	NativeClient->MaxReconnectionAttempts = MaxReconnectionAttempts;
@@ -406,12 +410,27 @@ void USocketIOClientComponent::Connect(const FString& InAddressAndPort, const FS
 	NativeClient->bUnbindEventsOnDisconnect = bUnbindEventsOnDisconnect;
 	NativeClient->bForceTLSUse = bForceTLS;
 
-	ConnectNative(InAddressAndPort, Path, QueryFJson, HeadersFJson);
+	ConnectWithParams(URLParams);
 }
 
-void USocketIOClientComponent::ConnectNative(const FString& InAddressAndPort, const FString& InPath, const TSharedPtr<FJsonObject>& Query /*= nullptr*/, const TSharedPtr<FJsonObject>& Headers /*= nullptr*/)
+void USocketIOClientComponent::ConnectWithParams(const FSIOConnectParams& InURLParams)
 {
-	NativeClient->Connect(InAddressAndPort, Query, Headers, InPath);
+	NativeClient->Connect(InURLParams);
+}
+
+void USocketIOClientComponent::ConnectNative(const FString& InAddressAndPort, 
+	const FString& InPath, 
+	const TSharedPtr<FJsonObject>& Query /*= nullptr*/, 
+	const TSharedPtr<FJsonObject>& Headers /*= nullptr*/)
+{
+	FSIOConnectParams Params;
+	Params.AddressAndPort = InAddressAndPort;
+	Params.Path = InPath;
+
+	Params.Query = USIOMessageConvert::JsonObjectToFStringMap(Query);
+	Params.Headers = USIOMessageConvert::JsonObjectToFStringMap(Headers);
+
+	ConnectWithParams(Params);
 }
 
 void USocketIOClientComponent::Disconnect()

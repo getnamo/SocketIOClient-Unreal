@@ -64,19 +64,10 @@ public:
 
 
 	/**
-	* Default connection address string in form e.g. http://localhost:80.
-	* If HTTPS/WSS is provided and TLS/SSL libraries aren't compiled, HTTP/WS
-	* will be used.
+	* Default connection params used on e.g. on begin play. Can be updated and re-used on custom connection.
 	*/
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "SocketIO Connection Properties")
-	FString AddressAndPort;
-
-	/**
-	* Path variable passed in on connect. Used on begin play auto connect, 
-	* or overwritten by user before connect. 
-	*/
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "SocketIO Connection Properties")
-	FString Path;
+	FSIOConnectParams URLParams;
 
 	/**
 	* Will force using TLS even if url doesn't have https:// prepend.
@@ -172,6 +163,14 @@ public:
 					const FString& InPath = TEXT("socket.io"),
 					USIOJsonObject* Query = nullptr, 
 					USIOJsonObject* Headers = nullptr);
+
+	/**
+	* Connect to a socket.io server, optional method if auto-connect is set to true.
+	*
+	* @param InURLParams - A struct holding address&port, path, headers, and query params
+	*/
+	UFUNCTION(BlueprintCallable, Category = "SocketIO Functions")
+	void ConnectWithParams(const FSIOConnectParams& InURLParams);
 
 	/**
 	* Disconnect from current socket.io server. This is an asynchronous action,
