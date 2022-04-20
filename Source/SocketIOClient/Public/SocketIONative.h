@@ -56,7 +56,7 @@ public:
 	//Map for all native functions bound to this socket
 	TMap<FString, FSIOBoundEvent> EventFunctionMap;
 
-	/** Address& Port, Path, Query& Headers */
+	/** Address& Port, Path, Query & Headers */
 	FSIOConnectParams URLParams;
 
 	/** The number of attempts before giving up. 0 = infinity. Set before connecting*/
