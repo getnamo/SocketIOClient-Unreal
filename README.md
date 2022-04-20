@@ -19,12 +19,11 @@ Recommended socket.io server version: 3.0+
 
 Current platform issues:
 
-* Xbox/PS4 platform untested - see [issue 117](https://github.com/getnamo/SocketIOClient-Unreal/issues/117)
-* Lumin platform untested - see [issue 114](https://github.com/getnamo/SocketIOClient-Unreal/issues/114)
+* Xbox/PS platforms untested - see [issue 117](https://github.com/getnamo/SocketIOClient-Unreal/issues/117)
 
 Current TLS/SSL issues:
 
-* Certification verification is not implemented; setting `bShouldSkipCertificateVerification` will always fail - see [issue 303](https://github.com/getnamo/SocketIOClient-Unreal/issues/303)
+* Certificate verification is not implemented; setting `bShouldSkipCertificateVerification` will always fail - see [issue 303](https://github.com/getnamo/SocketIOClient-Unreal/issues/303)
 
 ## Socket.IO Server Compatibility
 
@@ -372,13 +371,13 @@ Game Instances do *not* have actor owners and therefore cannot register and init
 
 Non actor-owners such as Game Instances cannot receive the graph callbacks due to invalid world context. This only affects this one callback method, other methods work as usual.
 
-## HTTPS/TLS/SSL Support
+## TLS / SSL
 
-For connections that require TLS use the toggle ```bShouldUseTLS``` on ```SocketIOClientComponent``` (or c++ native variants). Then on connect, your component will use TLS. 
-
-NB CertificateVerification does NOT currently work and  ```bShouldSkipCertificateVerification``` should be set to true or it will always fail to connect, see https://github.com/getnamo/SocketIOClient-Unreal/issues/303 for progress.
+TLS is supported for both C++ and BP if your platform supports OpenSSL (see https://github.com/getnamo/SocketIOClient-Unreal/blob/master/Source/SocketIOLib/SocketIOLib.Build.cs#L64 for currently supported platforms). Simply use a `https` or `wss` URL for host target and it will use TLS by default. You can also force TLS on any URL by using `bForceTLS` set to true. 
 
 Gist with example node.js TLS server and instructions for self signing certificate for testing purposes: https://gist.github.com/getnamo/fe6c9574dc971066813fd291c363ee04
+
+*NB: Certificate verification is currently not implemented; `bShouldVerifyTLSCertificate` is set to false by default, setting it to true will currently cause connections to fail. See [issue 303](https://github.com/getnamo/SocketIOClient-Unreal/issues/303).*
 
 ## CoreUtility
 
@@ -818,12 +817,6 @@ You can post simple JSON requests using the SIOJRequest (this is the same archit
 ![Sending a JSON post request](https://i.imgur.com/UOJHcP0.png)
 
 These request functions are available globally.
-
-## TLS / SSL
-
-TLS is supported for both C++ and BP if your platform supports OpenSSL (see https://github.com/getnamo/SocketIOClient-Unreal/blob/master/Source/SocketIOLib/SocketIOLib.Build.cs#L64 for currently supported platforms). Simply use a `https` or `wss` URL for host target and it will use TLS by default. You can also force TLS on different URLs by using `bForceTLS` set to true. 
-
-Certificate verification is currently not implemented; `bShouldVerifyTLSCertificate` is set to false by default, setting it to true will cause connections to fail. See [issue 303](https://github.com/getnamo/SocketIOClient-Unreal/issues/303).
 
 ## Packaging
 
