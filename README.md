@@ -19,8 +19,7 @@ Recommended socket.io server version: 3.0+
 
 Current platform issues:
 
-* Xbox/PS4 platform untested - see [issue 117](https://github.com/getnamo/SocketIOClient-Unreal/issues/117)
-* Lumin platform untested - see [issue 114](https://github.com/getnamo/SocketIOClient-Unreal/issues/114)
+* Xbox/PS platforms untested - see [issue 117](https://github.com/getnamo/SocketIOClient-Unreal/issues/117)
 
 Current TLS/SSL issues:
 
