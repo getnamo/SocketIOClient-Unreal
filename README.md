@@ -83,9 +83,9 @@ Add the SocketIO Client Component to your blueprint actor of choice
 
 ![IMG](http://i.imgur.com/lSkfHQ2.png)
 
-By default the component will auto connect *on begin play* to your default address and port [http://localhost:3000](http://localhost:3000). You can change this default address to connect to your service instead.
+By default the component will auto connect *on begin play* to your default address and port [http://localhost:3000](http://localhost:3000). You can change this default address to connect to your service instead as well as add any query/header or other URL parameters you need.
 
-![IMG](https://i.imgur.com/LOC1ehw.png)
+![IMG](https://i.imgur.com/qInVfuK.png)
 
 If you want to connect at your own time, you change the default variable *Should Auto Connect* to false and then call *Connect* with your address
 
@@ -343,6 +343,10 @@ The input type for both fields is a _SIOJsonObject_ with purely string fields or
 Here's an example of constructing a single header  _X-Forwarded-Host: qnova.io_ and then connecting.
 
 ![connectwithheader](https://cloud.githubusercontent.com/assets/542365/25309683/63bfe26e-27cb-11e7-877e-0590e40605f3.PNG)
+
+Since v2.3.0 you can also connect using a `SIOConnectParams` struct
+
+![connectwithparams](https://user-images.githubusercontent.com/542365/164123044-88af7b36-36b2-4364-abe6-75c133d21e8a.png)
 
 ### Plugin Scoped Connection
 
