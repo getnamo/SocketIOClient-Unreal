@@ -152,14 +152,15 @@ public:
 	* Connect to a socket.io server, optional method if auto-connect is set to true.
 	* Query and headers are defined by a {'stringKey':'stringValue'} SIOJson Object
 	*
-	* @param AddressAndPort	the address in URL format with port
+	* @param AddressAndPort	the address in URL format with port, if left empty it will
+	*						use current URLParams for all inputs.
 	* @param Path optional ws:// trailing path for socket.io connection
 	* @param Query http query as a SIOJsonObject with string keys and values
 	* @param Headers http header as a SIOJsonObject with string keys and values
 	*
 	*/
 	UFUNCTION(BlueprintCallable, Category = "SocketIO Functions")
-	void Connect(	const FString& InAddressAndPort,
+	void Connect(	const FString& InAddressAndPort = TEXT(""),
 					const FString& InPath = TEXT("socket.io"),
 					USIOJsonObject* Query = nullptr, 
 					USIOJsonObject* Headers = nullptr);

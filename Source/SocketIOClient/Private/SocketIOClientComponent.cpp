@@ -384,24 +384,27 @@ void USocketIOClientComponent::Connect(const FString& InAddressAndPort, const FS
 		}
 	}
 
-	URLParams.AddressAndPort = InAddressAndPort;
-
-	TSharedPtr<FJsonObject> QueryFJson;
-	TSharedPtr<FJsonObject> HeadersFJson;
-
-	if (Query != nullptr)
+	if (!InAddressAndPort.IsEmpty())
 	{
-		QueryFJson = Query->GetRootObject();
-	}
+		URLParams.AddressAndPort = InAddressAndPort;
+	
+		TSharedPtr<FJsonObject> QueryFJson;
+		TSharedPtr<FJsonObject> HeadersFJson;
 
-	if (Headers != nullptr)
-	{
-		HeadersFJson = Headers->GetRootObject();
-	}
+		if (Query != nullptr)
+		{
+			QueryFJson = Query->GetRootObject();
+		}
 
-	URLParams.Query = USIOMessageConvert::JsonObjectToFStringMap(QueryFJson);
-	URLParams.Headers = USIOMessageConvert::JsonObjectToFStringMap(HeadersFJson);
-	URLParams.Path = InPath;
+		if (Headers != nullptr)
+		{
+			HeadersFJson = Headers->GetRootObject();
+		}
+
+		URLParams.Query = USIOMessageConvert::JsonObjectToFStringMap(QueryFJson);
+		URLParams.Headers = USIOMessageConvert::JsonObjectToFStringMap(HeadersFJson);
+		URLParams.Path = InPath;
+	}
 
 	//Ensure we sync our native max/reconnection attempts before connecting
 	NativeClient->MaxReconnectionAttempts = MaxReconnectionAttempts;
