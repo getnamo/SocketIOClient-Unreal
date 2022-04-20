@@ -81,10 +81,12 @@ void FSocketIONative::Connect(const FSIOConnectParams& InConnectParams)
 
 void FSocketIONative::Connect(const FString& InAddressAndPort)
 {
-	FSIOConnectParams Params;
-	Params.AddressAndPort = InAddressAndPort;
+	if (!InAddressAndPort.IsEmpty())
+	{
+		URLParams.AddressAndPort = InAddressAndPort;
+	}
 
-	Connect(Params);
+	Connect(URLParams);
 }
 
 void FSocketIONative::JoinNamespace(const FString& Namespace)

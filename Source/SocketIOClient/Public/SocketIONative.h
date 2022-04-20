@@ -99,7 +99,7 @@ public:
 	* @param AddressAndPort	the address in URL format with port
 	*
 	*/
-	void Connect(const FString& InAddressAndPort);
+	void Connect(const FString& InAddressAndPort = TEXT(""));
 
 	/**
 	* Connect to a socket.io server, optional method if auto-connect is set to true.
