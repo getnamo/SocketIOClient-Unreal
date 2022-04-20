@@ -407,7 +407,7 @@ void USocketIOClientComponent::Connect(const FString& InAddressAndPort, const FS
 		URLParams.Path = InPath;
 	}
 
-	//Ensure we sync our native max/reconnection attempts before connecting
+	//Sync all params to native client before connecting
 	NativeClient->MaxReconnectionAttempts = MaxReconnectionAttempts;
 	NativeClient->ReconnectionDelay = ReconnectionDelayInMs;
 	NativeClient->VerboseLog = bVerboseConnectionLog;
