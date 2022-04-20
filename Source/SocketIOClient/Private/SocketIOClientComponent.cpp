@@ -384,6 +384,7 @@ void USocketIOClientComponent::Connect(const FString& InAddressAndPort, const FS
 		}
 	}
 
+	//NB: Only if the address and port is not empty do we use any of the other parameters
 	if (!InAddressAndPort.IsEmpty())
 	{
 		URLParams.AddressAndPort = InAddressAndPort;
