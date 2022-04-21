@@ -197,7 +197,7 @@ TMap<FString, FString> USIOMessageConvert::JsonObjectToFStringMap(TSharedPtr<FJs
 			//If it's a string value, add it to the std map
 			if (Value->Type == EJson::String)
 			{
-				ParamMap[Pair.Key] = Value->AsString();
+				ParamMap.Add(Pair.Key, Value->AsString());
 			}
 		}
 	}
