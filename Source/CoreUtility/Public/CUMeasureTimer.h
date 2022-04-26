@@ -1,5 +1,7 @@
-#pragma once
+// Copyright 2019-current Getnamo. All Rights Reserved
 
+
+#pragma once
 #include "CoreMinimal.h"
 
 //Toggle to enable/disable timing code logs
@@ -34,7 +36,7 @@ private:
 };
 
 /** 
-*	Wrapper for FCUPreciseTimer calls. 
+*	Wrapper for FCUMeasureTimer calls. 
 *
 *	Usage:
 *	{

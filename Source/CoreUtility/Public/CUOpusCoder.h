@@ -1,7 +1,6 @@
 // Copyright 2019-current Getnamo. All Rights Reserved
 
 #pragma once
-
 #define WITH_OPUS (PLATFORM_WINDOWS || PLATFORM_MAC || PLATFORM_UNIX || PLATFORM_XBOXONE || PLATFORM_ANDROID)
 
 #if WITH_OPUS
