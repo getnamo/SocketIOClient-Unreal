@@ -75,7 +75,7 @@ void FSocketIONative::Connect(const FString& InAddressAndPort, const TSharedPtr<
 				return;
 			}
 		}
-		PrivateClient->connect(StdAddressString, QueryMap, HeadersMap,AuthMessage);
+		PrivateClient->connect(StdAddressString, QueryMap, HeadersMap, AuthMessage);
 	});
 
 }
