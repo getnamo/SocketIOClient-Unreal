@@ -14,7 +14,7 @@ USocketIOClientComponent::USocketIOClientComponent(const FObjectInitializer &ini
 	bWantsInitializeComponent = true;
 	bAutoActivate = true;
 
-	bForceTLS = false;
+	bForceTLS = true;
 	bUnbindEventsOnDisconnect = false;
 	bShouldVerifyTLSCertificate = false;	//Until verification feature is implemented, this should default to false
 	bShouldAutoConnect = true;
@@ -412,10 +412,10 @@ void USocketIOClientComponent::Connect(const FString& InAddressAndPort, const FS
 		TSharedPtr<FJsonObject> AuthFJson = Auth->GetRootObject();
 		if (AuthFJson.IsValid())
 		{
-			TSharedPtr<FJsonValue> authPtr = MakeShareable(new FJsonValueObject(Auth));
+			TSharedPtr<FJsonValue> authPtr = MakeShareable(new FJsonValueObject(AuthFJson));
 			TSharedPtr<USIOJsonValue> AuthValue = MakeShareable(NewObject<USIOJsonValue>());
 			AuthValue->SetRootValue(authPtr);
-			URLParams.Auth = AuthValue;
+			URLParams.Auth = &(*AuthValue);
 		}
 	}
 
@@ -450,7 +450,9 @@ void USocketIOClientComponent::ConnectNative(const FString& InAddressAndPort,
 	if (Auth.IsValid())
 	{
 		TSharedPtr<FJsonValue> authPtr = MakeShareable(new FJsonValueObject(Auth));
-		Params.AuthMessage = USIOMessageConvert::ToSIOMessage(authPtr);
+		TSharedPtr<USIOJsonValue> AuthValue = MakeShareable(NewObject<USIOJsonValue>());
+		AuthValue->SetRootValue(authPtr);
+		Params.Auth = &(*AuthValue);
 	}
 
 	ConnectWithParams(Params);
