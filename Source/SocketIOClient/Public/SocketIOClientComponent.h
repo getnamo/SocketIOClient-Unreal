@@ -12,8 +12,11 @@ DECLARE_DYNAMIC_MULTICAST_DELEGATE(FSIOCEventSignature);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FSIOCSocketEventSignature, FString, Namespace);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FSIOCOpenEventSignature, FString, SessionId, bool, bIsReconnection);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FSIOCCloseEventSignature, TEnumAsByte<ESIOConnectionCloseReason>, Reason);
-DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FSIOCEventJsonSignature, FString, EventName, class USIOJsonValue*, MessageJson);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FSIOCEventJsonSignature, FString, EventName, class USIOJsonValue*, EventData);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_ThreeParams(FSIOConnectionProblemSignature, int32, Attempts, int32,  NextAttemptInMs, float, TimeSinceConnected);
+
+//For Direct Delegate Event Bind
+DECLARE_DYNAMIC_DELEGATE_OneParam(FSIOJsonValueSignature, USIOJsonValue*, EventData);
 
 UCLASS(BlueprintType, ClassGroup = "Networking", meta = (BlueprintSpawnableComponent))
 class SOCKETIOCLIENT_API USocketIOClientComponent : public UActorComponent
@@ -61,28 +64,34 @@ public:
 
 
 	/**
-		* Default connection address string in form e.g. http://localhost:80.
-		* If HTTPS/WSS is provided and TLS/SSL libraries aren't compiled, HTTP/WS
-		* will be used.
-		*/
+	* Default connection params used on e.g. on begin play. Can be updated and re-used on custom connection.
+	*/
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "SocketIO Connection Properties")
-	FString AddressAndPort;
+	FSIOConnectParams URLParams;
 
 	/**
-		* Whether or not to use the TLS/SSL libraries for the connection.
-		* Ignored if TLS/SSL libraries are not compiled in (SIO_TLS isn't defined)
-		*/
+	* Will force using TLS even if url doesn't have https:// prepend.
+	*/
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "SocketIO Connection Properties")
-	bool bShouldUseTLS;
+	bool bForceTLS;
 
 	/**
-		* If `Should Use TLS` is set to true, setting this to true
-		* will not verify the authenticity of the SSL certificate (i.e. asio::ssl::verify_none).
-		* NOTE: Certification verification is currently not implemented; setting to false will
-		* always fail verification.
-		*/
+	* If true, all your bound events will unbind on disconnect. 
+	* Useful for cleanup if typically binding on connection and there
+	* are no early event binds (before connection).
+	*/
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "SocketIO Connection Properties")
-	bool bShouldSkipCertificateVerification;
+	bool bUnbindEventsOnDisconnect;
+
+	/**
+	* If using a TLS url (or if forced) and setting this to false will not verify 
+	* the authenticity of the SSL certificate (i.e. asio::ssl::verify_none).
+	* 
+	* NOTE: Certification verification is currently not implemented; setting to true will
+	* always fail verification.
+	*/
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "SocketIO Connection Properties")
+	bool bShouldVerifyTLSCertificate;
 
 	/** If true will auto-connect on begin play to address specified in AddressAndPort. */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "SocketIO Connection Properties")
@@ -143,7 +152,8 @@ public:
 	* Connect to a socket.io server, optional method if auto-connect is set to true.
 	* Query and headers are defined by a {'stringKey':'stringValue'} SIOJson Object
 	*
-	* @param AddressAndPort	the address in URL format with port
+	* @param AddressAndPort	the address in URL format with port, if left empty it will
+	*						use current URLParams for all inputs.
 	* @param Path optional ws:// trailing path for socket.io connection
 	* @param Query http query as a SIOJsonObject with string keys and values
 	* @param Headers http header as a SIOJsonObject with string keys and values
@@ -151,11 +161,19 @@ public:
 	*
 	*/
 	UFUNCTION(BlueprintCallable, Category = "SocketIO Functions")
-	void Connect(	const FString& InAddressAndPort,
-					const FString& Path = TEXT("socket.io"),
+	void Connect(	const FString& InAddressAndPort = TEXT(""),
+					const FString& InPath = TEXT("socket.io"),
 					USIOJsonObject* Query = nullptr, 
 					USIOJsonObject* Headers = nullptr,
 					USIOJsonObject* Auth = nullptr);
+
+	/**
+	* Connect to a socket.io server, optional method if auto-connect is set to true.
+	*
+	* @param InURLParams - A struct holding address&port, path, headers, query, and auth params
+	*/
+	UFUNCTION(BlueprintCallable, Category = "SocketIO Functions")
+	void ConnectWithParams(const FSIOConnectParams& InURLParams);
 
 	/**
 	* Disconnect from current socket.io server. This is an asynchronous action,
@@ -229,23 +247,32 @@ public:
 								USIOJsonValue* Message = nullptr,
 								const FString& Namespace = TEXT("/"));
 
+
+
 	/**
-	* Bind an event, then respond to it with 'OnGenericEvent' multi-cast delegate. If you want functions or custom events to receive the event, use Bind Event To Function.
+	* Bind an event directly to a matching delegate. Drag off from red box or
+	* use create event option.
+	* 
+	* @param EventName	Event name
+	* @param CallbackDelegate Delegate that needs to be bound
+	* @param Namespace	Optional namespace, defaults to default namespace
+	* @param ThreadOverride	Optional override to receive event on specified thread. Note NETWORK thread is lower latency but unsafe for a lot of blueprint use. Use with CAUTION.
+	*/
+	UFUNCTION(BlueprintCallable, Category = "SocketIO Functions")
+	void BindEventToDelegate(	const FString& EventName, 
+								const FSIOJsonValueSignature& CallbackDelegate, 
+								const FString& Namespace = TEXT("/"),
+								ESIOThreadOverrideOption ThreadOverride = USE_DEFAULT);
+
+	/**
+	* Bind an event, then respond to it with 'OnGenericEvent' multi-cast delegate.
+	* If you want functions or custom events to receive the event, use Bind Event To Function.
 	*
 	* @param EventName	Event name
 	* @param Namespace	Optional namespace, defaults to default namespace
 	*/
 	UFUNCTION(BlueprintCallable, Category = "SocketIO Functions")
 	void BindEventToGenericEvent(const FString& EventName, const FString& Namespace = TEXT("/"));
-
-	/**
-	* Unbind an event from whatever it was bound to (safe to call if not already bound)
-	*
-	* @param EventName	Event name
-	* @param Namespace	Optional namespace, defaults to default namespace
-	*/
-	UFUNCTION(BlueprintCallable, Category = "SocketIO Functions")
-	void UnbindEvent(const FString& EventName, const FString& Namespace = TEXT("/"));
 
 	/**
 	* Bind an event to a function with the given name.
@@ -264,6 +291,17 @@ public:
 								const FString& Namespace = TEXT("/"),
 								ESIOThreadOverrideOption ThreadOverride = USE_DEFAULT,
 								UObject* WorldContextObject = nullptr);
+
+	/**
+	* Unbind an event from whatever it was bound to (safe to call if not already bound)
+	*
+	* @param EventName	Event name
+	* @param Namespace	Optional namespace, defaults to default namespace
+	*/
+	UFUNCTION(BlueprintCallable, Category = "SocketIO Functions")
+	void UnbindEvent(const FString& EventName, const FString& Namespace = TEXT("/"));
+
+
 	//
 	//C++ functions
 	//
@@ -279,7 +317,7 @@ public:
 	*
 	*/
 	void ConnectNative(	const FString& InAddressAndPort, 
-						const FString& Path = TEXT("socket.io"),
+						const FString& InPath = TEXT("socket.io"),
 						const TSharedPtr<FJsonObject>& Query = nullptr, 
 						const TSharedPtr<FJsonObject>& Headers = nullptr,
 						const TSharedPtr<FJsonObject>& Auth = nullptr);
