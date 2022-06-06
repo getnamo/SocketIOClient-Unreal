@@ -14,7 +14,7 @@ USocketIOClientComponent::USocketIOClientComponent(const FObjectInitializer &ini
 	bWantsInitializeComponent = true;
 	bAutoActivate = true;
 
-	bForceTLS = true;
+	bForceTLS = false;
 	bUnbindEventsOnDisconnect = false;
 	bShouldVerifyTLSCertificate = false;	//Until verification feature is implemented, this should default to false
 	bShouldAutoConnect = true;
