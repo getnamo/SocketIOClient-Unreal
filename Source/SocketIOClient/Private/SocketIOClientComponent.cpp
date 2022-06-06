@@ -413,9 +413,9 @@ void USocketIOClientComponent::Connect(const FString& InAddressAndPort, const FS
 		if (AuthFJson.IsValid())
 		{
 			TSharedPtr<FJsonValue> authPtr = MakeShareable(new FJsonValueObject(AuthFJson));
-			TSharedPtr<USIOJsonValue> AuthValue = MakeShareable(NewObject<USIOJsonValue>());
-			AuthValue->SetRootValue(authPtr);
-			URLParams.Auth = &(*AuthValue);
+			if (URLParams.Auth == nullptr)
+				URLParams.Auth = NewObject<USIOJsonValue>();
+			URLParams.Auth->SetRootValue(authPtr);
 		}
 	}
 
@@ -450,9 +450,9 @@ void USocketIOClientComponent::ConnectNative(const FString& InAddressAndPort,
 	if (Auth.IsValid())
 	{
 		TSharedPtr<FJsonValue> authPtr = MakeShareable(new FJsonValueObject(Auth));
-		TSharedPtr<USIOJsonValue> AuthValue = MakeShareable(NewObject<USIOJsonValue>());
-		AuthValue->SetRootValue(authPtr);
-		Params.Auth = &(*AuthValue);
+		if (Params.Auth == nullptr)
+			Params.Auth = NewObject<USIOJsonValue>();
+		Params.Auth->SetRootValue(authPtr);
 	}
 
 	ConnectWithParams(Params);
