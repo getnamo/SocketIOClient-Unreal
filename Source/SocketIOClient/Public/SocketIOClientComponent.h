@@ -163,9 +163,9 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "SocketIO Functions")
 	void Connect(	const FString& InAddressAndPort = TEXT(""),
 					const FString& InPath = TEXT("socket.io"),
+					const FString& InAuthToken = TEXT(""),
 					USIOJsonObject* Query = nullptr, 
-					USIOJsonObject* Headers = nullptr,
-					USIOJsonObject* Auth = nullptr);
+					USIOJsonObject* Headers = nullptr);
 
 	/**
 	* Connect to a socket.io server, optional method if auto-connect is set to true.
@@ -318,9 +318,9 @@ public:
 	*/
 	void ConnectNative(	const FString& InAddressAndPort, 
 						const FString& InPath = TEXT("socket.io"),
+						const FString& InAuthToken = TEXT(""),
 						const TSharedPtr<FJsonObject>& Query = nullptr, 
-						const TSharedPtr<FJsonObject>& Headers = nullptr,
-						const TSharedPtr<FJsonObject>& Auth = nullptr);
+						const TSharedPtr<FJsonObject>& Headers = nullptr);
 
 
 	/**

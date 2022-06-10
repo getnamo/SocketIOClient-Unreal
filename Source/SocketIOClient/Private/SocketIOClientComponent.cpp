@@ -362,7 +362,7 @@ bool USocketIOClientComponent::CallBPFunctionWithMessage(UObject* Target, const 
 #pragma region Connect
 #endif
 
-void USocketIOClientComponent::Connect(const FString& InAddressAndPort, const FString& InPath, USIOJsonObject* Query /*= nullptr*/, USIOJsonObject* Headers /*= nullptr*/, USIOJsonObject* Auth /*= nullptr*/)
+void USocketIOClientComponent::Connect(const FString& InAddressAndPort, const FString& InPath, const FString& InAuthToken, USIOJsonObject* Query /*= nullptr*/, USIOJsonObject* Headers /*= nullptr*/)
 {
 	//Check if we're limiting this component
 	if (bLimitConnectionToGameWorld)
@@ -407,16 +407,9 @@ void USocketIOClientComponent::Connect(const FString& InAddressAndPort, const FS
 		URLParams.Path = InPath;
 	}
 	
-	if (Auth != nullptr)
+	if (!InAuthToken.IsEmpty())
 	{
-		TSharedPtr<FJsonObject> AuthFJson = Auth->GetRootObject();
-		if (AuthFJson.IsValid())
-		{
-			TSharedPtr<FJsonValue> authPtr = MakeShareable(new FJsonValueObject(AuthFJson));
-			if (URLParams.Auth == nullptr)
-				URLParams.Auth = NewObject<USIOJsonValue>();
-			URLParams.Auth->SetRootValue(authPtr);
-		}
+		URLParams.AuthToken = InAuthToken;
 	}
 
 	//Sync all params to native client before connecting
@@ -435,25 +428,18 @@ void USocketIOClientComponent::ConnectWithParams(const FSIOConnectParams& InURLP
 }
 
 void USocketIOClientComponent::ConnectNative(const FString& InAddressAndPort, 
-	const FString& InPath, 
+	const FString& InPath,
+	const FString& InAuthToken,
 	const TSharedPtr<FJsonObject>& Query /*= nullptr*/, 
-	const TSharedPtr<FJsonObject>& Headers /*= nullptr*/,
-	const TSharedPtr<FJsonObject>& Auth /*= nullptr*/)
+	const TSharedPtr<FJsonObject>& Headers /*= nullptr*/)
 {
 	FSIOConnectParams Params;
 	Params.AddressAndPort = InAddressAndPort;
 	Params.Path = InPath;
+	Params.AuthToken = InAuthToken;
 
 	Params.Query = USIOMessageConvert::JsonObjectToFStringMap(Query);
 	Params.Headers = USIOMessageConvert::JsonObjectToFStringMap(Headers);
-	
-	if (Auth.IsValid())
-	{
-		TSharedPtr<FJsonValue> authPtr = MakeShareable(new FJsonValueObject(Auth));
-		if (Params.Auth == nullptr)
-			Params.Auth = NewObject<USIOJsonValue>();
-		Params.Auth->SetRootValue(authPtr);
-	}
 
 	ConnectWithParams(Params);
 }

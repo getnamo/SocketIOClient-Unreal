@@ -49,7 +49,11 @@ void FSocketIONative::Connect(const FSIOConnectParams& InConnectParams)
 	std::string StdPathString = USIOMessageConvert::StdString(URLParams.Path);
 	std::map<std::string, std::string> QueryMap = {};
 	std::map<std::string, std::string> HeadersMap = {};
-	sio::message::ptr AuthMessage = USIOMessageConvert::ToSIOMessage(URLParams.Auth->GetRootValue());
+	sio::message::ptr AuthMessage = sio::object_message::create();
+	if (!URLParams.AuthToken.IsEmpty())
+	{
+		AuthMessage->get_map()["token"] = sio::string_message::create(USIOMessageConvert::StdString(URLParams.AuthToken));
+	}
 
 	QueryMap = USIOMessageConvert::FStringMapToStdStringMap(URLParams.Query);
 	HeadersMap = USIOMessageConvert::FStringMapToStdStringMap(URLParams.Headers);

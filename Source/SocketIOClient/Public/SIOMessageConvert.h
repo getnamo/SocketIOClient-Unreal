@@ -33,7 +33,7 @@ struct SOCKETIOCLIENT_API FSIOConnectParams
 	
 	/** Optional authorization JSON to send to the server upon initial connection*/
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = SocketIOConnectionParams)
-	USIOJsonValue* Auth;
+	FString AuthToken;
 
 	/** Optional path part of URL string. Default is 'socket.io'*/
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = SocketIOConnectionParams)
@@ -43,6 +43,7 @@ struct SOCKETIOCLIENT_API FSIOConnectParams
 	{
 		AddressAndPort = TEXT("http://localhost:3000");
 		Path = TEXT("socket.io");
+		AuthToken = TEXT("");
 	}
 };
 
