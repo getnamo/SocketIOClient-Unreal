@@ -6,6 +6,7 @@
 #include "Dom/JsonValue.h"
 #include "Dom/JsonObject.h"
 #include "sio_client.h"
+#include "SIOJsonValue.h"
 #include "SIOMessageConvert.generated.h"
 
 DECLARE_LOG_CATEGORY_EXTERN(SocketIO, Log, All);
@@ -29,6 +30,10 @@ struct SOCKETIOCLIENT_API FSIOConnectParams
 	/** A map of headers to be added to connection url*/
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = SocketIOConnectionParams)
 	TMap<FString, FString> Headers;
+	
+	/** Optional authorization JSON to send to the server upon initial connection*/
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = SocketIOConnectionParams)
+	FString AuthToken;
 
 	/** Optional path part of URL string. Default is 'socket.io'*/
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = SocketIOConnectionParams)
@@ -38,6 +43,7 @@ struct SOCKETIOCLIENT_API FSIOConnectParams
 	{
 		AddressAndPort = TEXT("http://localhost:3000");
 		Path = TEXT("socket.io");
+		AuthToken = TEXT("");
 	}
 };
 

@@ -49,12 +49,17 @@ void FSocketIONative::Connect(const FSIOConnectParams& InConnectParams)
 	std::string StdPathString = USIOMessageConvert::StdString(URLParams.Path);
 	std::map<std::string, std::string> QueryMap = {};
 	std::map<std::string, std::string> HeadersMap = {};
+	sio::message::ptr AuthMessage = sio::object_message::create();
+	if (!URLParams.AuthToken.IsEmpty())
+	{
+		AuthMessage->get_map()["token"] = sio::string_message::create(USIOMessageConvert::StdString(URLParams.AuthToken));
+	}
 
 	QueryMap = USIOMessageConvert::FStringMapToStdStringMap(URLParams.Query);
 	HeadersMap = USIOMessageConvert::FStringMapToStdStringMap(URLParams.Headers);
 
 	//Connect to the server on a background thread so it never blocks
-	FCULambdaRunnable::RunLambdaOnBackGroundThread([&, StdAddressString, StdPathString, QueryMap, HeadersMap]
+	FCULambdaRunnable::RunLambdaOnBackGroundThread([&, StdAddressString, StdPathString, QueryMap, HeadersMap, AuthMessage]
 	{
 		PrivateClient->set_reconnect_attempts(MaxReconnectionAttempts);
 		PrivateClient->set_reconnect_delay(ReconnectionDelay);
@@ -75,7 +80,7 @@ void FSocketIONative::Connect(const FSIOConnectParams& InConnectParams)
 				return;
 			}
 		}
-		PrivateClient->connect(StdAddressString, QueryMap, HeadersMap);
+		PrivateClient->connect(StdAddressString, QueryMap, HeadersMap, AuthMessage);
 	});
 }
 

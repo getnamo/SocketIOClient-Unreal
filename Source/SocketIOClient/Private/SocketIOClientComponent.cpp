@@ -362,7 +362,7 @@ bool USocketIOClientComponent::CallBPFunctionWithMessage(UObject* Target, const 
 #pragma region Connect
 #endif
 
-void USocketIOClientComponent::Connect(const FString& InAddressAndPort, const FString& InPath, USIOJsonObject* Query /*= nullptr*/, USIOJsonObject* Headers /*= nullptr*/)
+void USocketIOClientComponent::Connect(const FString& InAddressAndPort, const FString& InPath, const FString& InAuthToken, USIOJsonObject* Query /*= nullptr*/, USIOJsonObject* Headers /*= nullptr*/)
 {
 	//Check if we're limiting this component
 	if (bLimitConnectionToGameWorld)
@@ -406,6 +406,11 @@ void USocketIOClientComponent::Connect(const FString& InAddressAndPort, const FS
 		URLParams.Headers = USIOMessageConvert::JsonObjectToFStringMap(HeadersFJson);
 		URLParams.Path = InPath;
 	}
+	
+	if (!InAuthToken.IsEmpty())
+	{
+		URLParams.AuthToken = InAuthToken;
+	}
 
 	//Sync all params to native client before connecting
 	NativeClient->MaxReconnectionAttempts = MaxReconnectionAttempts;
@@ -423,13 +428,15 @@ void USocketIOClientComponent::ConnectWithParams(const FSIOConnectParams& InURLP
 }
 
 void USocketIOClientComponent::ConnectNative(const FString& InAddressAndPort, 
-	const FString& InPath, 
+	const FString& InPath,
+	const FString& InAuthToken,
 	const TSharedPtr<FJsonObject>& Query /*= nullptr*/, 
 	const TSharedPtr<FJsonObject>& Headers /*= nullptr*/)
 {
 	FSIOConnectParams Params;
 	Params.AddressAndPort = InAddressAndPort;
 	Params.Path = InPath;
+	Params.AuthToken = InAuthToken;
 
 	Params.Query = USIOMessageConvert::JsonObjectToFStringMap(Query);
 	Params.Headers = USIOMessageConvert::JsonObjectToFStringMap(Headers);
