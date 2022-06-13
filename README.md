@@ -89,7 +89,7 @@ By default the component will auto connect *on begin play* to your default addre
 If you want to connect at your own time, you change the default variable *Should Auto Connect* to false and then call *Connect* with your address
 
 ### Receiving an Event
-There are two ways to receive socket.io events.
+There are three main ways to receive socket.io events.
 
 #### Receive To Function
 The recommended way is to bind an event directly to a function or custom event. E.g. receiving the event "chatMessage" with a String parameter.
