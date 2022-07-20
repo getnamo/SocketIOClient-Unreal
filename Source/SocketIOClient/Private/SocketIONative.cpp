@@ -454,6 +454,7 @@ void FSocketIONative::SetupInternalCallbacks()
 		{
 			bIsConnected = true;
 			SessionId = USIOMessageConvert::FStringFromStd(PrivateClient->get_sessionid());
+			SocketId = USIOMessageConvert::FStringFromStd(PrivateClient->socket(nsp)->get_socket_id());
 
 			if (VerboseLog)
 			{
@@ -463,18 +464,17 @@ void FSocketIONative::SetupInternalCallbacks()
 			{
 				if (bCallbackOnGameThread)
 				{
-					const FString SafeSessionId = SessionId;
-					FCULambdaRunnable::RunShortLambdaOnGameThread([&, SafeSessionId]
+					FCULambdaRunnable::RunShortLambdaOnGameThread([&]
 					{
 						if (OnConnectedCallback)
 						{
-							OnConnectedCallback(SessionId);
+							OnConnectedCallback(SocketId, SessionId);
 						}
 					});
 				}
 				else
 				{
-					OnConnectedCallback(SessionId);
+					OnConnectedCallback(SocketId, SessionId);
 				}
 			}
 		}

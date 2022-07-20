@@ -10,7 +10,7 @@
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE(FSIOCEventSignature);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FSIOCSocketEventSignature, FString, Namespace);
-DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FSIOCOpenEventSignature, FString, SessionId, bool, bIsReconnection);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_ThreeParams(FSIOCOpenEventSignature, FString, SocketId, FString, SessionId, bool, bIsReconnection);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FSIOCCloseEventSignature, TEnumAsByte<ESIOConnectionCloseReason>, Reason);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FSIOCEventJsonSignature, FString, EventName, class USIOJsonValue*, EventData);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_ThreeParams(FSIOConnectionProblemSignature, int32, Attempts, int32,  NextAttemptInMs, float, TimeSinceConnected);
@@ -140,6 +140,10 @@ public:
 	/** When connected this session id will be valid and contain a unique Id. */
 	UPROPERTY(BlueprintReadOnly, Category = "SocketIO Connection Properties")
 	FString SessionId;
+
+	/** Each new connection is assigned a random 20-characters identifier. This identifier is synced with the value on the client-side. */
+	UPROPERTY(BlueprintReadOnly, Category = "SocketIO Connection Properties")
+	FString SocketId;
 
 	UPROPERTY(BlueprintReadOnly, Category = "SocketIO Connection Properties")
 	bool bIsHavingConnectionProblems;

@@ -130,15 +130,16 @@ void USocketIOClientComponent::SetupCallbacks()
 		URLParams = NativeClient->URLParams;
 	}
 
-	NativeClient->OnConnectedCallback = [this](const FString& InSessionId)
+	NativeClient->OnConnectedCallback = [this](const FString& InSocketId, const FString& InSessionId)
 	{
 		if (NativeClient.IsValid())
 		{
 			bIsConnected = true;
+			SocketId = InSocketId;
 			SessionId = InSessionId;
 			bool bIsReconnection = bIsHavingConnectionProblems;
 			bIsHavingConnectionProblems = false;
-			OnConnected.Broadcast(SessionId, bIsReconnection);
+			OnConnected.Broadcast(SocketId, SessionId, bIsReconnection);
 			
 		}
 	};

@@ -46,7 +46,7 @@ public:
 	FSocketIONative(const bool bForceTLSMode = false, const bool bShouldVerifyTLSCertificate = false);
 
 	//Native Callbacks
-	TFunction<void(const FString& SessionId)> OnConnectedCallback;					//TFunction<void(const FString& SessionId)>
+	TFunction<void(const FString& SocketId, const FString& SessionId)> OnConnectedCallback;					//TFunction<void(const FString& SessionId)>
 	TFunction<void(const ESIOConnectionCloseReason Reason)> OnDisconnectedCallback;	//TFunction<void(const ESIOConnectionCloseReason Reason)>
 	TFunction<void(const FString& Namespace)> OnNamespaceConnectedCallback;			//TFunction<void(const FString& Namespace)>
 	TFunction<void(const FString& Namespace)> OnNamespaceDisconnectedCallback;		//TFunction<void(const FString& Namespace)>
@@ -70,6 +70,9 @@ public:
 
 	/** When connected this session id will be valid and contain a unique Id. */
 	FString SessionId;
+
+	/** Each new connection is assigned a random 20-characters identifier. This identifier is synced with the value on the client-side. */
+	FString SocketId;
 
 	//This will remain valid even after we disconnect. Replaced on disconnect.
 	FString LastSessionId;
