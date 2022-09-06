@@ -35,12 +35,12 @@ public:
 	/** 
 	* Request a new plugin scoped pointer as a shared ptr.
 	*/
-	virtual TSharedPtr<FSocketIONative> NewValidNativePointer(const bool bShouldUseTlsLibraries = false, const bool bShouldSkipCertificateVerification = true) { return nullptr; };
+	virtual TSharedPtr<FSocketIONative> NewValidNativePointer(const bool bShouldUseTlsLibraries = false, const bool bShouldVerifyTLSCertificate = false) { return nullptr; };
 
 	/** 
 	* Request a shared FSocketIONative instance for a given id. May allocate a new pointer.
 	*/
-	virtual TSharedPtr<FSocketIONative> ValidSharedNativePointer(FString SharedId, const bool bShouldUseTlsLibraries, const bool bShouldSkipCertificateVerification) { return nullptr; };
+	virtual TSharedPtr<FSocketIONative> ValidSharedNativePointer(FString SharedId, const bool bShouldUseTlsLibraries, const bool bShouldVerifyTLSCertificate) { return nullptr; };
 
 	/** 
 	* Releases the given plugin scoped pointer using a background thread
