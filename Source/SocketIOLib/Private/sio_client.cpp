@@ -43,15 +43,16 @@ namespace sio
 #if SIO_TLS
             m_impl = new client_impl<client_type_tls>();
 
-            if (!bShouldVerifyTLSCertificate)
-            {
-                m_impl->set_verify_mode(asio::ssl::verify_none);
-            }
-            else
+            if (bShouldVerifyTLSCertificate)
             {
                 m_impl->set_verify_mode(asio::ssl::verify_peer);
                 // TODO: add verify CA chain file
             }
+            else
+            {
+                m_impl->set_verify_mode(asio::ssl::verify_none);
+            }
+
             m_impl->template_init(); // reinitialize based on the new mode
 #else
             m_impl = new client_impl<client_type_no_tls>();
