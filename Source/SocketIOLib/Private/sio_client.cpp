@@ -36,14 +36,14 @@ namespace sio
     {
     }
 
-    client::client(const bool bShouldUseTlsLibraries, const bool bShouldVerifyCertificate)
+    client::client(const bool bShouldUseTlsLibraries, const bool bShouldVerifyTLSCertificate)
     {
         if (bShouldUseTlsLibraries)
         {
 #if SIO_TLS
             m_impl = new client_impl<client_type_tls>();
 
-            if (!bShouldVerifyCertificate)
+            if (!bShouldVerifyTLSCertificate)
             {
                 m_impl->set_verify_mode(asio::ssl::verify_none);
             }
