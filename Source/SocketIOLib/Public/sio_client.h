@@ -34,7 +34,7 @@ namespace sio
         
         client();
 
-        client(const bool bShouldUseTlsLibraries, const bool bShouldSkipCertificateVerification);
+        client(const bool bShouldUseTlsLibraries, const bool bShouldVerifyTLSCertificate);
 
         ~client();
         
