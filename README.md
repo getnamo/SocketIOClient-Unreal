@@ -23,7 +23,7 @@ Current platform issues:
 
 Current TLS/SSL issues:
 
-* Certificate verification is not implemented; setting `bShouldSkipCertificateVerification` will always fail - see [issue 303](https://github.com/getnamo/SocketIOClient-Unreal/issues/303)
+* Certificate verification is not implemented; setting `bShouldVerifyTLSCertificate` will always fail - see [issue 303](https://github.com/getnamo/SocketIOClient-Unreal/issues/303)
 
 ## Socket.IO Server Compatibility
 
