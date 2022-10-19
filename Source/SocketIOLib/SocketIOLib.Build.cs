@@ -66,7 +66,8 @@ namespace UnrealBuildTool.Rules
 					Target.Platform == UnrealTargetPlatform.Win64 ||
 					Target.Platform == UnrealTargetPlatform.Mac ||
 					Target.Platform == UnrealTargetPlatform.Linux ||
-					Target.Platform == UnrealTargetPlatform.IOS
+					Target.Platform == UnrealTargetPlatform.IOS||
+					Target.Platform == UnrealTargetPlatform.Android
 				)
 				{
 					PublicDefinitions.Add("SIO_TLS=1");
