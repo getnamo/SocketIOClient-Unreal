@@ -36,7 +36,7 @@
 
 namespace sio
 {
-    using namespace rapidjson;
+    using namespace rapidjsonsockio;
     using namespace std;
     void accept_message(message const& msg, Value& val, Document& doc, vector<shared_ptr<const string> >& buffers);
 
