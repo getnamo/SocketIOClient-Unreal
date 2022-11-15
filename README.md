@@ -72,6 +72,8 @@ Some features in later versions of this plugin are not supported by earlier vers
  
 ```git clone https://github.com/getnamo/SocketIOClient-Unreal.git --recurse-submodules```
 
+ 5. Build your project (needs to be c++/mixed) and then the plugin will get built with it.
+
 ## Example Project - Chat
 
 For an example project check out https://github.com/getnamo/SocketIOClient-Unreal-example which contains both server and client parts required to try out socket.io based chat, from Unreal to any other client and vice versa.
