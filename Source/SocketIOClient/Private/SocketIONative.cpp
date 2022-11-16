@@ -416,7 +416,7 @@ void FSocketIONative::SetupInternalCallbacks()
 		bIsConnected = false;
 
 		ESIOConnectionCloseReason DisconnectReason = (ESIOConnectionCloseReason)reason;
-		FString DisconnectReasonString = USIOJConvert::EnumToString(TEXT("ESIOConnectionCloseReason"), DisconnectReason);
+		FString DisconnectReasonString = UEnum::GetValueAsString<ESIOConnectionCloseReason>(DisconnectReason);
 		if (VerboseLog)
 		{
 			UE_LOG(SocketIO, Log, TEXT("SocketIO Disconnected %s reason: %s"), *SessionId, *DisconnectReasonString);

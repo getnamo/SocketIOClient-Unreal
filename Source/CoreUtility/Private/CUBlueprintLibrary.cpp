@@ -204,10 +204,9 @@ TArray<uint8> UCUBlueprintLibrary::Conv_SoundWaveToWavBytes(USoundWave* SoundWav
 	TArray<uint8> WavBytes;
 
 	//memcpy raw data from soundwave, hmm this won't work for procedurals...
-	const void* LockedData = SoundWave->RawData.LockReadOnly();
-	PCMBytes.SetNumUninitialized(SoundWave->RawData.GetBulkDataSize());
+	const void* LockedData = SoundWave->GetResourceData();
+	PCMBytes.SetNumUninitialized(SoundWave->GetResourceSize());
 	FMemory::Memcpy(PCMBytes.GetData(), LockedData, PCMBytes.Num());
-	SoundWave->RawData.Unlock();
 
 	//add wav header
 	SerializeWaveFile(WavBytes, PCMBytes.GetData(), PCMBytes.Num(), SoundWave->NumChannels, SoundWave->GetSampleRateForCurrentPlatform());

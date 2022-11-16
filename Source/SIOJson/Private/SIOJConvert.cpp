@@ -328,14 +328,14 @@ namespace
 				if (!TheCppStructOps->ImportTextItem(ImportTextPtr, OutValue, PPF_None, nullptr, (FOutputDevice*)GWarn))
 				{
 					// Fall back to trying the tagged property approach if custom ImportTextItem couldn't get it done
-					Property->ImportText(ImportTextPtr, OutValue, PPF_None, nullptr);
+					Property->ImportText_Direct(ImportTextPtr, OutValue, nullptr, PPF_None);
 				}
 			}
 			else if (JsonValue->Type == EJson::String)
 			{
 				FString ImportTextString = JsonValue->AsString();
 				const TCHAR* ImportTextPtr = *ImportTextString;
-				Property->ImportText(ImportTextPtr, OutValue, PPF_None, nullptr);
+				Property->ImportText_Direct(ImportTextPtr, OutValue, nullptr, PPF_None);
 			}
 			else
 			{
@@ -370,7 +370,7 @@ namespace
 			else if (JsonValue->Type == EJson::String)
 			{
 				// Default to expect a string for everything else
-				if (Property->ImportText(*JsonValue->AsString(), OutValue, 0, NULL) == NULL)
+				if (Property->ImportText_Direct(*JsonValue->AsString(), OutValue, nullptr, PPF_None) == nullptr)
 				{
 					UE_LOG(LogJson, Error, TEXT("BPEnumWA-JsonValueToUProperty - Unable import property type %s from string value for property %s"), *Property->GetClass()->GetName(), *Property->GetNameCPP());
 					return false;
@@ -380,7 +380,7 @@ namespace
 		else
 		{
 			// Default to expect a string for everything else
-			if (Property->ImportText(*JsonValue->AsString(), OutValue, 0, NULL) == NULL)
+			if (Property->ImportText_Direct(*JsonValue->AsString(), OutValue, nullptr, PPF_None) == nullptr)
 			{
 				UE_LOG(LogJson, Error, TEXT("BPEnumWA-JsonValueToUProperty - Unable import property type %s from string value for property %s"), *Property->GetClass()->GetName(), *Property->GetNameCPP());
 				return false;
@@ -1080,10 +1080,4 @@ void USIOJConvert::ReplaceJsonValueNamesWithMap(TSharedPtr<FJsonValue>& JsonValu
 			ReplaceJsonValueNamesWithMap(Item, KeyMap);
 		}
 	}
-}
-
-FString USIOJConvert::EnumToString(const FString& enumName, const int32 value)
-{
-	UEnum* pEnum = FindObject<UEnum>(ANY_PACKAGE, *enumName);
-	return *(pEnum ? pEnum->GetNameStringByIndex(static_cast<uint8>(value)) : "null");
 }
