@@ -77,13 +77,13 @@ public:
 	static UTexture2D* Conv_BytesToTexture(const TArray<uint8>& InBytes);
 
 	/**
-	*	Audio compression - Convert opus (currently raw serialized) to pcm
+	*	Audio decompression - Convert opus (currently raw serialized) to wav
 	*/
 	UFUNCTION(BlueprintPure, meta = (DisplayName = "To Wav Bytes (Opus Bytes)", BlueprintAutocast), Category = "CoreUtility|Conversion")
 	static TArray<uint8> Conv_OpusBytesToWav(const TArray<uint8>& InBytes);
 
 	/**
-	*	Audio decompression - Convert wav to opus (currently raw serialized)
+	*	Audio compression - Convert wav to opus (currently raw serialized)
 	*/
 	UFUNCTION(BlueprintPure, meta = (DisplayName = "To Opus Bytes (Wav Bytes)", BlueprintAutocast), Category = "CoreUtility|Conversion")
 	static TArray<uint8> Conv_WavBytesToOpus(const TArray<uint8>& InBytes);
