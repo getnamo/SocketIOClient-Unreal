@@ -1,7 +1,7 @@
 // Copyright 2019-current Getnamo. All Rights Reserved
 
 #pragma once
-#define WITH_OPUS (PLATFORM_WINDOWS || PLATFORM_MAC || PLATFORM_UNIX || PLATFORM_ANDROID)
+#define WITH_OPUS (PLATFORM_WINDOWS || PLATFORM_UNIX || PLATFORM_ANDROID)
 
 #if WITH_OPUS
 #include "ThirdParty/libOpus/opus-1.3.1-12/include/opus.h"
