@@ -10,6 +10,7 @@ Socket.IO Lib uses _asio_, _rapidjson_, and _websocketpp_. SIOJson is originally
 
 [Unreal Forum Thread](https://forums.unrealengine.com/showthread.php?110680-Plugin-Socket-io-Client)
 
+[Discord Server](https://discord.gg/qfJUyxaW4s)
 
 Recommended socket.io server version: 3.0+
 
