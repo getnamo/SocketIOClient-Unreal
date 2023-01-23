@@ -222,6 +222,11 @@ bool USocketIOClientComponent::CallBPFunctionWithResponse(UObject* Target, const
 		return false;
 	}
 	UWorld* World = GEngine->GetWorldFromContextObject(Target, EGetWorldErrorMode::LogAndReturnNull);
+	if (!World)
+	{
+		UE_LOG(SocketIO, Log, TEXT("World is invalid, %s BP function call ignored."), *FunctionName);
+		return false;
+	}	
 	if (World && World->bIsTearingDown)
 	{
 		UE_LOG(SocketIO, Log, TEXT("World tearing down, %s BP function call ignored."), *FunctionName);
