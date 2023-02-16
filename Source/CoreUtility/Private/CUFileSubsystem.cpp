@@ -104,12 +104,24 @@ bool UCUFileSubsystem::SaveBytesToFile(const TArray<uint8>& Bytes, const FString
 	return false;
 }
 
+bool UCUFileSubsystem::SaveBytesToPath(const TArray<uint8>& Bytes, const FString& Path, bool bLogSave /*= false*/)
+{
+	//we use the split file overload due to some potential directory automation checks
+	FString Directory, FileName;
+	SplitFullPath(Path, Directory, FileName);
+	return SaveBytesToFile(Bytes, Directory, FileName, bLogSave);
+}
+
 bool UCUFileSubsystem::ReadBytesFromFile(const FString& Directory, const FString& FileName, TArray<uint8>& OutBytes)
 {
 	// Get absolute file path
-	FString AbsoluteFilePath = Directory + "/" + FileName;
+	const FString AbsoluteFilePath = Directory + "/" + FileName;
 
-	// Allow overwriting or file doesn't already exist
-	return FFileHelper::LoadFileToArray(OutBytes, *AbsoluteFilePath);
+	return ReadBytesFromPath(AbsoluteFilePath, OutBytes);
+}
+
+bool UCUFileSubsystem::ReadBytesFromPath(const FString& Path, TArray<uint8>& OutBytes)
+{
+	return FFileHelper::LoadFileToArray(OutBytes, *Path);
 }
 

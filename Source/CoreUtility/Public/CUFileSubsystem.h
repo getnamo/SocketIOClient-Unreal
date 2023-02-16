@@ -36,9 +36,17 @@ public:
 	UFUNCTION(BlueprintCallable, Category = FileUtility)
 	bool SaveBytesToFile(const TArray<uint8>& Bytes, const FString& Directory, const FString& FileName, bool bLogSave = false);
 
+	/** Full path variant of SaveBytesToFile */
+	UFUNCTION(BlueprintCallable, Category = FileUtility)
+	bool SaveBytesToPath(const TArray<uint8>& Bytes, const FString& Path, bool bLogSave = false);
+
+
 	/** Read array of bytes from file at specified directory */
 	UFUNCTION(BlueprintCallable, Category = FileUtility)
 	bool ReadBytesFromFile(const FString& Directory, const FString& FileName, TArray<uint8>& OutBytes);
+
+	/** Full path variant of ReadBytesFromFile */
+	bool ReadBytesFromPath(const FString& Path, TArray<uint8>& OutBytes);
 	
 	//Lifetime
 	virtual	void Initialize(FSubsystemCollectionBase& Collection) override;
