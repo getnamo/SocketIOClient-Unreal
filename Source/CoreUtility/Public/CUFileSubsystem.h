@@ -27,7 +27,7 @@ public:
 	FString ExternalSaveDirectory();
 
 	UFUNCTION(BlueprintPure, Category = FileUtility)
-		void SplitFullPath(const FString& InFullPath, FString& OutDirectory, FString& OutFileName);
+	void SplitFullPath(const FString& InFullPath, FString& OutDirectory, FString& OutFileName);
 
 	UFUNCTION(BlueprintPure, Category = FileUtility)
 	void ProjectRelativePath(const FString& InFullPath, FString& OutProjectRelativePath);
