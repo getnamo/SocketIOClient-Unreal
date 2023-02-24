@@ -125,3 +125,17 @@ bool UCUFileSubsystem::ReadBytesFromPath(const FString& Path, TArray<uint8>& Out
 	return FFileHelper::LoadFileToArray(OutBytes, *Path);
 }
 
+bool UCUFileSubsystem::DeleteFileAtPath(const FString& Path)
+{
+	if (!InFullPath.IsEmpty())
+	{
+		if (FPaths::ValidatePath(Path) && FPaths::FileExists(Path))
+		{
+			IFileManager& FileManager = IFileManager::Get();
+			FileManager.Delete(*Path);
+			return true;
+		}
+	}
+	return false;
+}
+

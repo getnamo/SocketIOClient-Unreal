@@ -46,7 +46,11 @@ public:
 	bool ReadBytesFromFile(const FString& Directory, const FString& FileName, TArray<uint8>& OutBytes);
 
 	/** Full path variant of ReadBytesFromFile */
+	UFUNCTION(BlueprintCallable, Category = FileUtility)
 	bool ReadBytesFromPath(const FString& Path, TArray<uint8>& OutBytes);
+
+	UFUNCTION(BlueprintCallable, Category = FileUtility)
+	bool DeleteFileAtPath(const FString& Path);
 	
 	//Lifetime
 	virtual	void Initialize(FSubsystemCollectionBase& Collection) override;
