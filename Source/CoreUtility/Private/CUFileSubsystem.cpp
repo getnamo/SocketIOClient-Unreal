@@ -127,7 +127,7 @@ bool UCUFileSubsystem::ReadBytesFromPath(const FString& Path, TArray<uint8>& Out
 
 bool UCUFileSubsystem::DeleteFileAtPath(const FString& Path)
 {
-	if (!InFullPath.IsEmpty())
+	if (!Path.IsEmpty())
 	{
 		if (FPaths::ValidatePath(Path) && FPaths::FileExists(Path))
 		{
