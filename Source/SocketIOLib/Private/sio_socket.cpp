@@ -404,11 +404,14 @@ namespace sio
                 LOG("Received Message type (Connect)"<<std::endl);
 
 				const object_message* obj_ptr = static_cast<const object_message*>(p.get_message().get());
-				const map<string, message::ptr>* values = &(obj_ptr->get_map());
-				auto it = values->find("sid");
-				if (it != values->end()) {
-                    m_socket_id = static_pointer_cast<string_message>(it->second)->get_string();
-				}
+				if(obj_ptr)
+                {
+                    const map<string, message::ptr>* values = &(obj_ptr->get_map());
+                    auto it = values->find("sid");
+                    if (it != values->end()) {
+                        m_socket_id = static_pointer_cast<string_message>(it->second)->get_string();
+                    }
+                }
 
                 this->on_connected();
                 break;
