@@ -1,7 +1,0 @@
-{
-    "files.associations": {
-        "map": "cpp",
-        "xstring": "cpp",
-        "ranges": "cpp"
-    }
-}
