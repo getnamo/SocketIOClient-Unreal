@@ -268,7 +268,7 @@ namespace sio
     bool packet::parse_buffer(const string& buf_payload)
     {
         if (_pending_buffers > 0) {
-            assert(is_binary_message(buf_payload));//this is ensured by outside.
+            //assert(is_binary_message(buf_payload));//this is ensured by outside.
             _buffers.push_back(std::make_shared<string>(buf_payload.data(), buf_payload.size()));
             _pending_buffers--;
             if (_pending_buffers == 0) {
@@ -504,7 +504,7 @@ namespace sio
                     break;
                 }
             }
-            else if (packet::is_binary_message(payload))
+            else if (packet::is_binary_message(payload) || (m_partial_packet && !isdigit(payload[0])))
             {
                 if (m_partial_packet)
                 {
