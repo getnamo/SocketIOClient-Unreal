@@ -345,11 +345,18 @@ void USIOJsonObject::SetObjectField(const FString& FieldName, USIOJsonObject* Js
 
 void USIOJsonObject::GetBinaryField(const FString& FieldName, TArray<uint8>& OutBinary) const
 {
+	
 	if (!JsonObj->HasTypedField<EJson::String>(FieldName))
 	{
 		UE_LOG(LogSIOJ, Warning, TEXT("No field with name %s of type String"), *FieldName);
 	}
 	TSharedPtr<FJsonValue> JsonValue = JsonObj->TryGetField(FieldName);
+
+	if (!JsonValue)
+	{
+		UE_LOG(LogSIOJ, Warning, TEXT("JsonValue is null for %s, aborting parse."), *FieldName);
+		return;
+	}
 
 	if (FJsonValueBinary::IsBinary(JsonValue))
 	{
