@@ -3,7 +3,7 @@
 #include "Subsystems/EngineSubsystem.h"
 #include "CUFileSubsystem.generated.h"
 
-UCLASS(ClassGroup = "WRCoreAI")
+UCLASS(ClassGroup = "Utility")
 class COREUTILITY_API UCUFileSubsystem : public UEngineSubsystem
 {
 	GENERATED_BODY()
