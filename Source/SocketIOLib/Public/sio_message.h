@@ -205,7 +205,7 @@ namespace sio
         }
 
         string_message(std::string&& v)
-            :message(flag_string),_v(move(v))
+            :message(flag_string),_v(std::move(v))
         {
         }
     public:
