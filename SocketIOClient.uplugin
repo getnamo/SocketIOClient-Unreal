@@ -1,8 +1,8 @@
 {
 	"FileVersion": 3,
 	"Version": 1,
-	"VersionName": "2.5.8",
-	"EngineVersion": "5.1",
+	"VersionName": "2.6.0",
+	"EngineVersion": "5.2",
 	"FriendlyName": "Socket.IO Client",
 	"Description": "Real-time WebSocket networking via Socket.IO protocol usable from blueprints and c++.",
 	"Category": "Networking",

@@ -31,9 +31,13 @@ struct SOCKETIOCLIENT_API FSIOConnectParams
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = SocketIOConnectionParams)
 	TMap<FString, FString> Headers;
 	
-	/** Optional authorization JSON to send to the server upon initial connection*/
+	/** Optional authorization auth:{token:""} to send to the server upon initial connection */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = SocketIOConnectionParams)
 	FString AuthToken;
+
+	/** Optional custom auth key:map pairs added, this is separate from token:"" pair  */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = SocketIOConnectionParams)
+	TMap<FString, FString> ExtraAuth;
 
 	/** Optional path part of URL string. Default is 'socket.io'*/
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = SocketIOConnectionParams)

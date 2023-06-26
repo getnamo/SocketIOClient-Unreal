@@ -54,6 +54,18 @@ void FSocketIONative::Connect(const FSIOConnectParams& InConnectParams)
 	{
 		AuthMessage->get_map()["token"] = sio::string_message::create(USIOMessageConvert::StdString(URLParams.AuthToken));
 	}
+	if (URLParams.ExtraAuth.Num() > 0)
+	{
+		TArray<FString> Keys;
+		URLParams.ExtraAuth.GetKeys(Keys);
+
+		for (const FString& Key : Keys)
+		{
+			std::string StdKey = USIOMessageConvert::StdString(Key);
+			std::string StdValue = USIOMessageConvert::StdString(URLParams.ExtraAuth[Key]);
+			AuthMessage->get_map()[StdKey] = sio::string_message::create(StdValue);
+		}
+	}
 
 	QueryMap = USIOMessageConvert::FStringMapToStdStringMap(URLParams.Query);
 	HeadersMap = USIOMessageConvert::FStringMapToStdStringMap(URLParams.Headers);
