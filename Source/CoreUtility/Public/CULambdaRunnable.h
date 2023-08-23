@@ -2,7 +2,7 @@
 
 
 #pragma once
-#include "Engine/Classes/Engine/LatentActionManager.h"
+#include "Engine/LatentActionManager.h"
 #include "LatentActions.h"
 #include "Async/TaskGraphInterfaces.h"
 
