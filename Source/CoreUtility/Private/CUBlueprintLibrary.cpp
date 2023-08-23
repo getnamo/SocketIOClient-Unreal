@@ -11,7 +11,7 @@
 #include "RHI.h"
 #include "Misc/FileHelper.h"
 #include "OpusAudioInfo.h"
-#include "Launch/Resources/Version.h"
+#include "Runtime/Launch/Resources/Version.h"
 #include "Developer/TargetPlatform/Public/Interfaces/IAudioFormat.h"
 #include "CoreMinimal.h"
 #include "Engine/Engine.h"
