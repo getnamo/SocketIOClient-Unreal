@@ -19,6 +19,10 @@
 #include "CUOpusCoder.h"
 #include "CUMeasureTimer.h"
 #include "Hash/CityHash.h"
+#include "RenderingThread.h"
+#include "TextureResource.h"
+#include "Audio.h"
+#include "Sound/SoundWaveProcedural.h"
 
 #pragma warning( push )
 #pragma warning( disable : 5046)
