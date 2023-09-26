@@ -5,7 +5,7 @@
 
 #include "Kismet/BlueprintFunctionLibrary.h"
 #include "Async/Future.h"
-#include "Engine/Classes/Sound/SoundWaveProcedural.h"
+#include "Sound/SoundWaveProcedural.h"
 #include "CUBlueprintLibrary.generated.h"
 
 /** Wrapper for EImageFormat::Type for BP */
