@@ -72,6 +72,14 @@ namespace UnrealBuildTool.Rules
 				{
 					PublicDefinitions.Add("SIO_TLS=1");
 				}
+				
+				if (
+					(Target.Version.MajorVersion == 5 && Target.Version.MinorVersion >= 3) ||
+					Target.Version.MajorVersion > 5
+				)
+				{
+					PublicDefinitions.Add("ASIO_HAS_STD_INVOKE_RESULT=1");
+				}
 			}
 	}
 }
