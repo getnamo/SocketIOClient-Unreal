@@ -832,11 +832,11 @@ Works out of the box.
 Works out of the box.
 
 #### Github
-If you're using this as a project plugin you will need to convert your blueprint only project to mixed (bp and C++). Follow these instructions to do that: https://allarsblog.com/2015/11/04/converting-bp-project-to-cpp/
+If you're using this as a project plugin you will need to convert your blueprint only project to mixed (bp and C++). Just add a new C++ class via Tools-> New C++ class and select anything, e.g. None -> Next -> MyClass and hit CreateClass.
 
-![Converting project to C++](https://i.imgur.com/Urwx2TF.png)
+![Converting project to C++](https://github.com/getnamo/SocketIOClient-Unreal/assets/542365/8618a87f-3275-4122-8b1e-2d5fd82f9b2d)
 
-e.g. Using the File menu option to convert your project to mixed by adding a C++ file.
+After it processes, your project is now Bp/C++ mixed and building or packaging the project will automatically include any code plugins in your project.
 
 ### iOS
 
