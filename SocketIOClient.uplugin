@@ -2,6 +2,7 @@
 	"FileVersion": 3,
 	"Version": 1,
 	"VersionName": "2.7.2",
+	"EngineVersion": "5.2",
 	"FriendlyName": "Socket.IO Client",
 	"Description": "Real-time WebSocket networking via Socket.IO protocol usable from blueprints and c++.",
 	"Category": "Networking",
