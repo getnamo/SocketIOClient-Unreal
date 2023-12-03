@@ -47,7 +47,12 @@ FString UCUBlueprintLibrary::Conv_BytesToString(const TArray<uint8>& InArray)
 TArray<uint8> UCUBlueprintLibrary::Conv_StringToBytes(FString InString)
 {
 	TArray<uint8> ResultBytes;
-	ResultBytes.Append((uint8*)TCHAR_TO_UTF8(*InString), InString.Len());
+
+	FTCHARToUTF8 UTF8String(*InString);
+
+	int32 UTF8Len = UTF8String.Length();
+
+	ResultBytes.Append((uint8*)UTF8String.Get(), UTF8Len);
 	return ResultBytes;
 }
 
