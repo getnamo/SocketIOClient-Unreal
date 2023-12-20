@@ -36,10 +36,10 @@ struct FSIOJ_NamedType
 	FString Name;
 
 	UPROPERTY(EditAnywhere, Category = NamedType)
-	ESIOJ_JsonType Type;
+	ESIOJ_JsonType Type = ESIOJ_JsonType::JSON_Bool;
 
 	UPROPERTY(EditAnywhere, Category = NamedType)
-	bool bIsArray;
+	bool bIsArray = false;
 };
 
 UCLASS(BlueprintType, Blueprintable)
