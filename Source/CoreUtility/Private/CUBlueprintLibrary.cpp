@@ -143,6 +143,13 @@ TArray<uint8> UCUBlueprintLibrary::Conv_OpusBytesToWav(const TArray<uint8>& InBy
 	return WavBytes;
 }
 
+TArray<uint8> UCUBlueprintLibrary::Conv_PCMToWav(const TArray<uint8>& InPCM, int32 SampleRate, int32 Channels)
+{
+	TArray<uint8> WavBytes;
+	SerializeWaveFile(WavBytes, InPCM.GetData(), InPCM.Num(), Channels, Channels);
+	return WavBytes;
+}
+
 TArray<uint8> UCUBlueprintLibrary::Conv_WavBytesToOpus(const TArray<uint8>& InBytes)
 {
 	//FCUScopeTimer Timer(TEXT("Conv_WavBytesToOpus"));
