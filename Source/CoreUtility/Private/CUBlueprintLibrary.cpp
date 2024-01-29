@@ -146,7 +146,7 @@ TArray<uint8> UCUBlueprintLibrary::Conv_OpusBytesToWav(const TArray<uint8>& InBy
 TArray<uint8> UCUBlueprintLibrary::Conv_PCMToWav(const TArray<uint8>& InPCM, int32 SampleRate, int32 Channels)
 {
 	TArray<uint8> WavBytes;
-	SerializeWaveFile(WavBytes, InPCM.GetData(), InPCM.Num(), Channels, Channels);
+	SerializeWaveFile(WavBytes, InPCM.GetData(), InPCM.Num(), Channels, SampleRate);
 	return WavBytes;
 }
 
