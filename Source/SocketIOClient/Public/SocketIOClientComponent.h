@@ -218,6 +218,16 @@ public:
 	void Emit(const FString& EventName, USIOJsonValue* Message = nullptr, const FString& Namespace = TEXT("/"));
 
 	/**
+	* Emit an event with a JsonValue message
+	*
+	* @param Name		Event name
+	* @param Messages	TArray of Message
+	* @param Namespace	Namespace within socket.io
+	*/
+	UFUNCTION(BlueprintCallable, Category = "SocketIO Functions")
+	void EmitMessages(const FString& EventName, const TArray<TSharedPtr<FJsonValue>>& Messages, const FString& Namespace = TEXT("/"));
+
+	/**
 	* Emit an event with a JsonValue message with a callback function defined by CallBackFunctionName
 	*
 	* @param Name					Event name

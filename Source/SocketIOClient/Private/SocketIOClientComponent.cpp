@@ -7,6 +7,7 @@
 #include "SIOJRequestJSON.h"
 #include "SocketIOClient.h"
 #include "Engine/Engine.h"
+#include "sio_message.h"
 
 
 USocketIOClientComponent::USocketIOClientComponent(const FObjectInitializer &init) : UActorComponent(init)
@@ -489,6 +490,29 @@ void USocketIOClientComponent::Emit(const FString& EventName, USIOJsonValue* Mes
 	}
 
 	NativeClient->Emit(EventName, JsonMessage, nullptr, Namespace);
+}
+
+void USocketIOClientComponent::EmitMessages(const FString& EventName, const TArray<TSharedPtr<FJsonValue>>& Messages, const FString& Namespace)
+{
+	if (Messages.Num() <= 0)
+	{
+		//Set the message is not null
+		TSharedPtr<FJsonValue> JsonMessage = MakeShareable(new FJsonValueNull);
+
+		NativeClient->Emit(EventName, JsonMessage, nullptr, Namespace);
+		return;
+	}
+
+	sio::message::list* MessageList = new sio::message::list();
+
+	for (int i = 0; i < Messages.Num(); i++)
+	{
+		MessageList->push(USIOMessageConvert::ToSIOMessage(Messages[i]));
+	}
+
+	NativeClient->EmitRaw(EventName, *MessageList, nullptr, Namespace);
+
+	delete MessageList;
 }
 
 void USocketIOClientComponent::EmitWithCallBack(const FString& EventName, USIOJsonValue* Message /*= nullptr*/, const FString& CallbackFunctionName /*= FString(TEXT(""))*/, UObject* Target /*= nullptr*/, const FString& Namespace /*= FString(TEXT("/"))*/, UObject* WorldContextObject /*= nullptr*/)
