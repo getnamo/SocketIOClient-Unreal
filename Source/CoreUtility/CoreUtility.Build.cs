@@ -9,6 +9,7 @@ public class CoreUtility : ModuleRules
     public CoreUtility(ReadOnlyTargetRules Target) : base(Target)
     {
 		PCHUsage = PCHUsageMode.UseExplicitOrSharedPCHs;
+		PrecompileForTargets = PrecompileTargetsType.Any;
 
 		PublicIncludePaths.AddRange(
             new string[] {
