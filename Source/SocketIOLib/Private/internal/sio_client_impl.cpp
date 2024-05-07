@@ -360,16 +360,17 @@ namespace sio
         }
     }
 
+	// this function is not used. seems like engine.io only want pong from client
     template<typename client_type>
     void client_impl<client_type>::ping(const asio::error_code& ec)
     {
         if (ec || m_con.expired())
         {
-            if (ec != asio::error::operation_aborted)
-                //LOG("ping exit,con is expired?" << m_con.expired() << ",ec:" << ec.message() << endl);
-            return;
+	    return;
         }
-        packet p(packet::frame_ping);
+
+        // engine.io want client send pong. weird. just don't send ping from client
+        packet p(packet::frame_pong);
         m_packet_mgr.encode(p, [&](bool /*isBin*/, shared_ptr<const string> payload)
             {
                 lib::error_code ec;
@@ -577,7 +578,7 @@ namespace sio
             }
             it = values->find("pingInterval");
             if (it != values->end() && it->second->get_flag() == message::flag_integer) {
-                m_ping_interval = (unsigned)static_pointer_cast<int_message>(it->second)->get_int();
+                m_ping_interval = (unsigned)static_pointer_cast<int_message>(it->second)->get_int(); 
             }
             else
             {
@@ -608,12 +609,15 @@ namespace sio
             {
                 this->m_client.send(this->m_con, *payload, frame::opcode::text);
             });
-
-        if (m_ping_timeout_timer)
-        {
-            m_ping_timeout_timer->cancel();
-            m_ping_timeout_timer.reset();
-        }
+		
+        // receive ping from server then start timer!!
+	if ( !m_ping_timeout_timer )
+	{
+		m_ping_timeout_timer.reset( new asio::steady_timer( m_client.get_io_service() ) );
+		std::error_code timeout_ec;
+		m_ping_timeout_timer->expires_from_now( milliseconds( m_ping_timeout ), timeout_ec );
+		m_ping_timeout_timer->async_wait( std::bind( &client_impl<client_type>::timeout_pong, this, std::placeholders::_1 ) );
+	}
     }
 
     template<typename client_type>
