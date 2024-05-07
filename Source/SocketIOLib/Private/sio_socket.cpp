@@ -208,7 +208,7 @@ namespace sio
         
         error_listener m_error_listener;
         
-        std::unique_ptr<asio::system_timer> m_connection_timer;
+        std::unique_ptr<asio_sockio::system_timer> m_connection_timer;
         
         std::queue<packet> m_packet_queue;
         
@@ -300,7 +300,7 @@ namespace sio
         NULL_GUARD(m_client);
         packet p(packet::type_connect, m_nsp, m_auth);
         m_client->send(p);
-        m_connection_timer.reset(new asio::system_timer(m_client->get_io_service()));
+        m_connection_timer.reset(new asio_sockio::system_timer(m_client->get_io_service()));
         lib::error_code ec;
         m_connection_timer->expires_from_now(std::chrono::milliseconds(20000), ec);
         m_connection_timer->async_wait(std::bind(&socket::impl::timeout_connection,this, std::placeholders::_1));
@@ -316,7 +316,7 @@ namespace sio
             
             if(!m_connection_timer)
             {
-                m_connection_timer.reset(new asio::system_timer(m_client->get_io_service()));
+                m_connection_timer.reset(new asio_sockio::system_timer(m_client->get_io_service()));
             }
             lib::error_code ec;
             m_connection_timer->expires_from_now(std::chrono::milliseconds(3000), ec);
