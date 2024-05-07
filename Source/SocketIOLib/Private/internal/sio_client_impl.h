@@ -127,7 +127,7 @@
             // used by sio::socket
             virtual void send(packet& p) {};
             virtual void remove_socket(std::string const& nsp) {};
-            virtual asio::io_service& get_io_service() = 0;
+            virtual asio_sockio::io_service& get_io_service() = 0;
             virtual void on_socket_closed(std::string const& nsp) {};
             virtual void on_socket_opened(std::string const& nsp) {};
 
@@ -221,7 +221,7 @@
 
         void remove_socket(std::string const& nsp);
 
-        asio::io_service& get_io_service();
+        asio_sockio::io_service& get_io_service();
 
         void on_socket_closed(std::string const& nsp);
 
@@ -236,11 +236,11 @@
 
         void send_impl(std::shared_ptr<const std::string> const& payload_ptr, frame::opcode::value opcode);
 
-        void ping(const asio::error_code& ec);
+        void ping(const asio_sockio::error_code& ec);
 
-        void timeout_pong(const asio::error_code& ec);
+        void timeout_pong(const asio_sockio::error_code& ec);
 
-        void timeout_reconnect(asio::error_code const& ec);
+        void timeout_reconnect(asio_sockio::error_code const& ec);
 
         unsigned next_delay() const;
 
@@ -290,9 +290,9 @@
 
         packet_manager m_packet_mgr;
 
-        std::unique_ptr<asio::steady_timer> m_ping_timeout_timer;
+        std::unique_ptr<asio_sockio::steady_timer> m_ping_timeout_timer;
 
-        std::unique_ptr<asio::steady_timer> m_reconn_timer;
+        std::unique_ptr<asio_sockio::steady_timer> m_reconn_timer;
 
         con_state m_con_state;
 

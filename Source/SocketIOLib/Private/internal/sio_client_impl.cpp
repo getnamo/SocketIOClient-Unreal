@@ -235,7 +235,7 @@ namespace sio
     }
 
     template<typename client_type>
-    asio::io_service& client_impl<client_type>::get_io_service()
+    asio_sockio::io_service& client_impl<client_type>::get_io_service()
     {
         return m_client.get_io_service();
     }
@@ -361,11 +361,11 @@ namespace sio
     }
 
     template<typename client_type>
-    void client_impl<client_type>::ping(const asio::error_code& ec)
+    void client_impl<client_type>::ping(const asio_sockio::error_code& ec)
     {
         if (ec || m_con.expired())
         {
-            if (ec != asio::error::operation_aborted)
+            if (ec != asio_sockio::error::operation_aborted)
                 //LOG("ping exit,con is expired?" << m_con.expired() << ",ec:" << ec.message() << endl);
             return;
         }
@@ -377,7 +377,7 @@ namespace sio
             });
         if (!m_ping_timeout_timer)
         {
-            m_ping_timeout_timer.reset(new asio::steady_timer(m_client.get_io_service()));
+            m_ping_timeout_timer.reset(new asio_sockio::steady_timer(m_client.get_io_service()));
             std::error_code timeout_ec;
             m_ping_timeout_timer->expires_from_now(milliseconds(m_ping_timeout), timeout_ec);
             m_ping_timeout_timer->async_wait(std::bind(&client_impl<client_type>::timeout_pong, this, std::placeholders::_1));
@@ -385,7 +385,7 @@ namespace sio
     }
 
     template<typename client_type>
-    void client_impl<client_type>::timeout_pong(const asio::error_code& ec)
+    void client_impl<client_type>::timeout_pong(const asio_sockio::error_code& ec)
     {
         if (ec)
         {
@@ -396,7 +396,7 @@ namespace sio
     }
 
     template<typename client_type>
-    void client_impl<client_type>::timeout_reconnect(asio::error_code const& ec)
+    void client_impl<client_type>::timeout_reconnect(asio_sockio::error_code const& ec)
     {
         if (ec)
         {
@@ -467,8 +467,8 @@ namespace sio
             LOG("Reconnect for attempt:" << m_reconn_made << endl);
             unsigned delay = this->next_delay();
             if (m_reconnect_listener) m_reconnect_listener(m_reconn_made, delay);
-            m_reconn_timer.reset(new asio::steady_timer(m_client.get_io_service()));
-            asio::error_code ec;
+            m_reconn_timer.reset(new asio_sockio::steady_timer(m_client.get_io_service()));
+            asio_sockio::error_code ec;
             m_reconn_timer->expires_from_now(milliseconds(delay), ec);
             m_reconn_timer->async_wait(std::bind(&client_impl<client_type>::timeout_reconnect, this, std::placeholders::_1));
         }
@@ -533,8 +533,8 @@ namespace sio
                 LOG("Reconnect for attempt:" << m_reconn_made << endl);
                 unsigned delay = this->next_delay();
                 if (m_reconnect_listener) m_reconnect_listener(m_reconn_made, delay);
-                m_reconn_timer.reset(new asio::steady_timer(m_client.get_io_service()));
-                asio::error_code ec2;
+                m_reconn_timer.reset(new asio_sockio::steady_timer(m_client.get_io_service()));
+                asio_sockio::error_code ec2;
                 m_reconn_timer->expires_from_now(milliseconds(delay), ec2);
                 m_reconn_timer->async_wait(std::bind(&client_impl<client_type>::timeout_reconnect, this, std::placeholders::_1));
                 return;
@@ -552,7 +552,7 @@ namespace sio
     void client_impl<client_type>::on_message(connection_hdl, message_ptr msg)
     {
         if (m_ping_timeout_timer) {
-            asio::error_code ec;
+            asio_sockio::error_code ec;
             m_ping_timeout_timer->expires_from_now(milliseconds(m_ping_timeout), ec);
             m_ping_timeout_timer->async_wait(std::bind(&client_impl<client_type>::timeout_pong, this, std::placeholders::_1));
         }
@@ -654,7 +654,7 @@ namespace sio
     void client_impl<client_type>::clear_timers()
     {
         LOG("clear timers" << endl);
-        asio::error_code ec;
+        asio_sockio::error_code ec;
         if (m_ping_timeout_timer)
         {
             m_ping_timeout_timer->cancel(ec);
@@ -676,14 +676,14 @@ namespace sio
     }
 
 #if SIO_TLS
-    typedef websocketpp::lib::shared_ptr<asio::ssl::context> context_ptr;
+    typedef websocketpp::lib::shared_ptr<asio_sockio::ssl::context> context_ptr;
     static context_ptr on_tls_init(int verify_mode, connection_hdl conn)
     {
-        context_ptr ctx = context_ptr(new  asio::ssl::context(asio::ssl::context::tlsv12));
-        asio::error_code ec;
-        ctx->set_options(asio::ssl::context::default_workarounds |
-            asio::ssl::context::no_sslv2 |
-            asio::ssl::context::single_dh_use, ec);
+        context_ptr ctx = context_ptr(new  asio_sockio::ssl::context(asio_sockio::ssl::context::tlsv12));
+        asio_sockio::error_code ec;
+        ctx->set_options(asio_sockio::ssl::context::default_workarounds |
+            asio_sockio::ssl::context::no_sslv2 |
+            asio_sockio::ssl::context::single_dh_use, ec);
         if (ec)
         {
             cerr << "Init tls failed,reason:" << ec.message() << endl;

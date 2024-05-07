@@ -45,12 +45,12 @@ namespace sio
 
             if (bShouldVerifyTLSCertificate)
             {
-                m_impl->set_verify_mode(asio::ssl::verify_peer);
+                m_impl->set_verify_mode(asio_sockio::ssl::verify_peer);
                 // TODO: add verify CA chain file
             }
             else
             {
-                m_impl->set_verify_mode(asio::ssl::verify_none);
+                m_impl->set_verify_mode(asio_sockio::ssl::verify_none);
             }
 
             m_impl->template_init(); // reinitialize based on the new mode
