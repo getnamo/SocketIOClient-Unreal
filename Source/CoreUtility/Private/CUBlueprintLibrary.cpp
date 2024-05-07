@@ -10,7 +10,11 @@
 #include "HAL/ThreadSafeBool.h"
 #include "RHI.h"
 #include "Misc/FileHelper.h"
+#if ENGINE_MAJOR_VERSION == 5 && ENGINE_MINOR_VERSION >= 4
+#include "Decoders/OpusAudioInfo.h"
+#else
 #include "OpusAudioInfo.h"
+#endif
 #include "Runtime/Launch/Resources/Version.h"
 #include "Developer/TargetPlatform/Public/Interfaces/IAudioFormat.h"
 #include "CoreMinimal.h"

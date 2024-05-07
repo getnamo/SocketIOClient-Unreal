@@ -46,6 +46,17 @@ public class CoreUtility : ModuleRules
             );
 
 
+        if (Target.Version.MajorVersion == 5 && Target.Version.MinorVersion >= 4)
+        {
+            PrivateDependencyModuleNames.AddRange(
+                new string[]
+                {
+                    "OpusAudioDecoder",
+                }
+            );
+        }
+
+
         DynamicallyLoadedModuleNames.AddRange(
             new string[]
             {
