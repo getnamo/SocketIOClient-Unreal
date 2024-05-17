@@ -8,6 +8,8 @@
 #include "SIOJLibrary.h"
 #include "SIOJsonValue.h"
 #include "SIOJsonObject.h"
+#include "Engine/Engine.h"
+#include "Serialization/JsonSerializer.h"
 
 template <class T> void FSIOJLatentAction<T>::Cancel()
 {
