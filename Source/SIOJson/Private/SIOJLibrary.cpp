@@ -11,6 +11,7 @@
 #include "SIOJsonObject.h"
 #include "Misc/Base64.h"
 #include "Engine/Engine.h"
+#include "Serialization/JsonSerializer.h"
 
 //////////////////////////////////////////////////////////////////////////
 // Helpers

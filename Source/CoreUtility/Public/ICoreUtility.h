@@ -3,10 +3,10 @@
 
 #pragma once
 
-
-DECLARE_LOG_CATEGORY_EXTERN(CoreUtilityLog, Log, All);
+#include "CoreMinimal.h"
 #include "Modules/ModuleManager.h"
 
+DECLARE_LOG_CATEGORY_EXTERN(CoreUtilityLog, Log, All);
 
 /**
 * The public interface to this module.  In most cases, this interface is only public to sibling modules
