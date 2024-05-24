@@ -3,6 +3,7 @@
 #ifndef SIO_SOCKET_H
 #define SIO_SOCKET_H
 #include "sio_message.h"
+#include "SocketIOLib.h"
 #include <functional>
 namespace sio
 {

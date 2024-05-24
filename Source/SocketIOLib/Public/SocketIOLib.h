@@ -3,6 +3,7 @@
 
 #pragma once
 
+#include "CoreMiminal.h"
 #include "Runtime/Core/Public/Modules/ModuleManager.h"
 
 
