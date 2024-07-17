@@ -51,7 +51,7 @@ public class CoreUtility : ModuleRules
             PrivateDependencyModuleNames.AddRange(
                 new string[]
                 {
-                    "OpusAudioDecoder",
+                    //"OpusAudioDecoder",
                 }
             );
         }

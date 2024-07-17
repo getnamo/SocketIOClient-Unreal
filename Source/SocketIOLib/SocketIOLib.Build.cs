@@ -51,7 +51,7 @@ namespace UnrealBuildTool.Rules
 						"CoreUObject",
 						"Engine",
 						"OpenSSL",
-						"OpusAudioDecoder"
+						//"OpusAudioDecoder"
 					}
 				);
 
