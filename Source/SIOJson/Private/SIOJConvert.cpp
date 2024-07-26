@@ -835,36 +835,52 @@ bool USIOJConvert::JsonObjectToUStruct(TSharedPtr<FJsonObject> JsonObject, UStru
 bool USIOJConvert::JsonFileToUStruct(const FString& FilePath, UStruct* Struct, void* StructPtr, bool IsBlueprintStruct /*= false*/)
 {
 	//Read bytes from file
-	TArray<uint8> OutBytes;
-	if (!FFileHelper::LoadFileToArray(OutBytes, *FilePath))
+	TArray<uint8> ReadBytes;
+	if (!FFileHelper::LoadFileToArray(ReadBytes, *FilePath))
 	{
 		return false;
 	}
 
-	//Convert to json string
-	FString JsonString;
-	FFileHelper::BufferToString(JsonString, OutBytes.GetData(), OutBytes.Num());
-
-	//Read into struct
-	return JsonObjectToUStruct(ToJsonObject(JsonString), Struct, StructPtr, IsBlueprintStruct);
+	return BytesToStruct(ReadBytes, Struct, StructPtr, IsBlueprintStruct);
 }
 
 bool USIOJConvert::ToJsonFile(const FString& FilePath, UStruct* Struct, void* StructPtr, bool IsBlueprintStruct /*= false*/)
 {
+	TArray<uint8> Bytes;
+	StructToBytes(Struct, StructPtr, Bytes, IsBlueprintStruct);
+
+	//flush to disk
+	return FFileHelper::SaveArrayToFile(Bytes, *FilePath);
+}
+
+bool USIOJConvert::StructToBytes(UStruct* Struct, void* StructPtr, TArray<uint8>& OutBytes, bool IsBlueprintStruct)
+{
 	//Get json object with trimmed values
 	TSharedPtr<FJsonObject> JsonObject = ToJsonObject(Struct, StructPtr, IsBlueprintStruct);
 	TSharedPtr<FJsonValue> TrimmedValue = MakeShareable(new FJsonValueObject(JsonObject));
-	TrimValueKeyNames(TrimmedValue);
+
+	if (IsBlueprintStruct)
+	{
+		TrimValueKeyNames(TrimmedValue);
+	}
 
 	//Convert to string
 	FString JsonString = ToJsonString(TrimmedValue);
 	FTCHARToUTF8 Utf8String(*JsonString);
 
-	TArray<uint8> Bytes;
-	Bytes.Append((uint8*)Utf8String.Get(), Utf8String.Length());
+	OutBytes.Append((uint8*)Utf8String.Get(), Utf8String.Length());
 
-	//flush to disk
-	return FFileHelper::SaveArrayToFile(Bytes, *FilePath);
+	return true;
+}
+
+bool USIOJConvert::BytesToStruct(const TArray<uint8>& InBytes, UStruct* Struct, void* StructPtr, bool IsBlueprintStruct)
+{
+	//Convert to json string
+	FString JsonString;
+	FFileHelper::BufferToString(JsonString, InBytes.GetData(), InBytes.Num());
+
+	//Read into struct
+	return JsonObjectToUStruct(ToJsonObject(JsonString), Struct, StructPtr, IsBlueprintStruct);
 }
 
 void USIOJConvert::TrimValueKeyNames(const TSharedPtr<FJsonValue>& JsonValue)
