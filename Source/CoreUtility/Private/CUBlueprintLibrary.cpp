@@ -553,4 +553,68 @@ void UCUBlueprintLibrary::CallFunctionOnThreadGraphReturn(const FString& Functio
 	}
 }
 
+bool UCUBlueprintLibrary::SerializeStruct(UStruct* Struct, void* StructPtr, TArray<uint8>& OutBytes)
+{
+	if (!Struct || !StructPtr)
+	{
+		return false;
+	}
+
+	FMemoryWriter MemoryWriter(OutBytes, true);
+	Struct->SerializeBin(MemoryWriter, StructPtr);
+
+	return true;
+}
+
+bool UCUBlueprintLibrary::DeserializeStruct(UStruct* Struct, void* StructPtr, const TArray<uint8>& InBytes)
+{
+	if (!Struct || !StructPtr || InBytes.Num() == 0)
+	{
+		return false;
+	}
+
+	FMemoryReader MemoryReader(InBytes, true);
+
+	//Bi-directional, also works as a deserialization
+	Struct->SerializeBin(MemoryReader, StructPtr);
+
+	return true;
+}
+
+DEFINE_FUNCTION(UCUBlueprintLibrary::execBytesToStruct)
+{
+	// Extract the parameters
+	P_GET_TARRAY_REF(uint8, InBytes);
+	Stack.StepCompiledIn<FStructProperty>(NULL);
+	FStructProperty* StructProp = CastField<FStructProperty>(Stack.MostRecentProperty);
+	void* StructPtr = Stack.MostRecentPropertyAddress;
+
+	P_FINISH;
+
+	// Deserialize the struct
+	bool bSuccess = DeserializeStruct(StructProp->Struct, StructPtr, InBytes);
+
+	// Return the success status
+	*(bool*)RESULT_PARAM = bSuccess;
+}
+
+//custom thunk needed to handle wildcard structs
+DEFINE_FUNCTION(UCUBlueprintLibrary::execStructToBytes)
+{
+	// Extract the parameters
+	Stack.StepCompiledIn<FStructProperty>(NULL);
+	FStructProperty* StructProp = CastField<FStructProperty>(Stack.MostRecentProperty);
+	void* StructPtr = Stack.MostRecentPropertyAddress;
+
+	P_GET_TARRAY_REF(uint8, OutBytes);
+
+	P_FINISH;
+
+	// Serialize the struct
+	bool bSuccess = SerializeStruct(StructProp->Struct, StructPtr, OutBytes);
+
+	// Return the success status
+	*(bool*)RESULT_PARAM = bSuccess;
+}
+
 #pragma warning( pop )

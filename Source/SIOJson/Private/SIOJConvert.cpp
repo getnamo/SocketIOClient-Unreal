@@ -12,6 +12,7 @@
 #include "JsonObjectConverter.h"
 #include "UObject/PropertyPortFlags.h"
 #include "Misc/Base64.h"
+#include "Serialization/MemoryWriter.h"
 
 typedef TJsonWriterFactory< TCHAR, TCondensedJsonPrintPolicy<TCHAR> > FCondensedJsonStringWriterFactory;
 typedef TJsonWriter< TCHAR, TCondensedJsonPrintPolicy<TCHAR> > FCondensedJsonStringWriter;
@@ -847,7 +848,6 @@ bool USIOJConvert::JsonFileToUStruct(const FString& FilePath, UStruct* Struct, v
 	//Read into struct
 	return JsonObjectToUStruct(ToJsonObject(JsonString), Struct, StructPtr, IsBlueprintStruct);
 }
-
 
 bool USIOJConvert::ToJsonFile(const FString& FilePath, UStruct* Struct, void* StructPtr, bool IsBlueprintStruct /*= false*/)
 {

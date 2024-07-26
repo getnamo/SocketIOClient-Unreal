@@ -46,8 +46,7 @@ public:
 	
 	//Files - convenience read/write files
 	static bool JsonFileToUStruct(const FString& FilePath, UStruct* Struct, void* StructPtr, bool IsBlueprintStruct = false);
-	static bool ToJsonFile(const FString& FilePath, UStruct* Struct, void* StructPtr, bool IsBlueprintStruct = false);
-		
+	static bool ToJsonFile(const FString& FilePath, UStruct* Struct, void* StructPtr, bool IsBlueprintStruct = false);		
 
 	//typically from callbacks
 	static class USIOJsonValue* ToSIOJsonValue(const TArray<TSharedPtr<FJsonValue>>& JsonValueArray);
