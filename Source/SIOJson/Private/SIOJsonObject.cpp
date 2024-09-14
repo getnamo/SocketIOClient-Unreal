@@ -163,6 +163,11 @@ void USIOJsonObject::SetField(const FString& FieldName, USIOJsonValue* JsonValue
 //////////////////////////////////////////////////////////////////////////
 // FJsonObject API Helpers (easy to use with simple Json objects)
 
+bool USIOJsonObject::TryGetNumberField(const FString& FieldName, float& OutNumber) const
+{
+	return JsonObj.IsValid() && JsonObj->TryGetNumberField(FieldName, OutNumber);
+}
+
 float USIOJsonObject::GetNumberField(const FString& FieldName) const
 {
 	if (!JsonObj.IsValid() || !JsonObj->HasTypedField<EJson::Number>(FieldName))
@@ -184,6 +189,12 @@ void USIOJsonObject::SetNumberField(const FString& FieldName, float Number)
 	JsonObj->SetNumberField(FieldName, Number);
 }
 
+
+bool USIOJsonObject::TryGetStringField(const FString& FieldName, FString& OutString) const
+{
+	return JsonObj.IsValid() && JsonObj->TryGetStringField(FieldName, OutString);
+}
+
 FString USIOJsonObject::GetStringField(const FString& FieldName) const
 {
 	if (!JsonObj.IsValid() || !JsonObj->HasTypedField<EJson::String>(FieldName))
@@ -203,6 +214,11 @@ void USIOJsonObject::SetStringField(const FString& FieldName, const FString& Str
 	}
 
 	JsonObj->SetStringField(FieldName, StringValue);
+}
+
+bool USIOJsonObject::TryGetBoolField(const FString& FieldName, bool& OutBool) const
+{
+	return JsonObj.IsValid() && JsonObj->TryGetBoolField(FieldName, OutBool);
 }
 
 bool USIOJsonObject::GetBoolField(const FString& FieldName) const
@@ -315,6 +331,25 @@ void USIOJsonObject::MergeJsonObject(USIOJsonObject* InJsonObject, bool Overwrit
 		
 		SetField(Key, InJsonObject->GetField(Key));
 	}
+}
+
+bool USIOJsonObject::TryGetObjectField(const FString& FieldName, USIOJsonObject*& OutObject) const
+{
+	if (!JsonObj.IsValid())
+	{
+		return false;
+	}
+
+	const TSharedPtr<FJsonObject>* JsonObjField;
+	bool bSuccess = JsonObj->TryGetObjectField(FieldName, JsonObjField);
+
+	if (bSuccess)
+	{
+		OutObject = NewObject<USIOJsonObject>();
+		OutObject->SetRootObject(*JsonObjField);
+	}
+
+	return bSuccess;
 }
 
 USIOJsonObject* USIOJsonObject::GetObjectField(const FString& FieldName) const

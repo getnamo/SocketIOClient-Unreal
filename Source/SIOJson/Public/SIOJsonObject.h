@@ -89,6 +89,11 @@ class SIOJSON_API USIOJsonObject : public UObject
 	//////////////////////////////////////////////////////////////////////////
 	// FJsonObject API Helpers (easy to use with simple Json objects)
 
+	/** Attempt to get the field named FieldName as a number; returns false if it doesn't exist or the type is incorrect.
+	 * Attn.!! float used instead of double to make the function blueprintable! */
+	UFUNCTION(BlueprintCallable, Category = "SIOJ|Json")
+	bool TryGetNumberField(const FString& FieldName, float& OutNumber) const;
+
 	/** Get the field named FieldName as a number. Ensures that the field is present and is of type Json number.
 	 * Attn.!! float used instead of double to make the function blueprintable! */
 	UFUNCTION(BlueprintCallable, Category = "SIOJ|Json")
@@ -99,6 +104,10 @@ class SIOJSON_API USIOJsonObject : public UObject
 	UFUNCTION(BlueprintCallable, Category = "SIOJ|Json")
 	void SetNumberField(const FString& FieldName, float Number);
 
+	/** Attempt to get the field named FieldName as a string; returns false if it doesn't exist or the type is incorrect. */
+	UFUNCTION(BlueprintCallable, Category = "SIOJ|Json")
+	bool TryGetStringField(const FString& FieldName, FString& OutString) const;
+
 	/** Get the field named FieldName as a string. */
 	UFUNCTION(BlueprintCallable, Category = "SIOJ|Json")
 	FString GetStringField(const FString& FieldName) const;
@@ -107,6 +116,10 @@ class SIOJSON_API USIOJsonObject : public UObject
 	UFUNCTION(BlueprintCallable, Category = "SIOJ|Json")
 	void SetStringField(const FString& FieldName, const FString& StringValue);
 
+	/** Attempt to get the field named FieldName as a boolean; returns false if it doesn't exist or the type is incorrect. */
+	UFUNCTION(BlueprintCallable, Category = "SIOJ|Json")
+	bool TryGetBoolField(const FString& FieldName, bool& OutBool) const;
+
 	/** Get the field named FieldName as a boolean. */
 	UFUNCTION(BlueprintCallable, Category = "SIOJ|Json")
 	bool GetBoolField(const FString& FieldName) const;
@@ -114,6 +127,10 @@ class SIOJSON_API USIOJsonObject : public UObject
 	/** Set a boolean field named FieldName and value of InValue */
 	UFUNCTION(BlueprintCallable, Category = "SIOJ|Json")
 	void SetBoolField(const FString& FieldName, bool InValue);
+
+	/** Attempt to get the field named FieldName as an object; returns false if it doesn't exist or the type is incorrect. */
+	UFUNCTION(BlueprintCallable, Category = "SIOJ|Json")
+	bool TryGetObjectField(const FString& FieldName, USIOJsonObject*& OutObject) const;
 
 	/** Get the field named FieldName as a Json object. */
 	UFUNCTION(BlueprintCallable, Category = "SIOJ|Json")
