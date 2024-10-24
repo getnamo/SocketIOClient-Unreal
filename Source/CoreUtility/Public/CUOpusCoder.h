@@ -4,7 +4,9 @@
 
 #include "CoreMinimal.h"
 
-#define WITH_OPUS (PLATFORM_WINDOWS || PLATFORM_UNIX || PLATFORM_ANDROID)
+#ifndef WITH_OPUS
+	#define WITH_OPUS (PLATFORM_WINDOWS || PLATFORM_UNIX || PLATFORM_ANDROID)
+#endif
 
 #if WITH_OPUS
 #include "ThirdParty/libOpus/opus-1.1/include/opus.h"
