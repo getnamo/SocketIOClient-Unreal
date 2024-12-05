@@ -48,6 +48,9 @@ public:
 	static bool JsonFileToUStruct(const FString& FilePath, UStruct* Struct, void* StructPtr, bool IsBlueprintStruct = false);
 	static bool ToJsonFile(const FString& FilePath, UStruct* Struct, void* StructPtr, bool IsBlueprintStruct = false);		
 
+	static bool StructToBytes(UStruct* Struct, void* StructPtr, TArray<uint8>& OutBytes, bool IsBlueprintStruct = false);
+	static bool BytesToStruct(const TArray<uint8>& InBytes, UStruct* Struct, void* StructPtr, bool IsBlueprintStruct = false);
+
 	//typically from callbacks
 	static class USIOJsonValue* ToSIOJsonValue(const TArray<TSharedPtr<FJsonValue>>& JsonValueArray);
 
