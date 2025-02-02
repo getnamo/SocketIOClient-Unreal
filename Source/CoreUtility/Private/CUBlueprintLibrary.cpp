@@ -10,12 +10,12 @@
 #include "HAL/ThreadSafeBool.h"
 #include "RHI.h"
 #include "Misc/FileHelper.h"
+#include "Runtime/Launch/Resources/Version.h"
 #if ENGINE_MAJOR_VERSION == 5 && ENGINE_MINOR_VERSION >= 4
 #include "Decoders/OpusAudioInfo.h"
 #else
 #include "OpusAudioInfo.h"
 #endif
-#include "Runtime/Launch/Resources/Version.h"
 #include "Developer/TargetPlatform/Public/Interfaces/IAudioFormat.h"
 #include "CoreMinimal.h"
 #include "Engine/Engine.h"
@@ -27,6 +27,8 @@
 #include "TextureResource.h"
 #include "Audio.h"
 #include "Sound/SoundWaveProcedural.h"
+#include "Serialization/MemoryWriter.h"
+#include "Serialization/MemoryReader.h"
 
 #pragma warning( push )
 #pragma warning( disable : 5046)
