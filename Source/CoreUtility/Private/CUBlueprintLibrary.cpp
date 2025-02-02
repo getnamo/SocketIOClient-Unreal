@@ -147,6 +147,92 @@ TArray<uint8> UCUBlueprintLibrary::Conv_OpusBytesToWav(const TArray<uint8>& InBy
 	return WavBytes;
 }
 
+
+bool UCUBlueprintLibrary::ConvertWavToPCM(const TArray<uint8>& WavData, TArray<uint8>& OutPCMData, int32& OutSampleRate, int32& OutNumChannels, int32& OutBitsPerSample)
+{
+	if (WavData.Num() < 44) // WAV header is at least 44 bytes
+	{
+		UE_LOG(LogTemp, Error, TEXT("Invalid WAV file: too small"));
+		return false;
+	}
+
+	// Read WAV Header
+	const uint8* DataPtr = WavData.GetData();
+
+	// Check "RIFF" chunk
+	if (FMemory::Memcmp(DataPtr, "RIFF", 4) != 0)
+	{
+		UE_LOG(LogTemp, Error, TEXT("Invalid WAV file: missing RIFF header"));
+		return false;
+	}
+
+	// Check "WAVE" format
+	if (FMemory::Memcmp(DataPtr + 8, "WAVE", 4) != 0)
+	{
+		UE_LOG(LogTemp, Error, TEXT("Invalid WAV file: missing WAVE format"));
+		return false;
+	}
+
+	// Locate "fmt " chunk
+	int32 FmtChunkOffset = 12; // Start searching after "RIFFxxxxWAVE"
+	while (FmtChunkOffset + 8 < WavData.Num())
+	{
+		if (FMemory::Memcmp(DataPtr + FmtChunkOffset, "fmt ", 4) == 0)
+		{
+			break;
+		}
+		FmtChunkOffset += 1;
+	}
+
+	if (FmtChunkOffset + 24 > WavData.Num())
+	{
+		UE_LOG(LogTemp, Error, TEXT("Invalid WAV file: no 'fmt' chunk"));
+		return false;
+	}
+
+	// Read format info
+	int16 AudioFormat = *reinterpret_cast<const int16*>(DataPtr + FmtChunkOffset + 8);
+	OutNumChannels = *reinterpret_cast<const int16*>(DataPtr + FmtChunkOffset + 10);
+	OutSampleRate = *reinterpret_cast<const int32*>(DataPtr + FmtChunkOffset + 12);
+	OutBitsPerSample = *reinterpret_cast<const int16*>(DataPtr + FmtChunkOffset + 22);
+
+	if (AudioFormat != 1) // PCM format should be 1
+	{
+		UE_LOG(LogTemp, Error, TEXT("Unsupported WAV format: only PCM is supported"));
+		return false;
+	}
+
+	// Locate "data" chunk
+	int32 DataChunkOffset = FmtChunkOffset + 24;
+	while (DataChunkOffset + 8 < WavData.Num())
+	{
+		if (FMemory::Memcmp(DataPtr + DataChunkOffset, "data", 4) == 0)
+		{
+			break;
+		}
+		DataChunkOffset += 1;
+	}
+
+	if (DataChunkOffset + 8 > WavData.Num())
+	{
+		UE_LOG(LogTemp, Error, TEXT("Invalid WAV file: no 'data' chunk"));
+		return false;
+	}
+
+	// Extract PCM Data
+	int32 PCMSize = *reinterpret_cast<const int32*>(DataPtr + DataChunkOffset + 4);
+	if (DataChunkOffset + 8 + PCMSize > WavData.Num())
+	{
+		UE_LOG(LogTemp, Error, TEXT("Invalid WAV file: PCM data size mismatch"));
+		return false;
+	}
+
+	OutPCMData.Append(DataPtr + DataChunkOffset + 8, PCMSize);
+
+	return true;
+}
+
+
 TArray<uint8> UCUBlueprintLibrary::Conv_PCMToWav(const TArray<uint8>& InPCM, int32 SampleRate, int32 Channels)
 {
 	TArray<uint8> WavBytes;

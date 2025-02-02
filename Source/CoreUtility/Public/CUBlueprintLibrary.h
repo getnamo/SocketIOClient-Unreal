@@ -89,6 +89,14 @@ public:
 	UFUNCTION(BlueprintPure, meta = (DisplayName = "To Wav Bytes (PCM Bytes)", BlueprintAutocast), Category = "CoreUtility|Conversion")
 	static TArray<uint8> Conv_PCMToWav(const TArray<uint8>& InPCM, int32 SampleRate, int32 Channels);
 
+
+	/**
+	*	Audio conversion - Convert Wav into PCM + header info
+	*/
+	UFUNCTION(BlueprintPure, meta = (DisplayName = "To PCM Bytes (Wav Bytes)", BlueprintAutocast), Category = "CoreUtility|Conversion")
+	static bool ConvertWavToPCM(const TArray<uint8>& WavData, TArray<uint8>& OutPCMData, int32& OutSampleRate, int32& OutNumChannels, int32& OutBitsPerSample);
+
+
 	/**
 	*	Audio compression - Convert wav to opus (currently raw serialized)
 	*/
