@@ -280,7 +280,7 @@ protected:
 
 	/** Internal request data stored as JSON */
 	UPROPERTY()
-	USIOJsonObject* RequestJsonObj;
+	TObjectPtr<USIOJsonObject> RequestJsonObj;
 
 	UPROPERTY()
 	TArray<uint8> RequestBytes;
@@ -290,7 +290,7 @@ protected:
 
 	/** Response data stored as JSON */
 	UPROPERTY()
-	USIOJsonObject* ResponseJsonObj;
+	TObjectPtr<USIOJsonObject> ResponseJsonObj;
 
 	/** Verb for making request (GET,POST,etc) */
 	ESIORequestVerb RequestVerb;

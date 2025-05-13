@@ -22,10 +22,10 @@ struct FSIOJCallResponse
 	GENERATED_USTRUCT_BODY()
 	
 	UPROPERTY()
-	USIOJRequestJSON* Request;
+	TObjectPtr<USIOJRequestJSON> Request;
 	
 	UPROPERTY()
-	UObject* WorldContextObject;
+	TObjectPtr<UObject> WorldContextObject;
 	
 	UPROPERTY()
 	FSIOJCallDelegate Callback;
