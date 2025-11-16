@@ -72,6 +72,9 @@ public:
 	static void SetTrimmedKeyMapForStruct(TSharedPtr<FTrimmedKeyMap>& InMap, UStruct* Struct);
 	static void SetTrimmedKeyMapForProp(TSharedPtr<FTrimmedKeyMap>& InMap, FProperty* ArrayInnerProp);
 	static void ReplaceJsonValueNamesWithMap(TSharedPtr<FJsonValue>& InValue, TSharedPtr<FTrimmedKeyMap> KeyMap);
+
+	//Simple object to string converter
+	static FString JsonObjectToString(TSharedPtr<FJsonObject> Object);
 }; 
 
 

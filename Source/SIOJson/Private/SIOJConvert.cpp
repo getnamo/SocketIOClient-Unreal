@@ -1097,3 +1097,15 @@ void USIOJConvert::ReplaceJsonValueNamesWithMap(TSharedPtr<FJsonValue>& JsonValu
 		}
 	}
 }
+
+FString USIOJConvert::JsonObjectToString(TSharedPtr<FJsonObject> Object)
+{
+	FString JsonString;
+	auto JsonWriter = TJsonWriterFactory<TCHAR, TCondensedJsonPrintPolicy<TCHAR>>::Create(&JsonString);
+	bool bSerialized = FJsonSerializer::Serialize(Object.ToSharedRef(), JsonWriter);
+	if (!bSerialized)
+	{
+		UE_LOG(LogTemp, Error, TEXT("Failed to stringify JSON object."));
+	}
+	return JsonString;
+}
