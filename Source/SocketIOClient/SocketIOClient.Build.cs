@@ -38,6 +38,7 @@ namespace UnrealBuildTool.Rules
             else if (Target.Platform == UnrealTargetPlatform.IOS)
             {
                 isLibrarySupported = true;
+                PublicDefinitions.Add("FORCE_ANSI_ALLOCATOR=1");
             }
             else if (Target.Platform == UnrealTargetPlatform.Mac)
             {
