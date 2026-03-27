@@ -177,6 +177,7 @@ void FSocketIONative::ClearAllCallbacks()
 	OnNamespaceDisconnectedCallback = nullptr;
 	OnReconnectionCallback = nullptr;
 	OnFailCallback = nullptr;
+	OnErrorCallback = nullptr;
 }
 
 void FSocketIONative::Emit(const FString& EventName, const TSharedPtr<FJsonValue>& Message /*= nullptr*/, TFunction< void(const TArray<TSharedPtr<FJsonValue>>&)> CallbackFunction /*= nullptr*/, const FString& Namespace /*= FString(TEXT("/"))*/)
@@ -364,6 +365,68 @@ void FSocketIONative::OnRawEvent(const FString& EventName,
 					}
 				}
 			}));
+	}
+}
+
+void FSocketIONative::OnError(TFunction< void(const FString&)> CallbackFunction,
+	const FString& Namespace /*= FString(TEXT("/"))*/,
+	ESIOThreadOverrideOption CallbackThread /*= USE_DEFAULT*/)
+{
+	//Keep track of all the bound native JsonValue functions
+	OnErrorCallback = CallbackFunction;
+
+	OnRawError([&, CallbackFunction](const sio::message::ptr& ErrorRaw) {
+		CallbackFunction(USIOMessageConvert::FStringFromStd(ErrorRaw.get()->get_string()));
+		}, Namespace, CallbackThread);
+}
+
+void FSocketIONative::OnRawError(TFunction< void(const sio::message::ptr&)> CallbackFunction,
+	const FString& Namespace /*= FString(TEXT("/"))*/,
+	ESIOThreadOverrideOption CallbackThread /*= USE_DEFAULT*/)
+{
+	if (CallbackFunction == nullptr)
+	{
+		PrivateClient->socket(USIOMessageConvert::StdString(Namespace))->off_error();
+	}
+	else
+	{
+		//determine thread override option
+		bool bCallbackThisEventOnGameThread = bCallbackOnGameThread;
+		switch (CallbackThread)
+		{
+		case USE_DEFAULT:
+			break;
+		case USE_GAME_THREAD:
+			bCallbackThisEventOnGameThread = true;
+			break;
+		case USE_NETWORK_THREAD:
+			bCallbackThisEventOnGameThread = false;
+			break;
+		default:
+			break;
+		}
+
+		const TFunction< void(const sio::message::ptr&)> SafeFunction = CallbackFunction;	//copy the function so it remains in context
+
+		PrivateClient->socket(USIOMessageConvert::StdString(Namespace))->on_error(
+			sio::socket::error_listener(
+				[&, SafeFunction, bCallbackThisEventOnGameThread](sio::message::ptr const& error)
+				{
+					if (SafeFunction != nullptr)
+					{
+						if (bCallbackThisEventOnGameThread)
+						{
+							FCULambdaRunnable::RunShortLambdaOnGameThread([&, SafeFunction, error]
+								{
+									SafeFunction(error);
+								});
+						}
+						else
+						{
+							SafeFunction(error);
+						}
+					}
+				}));
 	}
 }
 

@@ -51,6 +51,7 @@ public:
 	TFunction<void(const FString& Namespace)> OnNamespaceConnectedCallback;			//TFunction<void(const FString& Namespace)>
 	TFunction<void(const FString& Namespace)> OnNamespaceDisconnectedCallback;		//TFunction<void(const FString& Namespace)>
 	TFunction<void(const uint32 AttemptCount, const uint32 DelayInMs)> OnReconnectionCallback;
+	TFunction<void(const FString& Error)> OnErrorCallback;
 	TFunction<void()> OnFailCallback;			
 
 	//Map for all native functions bound to this socket
@@ -345,6 +346,15 @@ public:
 		TFunction< void(const FString&, const sio::message::ptr&)> CallbackFunction,
 		const FString& Namespace = TEXT("/"),
 		ESIOThreadOverrideOption CallbackThread = USE_DEFAULT);
+
+
+	void OnError(TFunction< void(const FString&)> CallbackFunction,
+		const FString& Namespace /*= FString(TEXT("/"))*/,
+		ESIOThreadOverrideOption CallbackThread /*= USE_DEFAULT*/);
+
+	void OnRawError(TFunction< void(const sio::message::ptr&)> CallbackFunction,
+		const FString& Namespace /*= FString(TEXT("/"))*/,
+		ESIOThreadOverrideOption CallbackThread /*= USE_DEFAULT*/);
 
 	/**
 	* Call function callback on receiving binary event. C++ only.

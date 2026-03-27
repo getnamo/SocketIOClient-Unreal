@@ -203,6 +203,14 @@ void USocketIOClientComponent::SetupCallbacks()
 			OnFail.Broadcast();
 		};
 	};
+
+	NativeClient->OnErrorCallback = [this](const FString& Error)
+	{
+		if (NativeClient.IsValid())
+		{
+			OnError.Broadcast(Error);
+		};
+	};
 }
 
 void USocketIOClientComponent::ClearCallbacks()
@@ -431,6 +439,14 @@ void USocketIOClientComponent::Connect(const FString& InAddressAndPort, const FS
 void USocketIOClientComponent::ConnectWithParams(const FSIOConnectParams& InURLParams)
 {
 	NativeClient->Connect(InURLParams);
+
+	OnErrorEvent([this](const FString& Error)
+	{
+		if (NativeClient.IsValid())
+		{
+			OnError.Broadcast(Error);
+		};
+	});
 }
 
 void USocketIOClientComponent::ConnectNative(const FString& InAddressAndPort, 
@@ -669,6 +685,13 @@ void USocketIOClientComponent::OnNativeEvent(const FString& EventName,
 	ESIOThreadOverrideOption ThreadOverride /*= USE_DEFAULT*/)
 {
 	NativeClient->OnEvent(EventName, CallbackFunction, Namespace, ThreadOverride);
+}
+
+void USocketIOClientComponent::OnErrorEvent(TFunction< void(const FString&)> CallbackFunction,
+	const FString& Namespace /*= FString(TEXT("/"))*/,
+	ESIOThreadOverrideOption ThreadOverride  /*= USE_DEFAULT*/)
+{
+	NativeClient->OnError(CallbackFunction, Namespace, ThreadOverride);
 }
 
 #if PLATFORM_WINDOWS

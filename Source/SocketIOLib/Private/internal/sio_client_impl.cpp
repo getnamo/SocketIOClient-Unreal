@@ -133,6 +133,8 @@ namespace sio
 
         m_http_headers = headers;
 		m_auth = auth;
+        for (std::map<const std::string, socket::ptr>::iterator it = m_sockets.begin(); it != m_sockets.end(); ++it)
+            it->second.get()->set_auth(m_auth);
 
         if (path != ""){
             m_path = path;
@@ -166,6 +168,7 @@ namespace sio
         auto it = m_sockets.find(aux);
         if (it != m_sockets.end())
         {
+            it->second->set_auth(m_auth);
             return it->second;
         }
         else

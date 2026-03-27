@@ -72,6 +72,8 @@ namespace sio
         void on_error(error_listener const& l);
         
         void off_error();
+        
+        void set_auth(const sio::message::ptr& auth);
 
         void emit(std::string const& name, message::list const& msglist = nullptr, std::function<void (message::list const&)> const& ack = nullptr);
         
