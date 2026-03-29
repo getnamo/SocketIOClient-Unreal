@@ -161,6 +161,7 @@ namespace sio
         std::string const& get_namespace() const {return m_nsp;}
 
         std::string const& get_socket_id() const { return m_socket_id; }
+        void set_auth(const message::ptr& auth) { m_auth = auth; }
         
     protected:
         void on_connected();
@@ -605,6 +606,11 @@ namespace sio
     void socket::off_error()
     {
         m_impl->off_error();
+    }
+
+    void socket::set_auth(const sio::message::ptr& auth)
+    {
+        m_impl->set_auth(auth);
     }
 
     void socket::emit(std::string const& name, message::list const& msglist, std::function<void (message::list const&)> const& ack)

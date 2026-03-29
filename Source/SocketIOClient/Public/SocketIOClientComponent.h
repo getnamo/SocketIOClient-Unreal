@@ -14,6 +14,7 @@ DECLARE_DYNAMIC_MULTICAST_DELEGATE_ThreeParams(FSIOCOpenEventSignature, FString,
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FSIOCCloseEventSignature, TEnumAsByte<ESIOConnectionCloseReason>, Reason);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FSIOCEventJsonSignature, FString, EventName, class USIOJsonValue*, EventData);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_ThreeParams(FSIOConnectionProblemSignature, int32, Attempts, int32,  NextAttemptInMs, float, TimeSinceConnected);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FSIOErrorSignature, FString, ErrorText);
 
 //For Direct Delegate Event Bind
 DECLARE_DYNAMIC_DELEGATE_OneParam(FSIOJsonValueSignature, USIOJsonValue*, EventData);
@@ -61,6 +62,10 @@ public:
 	/** Received on connection failure. */
 	UPROPERTY(BlueprintAssignable, Category = "SocketIO Events")
 	FSIOCEventSignature OnFail;
+
+	/** Received a socket.io error. */
+	UPROPERTY(BlueprintAssignable, Category = "SocketIO Events")
+	FSIOErrorSignature OnError;
 
 
 	/**
@@ -458,6 +463,11 @@ public:
 						TFunction< void(const FString&, const TSharedPtr<FJsonValue>&)> CallbackFunction,
 						const FString& Namespace = TEXT("/"),
 		ESIOThreadOverrideOption ThreadOverride = USE_DEFAULT);
+
+	void OnErrorEvent(TFunction< void(const FString&)> CallbackFunction,
+		const FString& Namespace = TEXT("/"),
+		ESIOThreadOverrideOption ThreadOverride = USE_DEFAULT);
+
 
 	/**
 	* Call function callback on receiving binary event. C++ only.
