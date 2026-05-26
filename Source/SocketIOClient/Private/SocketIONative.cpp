@@ -118,13 +118,11 @@ void FSocketIONative::LeaveNamespace(const FString& Namespace)
 }
 
 void FSocketIONative::Disconnect()
-{	
-	//Ensure disconnected callback is called first because we 
-	//clear all callbacks for stability.
-	if (OnDisconnectedCallback)
-	{
-		OnDisconnectedCallback(ESIOConnectionCloseReason::CLOSE_REASON_NORMAL);
-	}
+{
+	// OnDisconnectedCallback is fired asynchronously by the close_listener registered in
+	// SetupInternalCallbacks, after PrivateClient->close() completes. Firing it
+	// synchronously here would run while opened() is still true, so any handler that
+	// tries to reconnect would be rejected by Connect()'s !opened() guard.
 	bIsConnected = false;
 
 	if (bUnbindEventsOnDisconnect)
