@@ -144,14 +144,15 @@ void USocketIOClientComponent::SetupCallbacks()
 		}
 	};
 
-	const FSIOCCloseEventSignature OnDisconnectedSafe = OnDisconnected;
-
-	NativeClient->OnDisconnectedCallback = [OnDisconnectedSafe, this](const ESIOConnectionCloseReason Reason)
+	// Broadcast on the live delegate, not a value-copy snapshot — SetupCallbacks runs in
+	// InitializeComponent (before BeginPlay), so handlers bound from BeginPlay would be
+	// missed by a snapshot taken here.
+	NativeClient->OnDisconnectedCallback = [this](const ESIOConnectionCloseReason Reason)
 	{
 		if (NativeClient.IsValid())
 		{
 			bIsConnected = false;
-			OnDisconnectedSafe.Broadcast(Reason);
+			OnDisconnected.Broadcast(Reason);
 		}
 	};
 
@@ -163,14 +164,12 @@ void USocketIOClientComponent::SetupCallbacks()
 		}
 	};
 
-	const FSIOCSocketEventSignature OnSocketNamespaceDisconnectedSafe = OnSocketNamespaceDisconnected;
-
-	NativeClient->OnNamespaceDisconnectedCallback = [this, OnSocketNamespaceDisconnectedSafe](const FString& Namespace)
+	// Broadcast on the live delegate (see OnDisconnectedCallback above for rationale).
+	NativeClient->OnNamespaceDisconnectedCallback = [this](const FString& Namespace)
 	{
-
 		if (NativeClient.IsValid())
 		{
-			OnSocketNamespaceDisconnectedSafe.Broadcast(Namespace);
+			OnSocketNamespaceDisconnected.Broadcast(Namespace);
 		}
 	};
 	NativeClient->OnReconnectionCallback = [this](const uint32 AttemptCount, const uint32 DelayInMs)
