@@ -130,84 +130,100 @@ void USocketIOClientComponent::SetupCallbacks()
 		URLParams = NativeClient->URLParams;
 	}
 
-	NativeClient->OnConnectedCallback = [this](const FString& InSocketId, const FString& InSessionId)
+	// Capture a weak pointer to this component rather than raw `this`.  These callbacks fire from
+	// the asio network thread and (when bCallbackOnGameThread is set) are marshalled to the game
+	// thread via a queued task.  The task can run after the component's owning world has torn down
+	// and the component itself has been destroyed, so the lambda must verify the component is still
+	// alive before touching any of its state.  A raw `this` capture with an `if (NativeClient.IsValid())`
+	// guard does not protect against this — reading this->NativeClient already dereferences the
+	// destroyed component.  TWeakObjectPtr::Get() returns null for pending-kill / destroyed objects.
+	TWeakObjectPtr<USocketIOClientComponent> WeakThis(this);
+
+	NativeClient->OnConnectedCallback = [WeakThis](const FString& InSocketId, const FString& InSessionId)
 	{
-		if (NativeClient.IsValid())
+		USocketIOClientComponent* Self = WeakThis.Get();
+		if (Self && Self->NativeClient.IsValid())
 		{
-			bIsConnected = true;
-			SocketId = InSocketId;
-			SessionId = InSessionId;
-			bool bIsReconnection = bIsHavingConnectionProblems;
-			bIsHavingConnectionProblems = false;
-			OnConnected.Broadcast(SocketId, SessionId, bIsReconnection);
-			
+			Self->bIsConnected = true;
+			Self->SocketId = InSocketId;
+			Self->SessionId = InSessionId;
+			bool bIsReconnection = Self->bIsHavingConnectionProblems;
+			Self->bIsHavingConnectionProblems = false;
+			Self->OnConnected.Broadcast(Self->SocketId, Self->SessionId, bIsReconnection);
+
 		}
 	};
 
 	// Broadcast on the live delegate, not a value-copy snapshot — SetupCallbacks runs in
 	// InitializeComponent (before BeginPlay), so handlers bound from BeginPlay would be
 	// missed by a snapshot taken here.
-	NativeClient->OnDisconnectedCallback = [this](const ESIOConnectionCloseReason Reason)
+	NativeClient->OnDisconnectedCallback = [WeakThis](const ESIOConnectionCloseReason Reason)
 	{
-		if (NativeClient.IsValid())
+		USocketIOClientComponent* Self = WeakThis.Get();
+		if (Self && Self->NativeClient.IsValid())
 		{
-			bIsConnected = false;
-			OnDisconnected.Broadcast(Reason);
+			Self->bIsConnected = false;
+			Self->OnDisconnected.Broadcast(Reason);
 		}
 	};
 
-	NativeClient->OnNamespaceConnectedCallback = [this](const FString& Namespace)
+	NativeClient->OnNamespaceConnectedCallback = [WeakThis](const FString& Namespace)
 	{
-		if (NativeClient.IsValid())
+		USocketIOClientComponent* Self = WeakThis.Get();
+		if (Self && Self->NativeClient.IsValid())
 		{
-			OnSocketNamespaceConnected.Broadcast(Namespace);
+			Self->OnSocketNamespaceConnected.Broadcast(Namespace);
 		}
 	};
 
 	// Broadcast on the live delegate (see OnDisconnectedCallback above for rationale).
-	NativeClient->OnNamespaceDisconnectedCallback = [this](const FString& Namespace)
+	NativeClient->OnNamespaceDisconnectedCallback = [WeakThis](const FString& Namespace)
 	{
-		if (NativeClient.IsValid())
+		USocketIOClientComponent* Self = WeakThis.Get();
+		if (Self && Self->NativeClient.IsValid())
 		{
-			OnSocketNamespaceDisconnected.Broadcast(Namespace);
+			Self->OnSocketNamespaceDisconnected.Broadcast(Namespace);
 		}
 	};
-	NativeClient->OnReconnectionCallback = [this](const uint32 AttemptCount, const uint32 DelayInMs)
+	NativeClient->OnReconnectionCallback = [WeakThis](const uint32 AttemptCount, const uint32 DelayInMs)
 	{
-		if (NativeClient.IsValid())
+		USocketIOClientComponent* Self = WeakThis.Get();
+		if (Self && Self->NativeClient.IsValid())
 		{
 			//First time we know about this problem?
-			if (!bIsHavingConnectionProblems)
+			if (!Self->bIsHavingConnectionProblems)
 			{
-				TimeWhenConnectionProblemsStarted = FDateTime::Now();
-				bIsHavingConnectionProblems = true;
+				Self->TimeWhenConnectionProblemsStarted = FDateTime::Now();
+				Self->bIsHavingConnectionProblems = true;
 			}
 
-			FTimespan Difference = FDateTime::Now() - TimeWhenConnectionProblemsStarted;
+			FTimespan Difference = FDateTime::Now() - Self->TimeWhenConnectionProblemsStarted;
 			float ElapsedInSec = Difference.GetTotalSeconds();
 
-			if (ReconnectionTimeout > 0 && ElapsedInSec > ReconnectionTimeout)
+			if (Self->ReconnectionTimeout > 0 && ElapsedInSec > Self->ReconnectionTimeout)
 			{
 				//Let's stop trying and disconnect if we're using timeouts
-				Disconnect();
+				Self->Disconnect();
 			}
-			OnConnectionProblems.Broadcast(AttemptCount, DelayInMs, ElapsedInSec);
+			Self->OnConnectionProblems.Broadcast(AttemptCount, DelayInMs, ElapsedInSec);
 		}
 	};
 
-	NativeClient->OnFailCallback = [this]()
+	NativeClient->OnFailCallback = [WeakThis]()
 	{
-		if(NativeClient.IsValid())
+		USocketIOClientComponent* Self = WeakThis.Get();
+		if (Self && Self->NativeClient.IsValid())
 		{
-			OnFail.Broadcast();
+			Self->OnFail.Broadcast();
 		};
 	};
 
-	NativeClient->OnErrorCallback = [this](const FString& Error)
+	NativeClient->OnErrorCallback = [WeakThis](const FString& Error)
 	{
-		if (NativeClient.IsValid())
+		USocketIOClientComponent* Self = WeakThis.Get();
+		if (Self && Self->NativeClient.IsValid())
 		{
-			OnError.Broadcast(Error);
+			Self->OnError.Broadcast(Error);
 		};
 	};
 }
