@@ -125,6 +125,11 @@ bool UCUFileSubsystem::ReadBytesFromPath(const FString& Path, TArray<uint8>& Out
 	return FFileHelper::LoadFileToArray(OutBytes, *Path);
 }
 
+bool UCUFileSubsystem::ReadStringFromPath(const FString& Path, FString& OutString)
+{
+	return FFileHelper::LoadFileToString(OutString, *Path);
+}
+
 bool UCUFileSubsystem::DeleteFileAtPath(const FString& Path)
 {
 	if (!Path.IsEmpty())

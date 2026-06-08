@@ -49,6 +49,10 @@ public:
 	UFUNCTION(BlueprintCallable, Category = FileUtility)
 	bool ReadBytesFromPath(const FString& Path, TArray<uint8>& OutBytes);
 
+	/** Read a UTF-8 text file at the given full path into a string */
+	UFUNCTION(BlueprintCallable, Category = FileUtility)
+	bool ReadStringFromPath(const FString& Path, FString& OutString);
+
 	UFUNCTION(BlueprintCallable, Category = FileUtility)
 	bool DeleteFileAtPath(const FString& Path);
 	
