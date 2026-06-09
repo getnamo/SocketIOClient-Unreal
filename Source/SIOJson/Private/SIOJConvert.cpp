@@ -355,14 +355,14 @@ namespace
 				}
 
 				UClass* PropertyClass = ObjectProperty->PropertyClass;
-				UObject* createdObj = StaticAllocateObject(PropertyClass, Outer, NAME_None, EObjectFlags::RF_NoFlags, EInternalObjectFlags::None, false);
-				(*PropertyClass->ClassConstructor)(FObjectInitializer(createdObj, PropertyClass->ClassDefaultObject, EObjectInitializerOptions::None));
+				UObject* CreatedObj = StaticAllocateObject(PropertyClass, Outer, NAME_None, EObjectFlags::RF_NoFlags, EInternalObjectFlags::None, false);
+				(*PropertyClass->ClassConstructor)(FObjectInitializer(CreatedObj, PropertyClass->GetDefaultObject(), EObjectInitializerOptions::None));
 
-				ObjectProperty->SetObjectPropertyValue(OutValue, createdObj);
+				ObjectProperty->SetObjectPropertyValue(OutValue, CreatedObj);
 
 				TSharedPtr<FJsonObject> Obj = JsonValue->AsObject();
 				check(Obj.IsValid()); // should not fail if Type == EJson::Object
-				if (!JsonAttributesToUStructWithContainer(Obj->Values, ObjectProperty->PropertyClass, createdObj, ObjectProperty->PropertyClass, createdObj, CheckFlags & (~CPF_ParmFlags), SkipFlags))
+				if (!JsonAttributesToUStructWithContainer(Obj->Values, ObjectProperty->PropertyClass, CreatedObj, ObjectProperty->PropertyClass, CreatedObj, CheckFlags & (~CPF_ParmFlags), SkipFlags))
 				{
 					UE_LOG(LogJson, Error, TEXT("BPEnumWA-JsonValueToUProperty - FJsonObjectConverter::JsonObjectToUStruct failed for property %s"), *Property->GetNameCPP());
 					return false;
