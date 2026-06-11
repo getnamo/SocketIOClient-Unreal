@@ -127,6 +127,9 @@
             // used by sio::socket
             virtual void send(packet& p) {};
             virtual void remove_socket(std::string const& nsp) {};
+            // Unlike socket(), never creates the socket — returns null if the
+            // namespace is not (or no longer) registered.
+            virtual sio::socket::ptr find_socket(std::string const& nsp) { return sio::socket::ptr(); }
             virtual asio_sockio::io_service& get_io_service() = 0;
             virtual void on_socket_closed(std::string const& nsp) {};
             virtual void on_socket_opened(std::string const& nsp) {};
@@ -220,6 +223,8 @@
         void send(packet& p);
 
         void remove_socket(std::string const& nsp);
+
+        sio::socket::ptr find_socket(std::string const& nsp) override { return get_socket_locked(nsp); }
 
         asio_sockio::io_service& get_io_service();
 

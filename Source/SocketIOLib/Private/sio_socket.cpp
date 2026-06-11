@@ -30,6 +30,7 @@
 #include <chrono>
 #include <cstdarg>
 #include <functional>
+#include <atomic>
 
 #if defined(DEBUG) && DEBUG
 #define LOG(x) std::cout << x
@@ -210,7 +211,12 @@ namespace sio
         error_listener m_error_listener;
         
         std::unique_ptr<asio_sockio::system_timer> m_connection_timer;
-        
+
+        // on_close() can be reached from two threads at once: the io thread
+        // (close-timer callback) and the client's teardown thread
+        // (~client_impl invokes it directly). Only one may run the teardown.
+        std::atomic<bool> m_close_invoked;
+
         std::queue<packet> m_packet_queue;
         
         std::mutex m_event_mutex;
@@ -261,7 +267,8 @@ namespace sio
         m_client(client),
         m_connected(false),
         m_nsp(nsp),
-        m_auth(auth)
+        m_auth(auth),
+        m_close_invoked(false)
     {
         NULL_GUARD(client);
         if(m_client->opened())
@@ -304,7 +311,11 @@ namespace sio
         m_connection_timer.reset(new asio_sockio::system_timer(m_client->get_io_service()));
         lib::error_code ec;
         m_connection_timer->expires_from_now(std::chrono::milliseconds(20000), ec);
-        m_connection_timer->async_wait(std::bind(&socket::impl::timeout_connection,this, std::placeholders::_1));
+        // No lifetime pin here: send_connect can run inside client_impl::socket(),
+        // which holds m_socket_mutex across construction — a find_socket lookup
+        // would relock the held mutex. Cancellation-at-teardown is instead
+        // covered by timeout_connection checking ec before touching any member.
+        m_connection_timer->async_wait(std::bind(&socket::impl::timeout_connection, this, std::placeholders::_1));
     }
     
     void socket::impl::close()
@@ -319,9 +330,26 @@ namespace sio
             {
                 m_connection_timer.reset(new asio_sockio::system_timer(m_client->get_io_service()));
             }
+            // Pin the owning socket so the deferred on_close can never run on
+            // a freed impl. If the socket is no longer registered, teardown is
+            // already being handled elsewhere — skip the deferred close.
+            sio::socket::ptr self = m_client->find_socket(m_nsp);
+            if(!self)
+            {
+                return;
+            }
             lib::error_code ec;
             m_connection_timer->expires_from_now(std::chrono::milliseconds(3000), ec);
-            m_connection_timer->async_wait(std::bind(&socket::impl::on_close, this));
+            m_connection_timer->async_wait([this, self](const asio_sockio::error_code& timer_ec)
+            {
+                // Cancelled (connection re-established, or teardown already ran
+                // on_close directly) — the deferred close must not fire.
+                if(timer_ec)
+                {
+                    return;
+                }
+                on_close();
+            });
         }
     }
     
@@ -354,6 +382,13 @@ namespace sio
     
     void socket::impl::on_close()
     {
+        // The close-timer callback (io thread) and ~client_impl's direct call
+        // (teardown thread) can both reach this on a live socket; teardown is
+        // terminal (remove_socket below), so it must run exactly once.
+        if(m_close_invoked.exchange(true))
+        {
+            return;
+        }
         NULL_GUARD(m_client);
         sio::client_impl_base *client = m_client;
         m_client = NULL;
@@ -515,11 +550,14 @@ namespace sio
     
     void socket::impl::timeout_connection(const lib::error_code &ec)
     {
-        NULL_GUARD(m_client);
+        // Check the timer result before touching any member: on cancellation
+        // during teardown `this` may already be freed (constructor-armed timer
+        // has no lifetime pin — see send_connect).
         if(ec)
         {
             return;
         }
+        NULL_GUARD(m_client);
         m_connection_timer.reset();
         LOG("Connection timeout,close socket."<<std::endl);
         //Should close socket if no connected message arrive.Otherwise we'll never ask for open again.
