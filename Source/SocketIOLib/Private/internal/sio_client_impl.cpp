@@ -609,7 +609,16 @@ namespace sio
         packet p(packet::frame_pong);
         m_packet_mgr.encode(p, [&](bool /*isBin*/, shared_ptr<const string> payload)
             {
-                this->m_client.send(this->m_con, *payload, frame::opcode::text);
+                // Mirror send_impl()/ping(): only send when the connection is OPEN and use
+                // the non-throwing error_code overload. The throwing overload aborts the whole
+                // process if a server PING lands on a connection that is mid-teardown
+                // (websocketpp throws invalid_state/bad_connection, which is unhandled on the
+                // asio network thread). A dropped PONG on a closing connection is harmless.
+                if (m_con_state == con_opened)
+                {
+                    lib::error_code ec;
+                    this->m_client.send(this->m_con, *payload, frame::opcode::text, ec);
+                }
             });
 
         if (m_ping_timeout_timer)
