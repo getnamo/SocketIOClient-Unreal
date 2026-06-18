@@ -501,11 +501,18 @@ void FSocketIONative::SetupInternalCallbacks()
 		{
 			if (bCallbackOnGameThread)
 			{
-				FCULambdaRunnable::RunShortLambdaOnGameThread([&, DisconnectReason]
+				// Capture a weak ref to self instead of `this`: this lambda runs later on the
+				// game thread, by which point the FSocketIONative may have been released (e.g.
+				// during a level transition). Pin() safely no-ops if it's gone.
+				TWeakPtr<FSocketIONative> WeakSelf = AsShared();
+				FCULambdaRunnable::RunShortLambdaOnGameThread([WeakSelf, DisconnectReason]
 				{
-					if (OnDisconnectedCallback)
+					if (TSharedPtr<FSocketIONative> Self = WeakSelf.Pin())
 					{
-						OnDisconnectedCallback(DisconnectReason);
+						if (Self->OnDisconnectedCallback)
+						{
+							Self->OnDisconnectedCallback(DisconnectReason);
+						}
 					}
 				});
 			}
@@ -537,11 +544,15 @@ void FSocketIONative::SetupInternalCallbacks()
 			{
 				if (bCallbackOnGameThread)
 				{
-					FCULambdaRunnable::RunShortLambdaOnGameThread([&]
+					TWeakPtr<FSocketIONative> WeakSelf = AsShared();
+					FCULambdaRunnable::RunShortLambdaOnGameThread([WeakSelf]
 					{
-						if (OnConnectedCallback)
+						if (TSharedPtr<FSocketIONative> Self = WeakSelf.Pin())
 						{
-							OnConnectedCallback(SocketId, SessionId);
+							if (Self->OnConnectedCallback)
+							{
+								Self->OnConnectedCallback(Self->SocketId, Self->SessionId);
+							}
 						}
 					});
 				}
@@ -562,11 +573,15 @@ void FSocketIONative::SetupInternalCallbacks()
 		{
 			if (bCallbackOnGameThread)
 			{
-				FCULambdaRunnable::RunShortLambdaOnGameThread([&, Namespace]
+				TWeakPtr<FSocketIONative> WeakSelf = AsShared();
+				FCULambdaRunnable::RunShortLambdaOnGameThread([WeakSelf, Namespace]
 				{
-					if (OnNamespaceConnectedCallback)
+					if (TSharedPtr<FSocketIONative> Self = WeakSelf.Pin())
 					{
-						OnNamespaceConnectedCallback(Namespace);
+						if (Self->OnNamespaceConnectedCallback)
+						{
+							Self->OnNamespaceConnectedCallback(Namespace);
+						}
 					}
 				});
 			}
@@ -593,11 +608,15 @@ void FSocketIONative::SetupInternalCallbacks()
 		{
 			if (bCallbackOnGameThread)
 			{
-				FCULambdaRunnable::RunShortLambdaOnGameThread([&, Namespace]
+				TWeakPtr<FSocketIONative> WeakSelf = AsShared();
+				FCULambdaRunnable::RunShortLambdaOnGameThread([WeakSelf, Namespace]
 				{
-					if (OnNamespaceDisconnectedCallback)
+					if (TSharedPtr<FSocketIONative> Self = WeakSelf.Pin())
 					{
-						OnNamespaceDisconnectedCallback(Namespace);
+						if (Self->OnNamespaceDisconnectedCallback)
+						{
+							Self->OnNamespaceDisconnectedCallback(Namespace);
+						}
 					}
 				});
 			}
@@ -618,11 +637,15 @@ void FSocketIONative::SetupInternalCallbacks()
 		{
 			if (bCallbackOnGameThread)
 			{
-				FCULambdaRunnable::RunShortLambdaOnGameThread([&]
+				TWeakPtr<FSocketIONative> WeakSelf = AsShared();
+				FCULambdaRunnable::RunShortLambdaOnGameThread([WeakSelf]
 				{
-					if (OnFailCallback)
+					if (TSharedPtr<FSocketIONative> Self = WeakSelf.Pin())
 					{
-						OnFailCallback();
+						if (Self->OnFailCallback)
+						{
+							Self->OnFailCallback();
+						}
 					}
 				});
 			}
@@ -645,11 +668,15 @@ void FSocketIONative::SetupInternalCallbacks()
 		{
 			if (bCallbackOnGameThread)
 			{
-				FCULambdaRunnable::RunShortLambdaOnGameThread([&, num, delay]
+				TWeakPtr<FSocketIONative> WeakSelf = AsShared();
+				FCULambdaRunnable::RunShortLambdaOnGameThread([WeakSelf, num, delay]
 				{
-					if (OnReconnectionCallback)
+					if (TSharedPtr<FSocketIONative> Self = WeakSelf.Pin())
 					{
-						OnReconnectionCallback(num, delay);
+						if (Self->OnReconnectionCallback)
+						{
+							Self->OnReconnectionCallback(num, delay);
+						}
 					}
 				});
 			}
