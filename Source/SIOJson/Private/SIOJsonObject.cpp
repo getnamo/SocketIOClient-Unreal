@@ -105,8 +105,13 @@ TArray<FString> USIOJsonObject::GetFieldNames()
 		return Result;
 	}
 	
-	JsonObj->Values.GetKeys(Result);
-	
+	//UE 5.8: FJsonObject keys are UE::FSharedString; copy them into FString results.
+	Result.Reserve(JsonObj->Values.Num());
+	for (const auto& Pair : JsonObj->Values)
+	{
+		Result.Add(FString(*Pair.Key));
+	}
+
 	return Result;
 }
 

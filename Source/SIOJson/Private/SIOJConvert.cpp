@@ -24,6 +24,20 @@ namespace
 {
 	FJsonObjectConverter::CustomExportCallback EnumOverrideExportCallback;
 
+	//UE 5.8: FJsonObject stores keys as UE::FSharedString (FJsonObject::FStringType)
+	//instead of FString. Convert to an FString-keyed map so the partial converter copy
+	//below can keep its FString interface unchanged.
+	TMap<FString, TSharedPtr<FJsonValue>> ToFStringKeyedMap(const TMap<FJsonObject::FStringType, TSharedPtr<FJsonValue>>& In)
+	{
+		TMap<FString, TSharedPtr<FJsonValue>> Out;
+		Out.Reserve(In.Num());
+		for (const auto& Pair : In)
+		{
+			Out.Add(FString(*Pair.Key), Pair.Value);
+		}
+		return Out;
+	}
+
 	//Begin partial copy of FJsonObjectConverter for BP enum workaround
 	bool JsonValueToFPropertyWithContainer(const TSharedPtr<FJsonValue>& JsonValue, FProperty* Property, void* OutValue, const UStruct* ContainerStruct, void* Container, int64 CheckFlags, int64 SkipFlags);
 	bool JsonAttributesToUStructWithContainer(const TMap< FString, TSharedPtr<FJsonValue> >& JsonAttributes, const UStruct* StructDefinition, void* OutStruct, const UStruct* ContainerStruct, void* Container, int64 CheckFlags, int64 SkipFlags);
@@ -175,7 +189,7 @@ namespace
 					{
 						int32 NewIndex = Helper.AddDefaultValue_Invalid_NeedsRehash();
 
-						TSharedPtr<FJsonValueString> TempKeyValue = MakeShared<FJsonValueString>(Entry.Key);
+						TSharedPtr<FJsonValueString> TempKeyValue = MakeShared<FJsonValueString>(FString(*Entry.Key));
 
 						const bool bKeySuccess = JsonValueToFPropertyWithContainer(TempKeyValue, MapProperty->KeyProp, Helper.GetKeyPtr(NewIndex), ContainerStruct, Container, CheckFlags & (~CPF_ParmFlags), SkipFlags);
 						const bool bValueSuccess = JsonValueToFPropertyWithContainer(Entry.Value, MapProperty->ValueProp, Helper.GetValuePtr(NewIndex), ContainerStruct, Container, CheckFlags & (~CPF_ParmFlags), SkipFlags);
@@ -264,7 +278,7 @@ namespace
 			{
 				TSharedPtr<FJsonObject> Obj = JsonValue->AsObject();
 				check(Obj.IsValid()); // should not fail if Type == EJson::Object
-				if (!JsonAttributesToUStructWithContainer(Obj->Values, StructProperty->Struct, OutValue, ContainerStruct, Container, CheckFlags & (~CPF_ParmFlags), SkipFlags))
+				if (!JsonAttributesToUStructWithContainer(ToFStringKeyedMap(Obj->Values), StructProperty->Struct, OutValue, ContainerStruct, Container, CheckFlags & (~CPF_ParmFlags), SkipFlags))
 				{
 					UE_LOG(LogJson, Error, TEXT("BPEnumWA-JsonValueToUProperty - FJsonObjectConverter::JsonObjectToUStruct failed for property %s"), *Property->GetNameCPP());
 					return false;
@@ -362,7 +376,7 @@ namespace
 
 				TSharedPtr<FJsonObject> Obj = JsonValue->AsObject();
 				check(Obj.IsValid()); // should not fail if Type == EJson::Object
-				if (!JsonAttributesToUStructWithContainer(Obj->Values, ObjectProperty->PropertyClass, CreatedObj, ObjectProperty->PropertyClass, CreatedObj, CheckFlags & (~CPF_ParmFlags), SkipFlags))
+				if (!JsonAttributesToUStructWithContainer(ToFStringKeyedMap(Obj->Values), ObjectProperty->PropertyClass, CreatedObj, ObjectProperty->PropertyClass, CreatedObj, CheckFlags & (~CPF_ParmFlags), SkipFlags))
 				{
 					UE_LOG(LogJson, Error, TEXT("BPEnumWA-JsonValueToUProperty - FJsonObjectConverter::JsonObjectToUStruct failed for property %s"), *Property->GetNameCPP());
 					return false;
@@ -484,7 +498,12 @@ namespace
 			// Just copy it into the object
 			FJsonObjectWrapper* ProxyObject = (FJsonObjectWrapper *)OutStruct;
 			ProxyObject->JsonObject = MakeShared<FJsonObject>();
-			ProxyObject->JsonObject->Values = JsonAttributes;
+			//UE 5.8: assign via SetField so FString keys are interned into the
+			//object's shared-string set (Values is keyed by UE::FSharedString).
+			for (const auto& Pair : JsonAttributes)
+			{
+				ProxyObject->JsonObject->SetField(Pair.Key, Pair.Value);
+			}
 			return true;
 		}
 
@@ -543,7 +562,7 @@ namespace
 	public:
 		static bool JsonObjectToUStruct(const TSharedRef<FJsonObject>& JsonObject, const UStruct* StructDefinition, void* OutStruct, int64 CheckFlags, int64 SkipFlags)
 		{
-			return JsonAttributesToUStructWithContainer(JsonObject->Values, StructDefinition, OutStruct, StructDefinition, OutStruct, CheckFlags, SkipFlags);
+			return JsonAttributesToUStructWithContainer(ToFStringKeyedMap(JsonObject->Values), StructDefinition, OutStruct, StructDefinition, OutStruct, CheckFlags, SkipFlags);
 		}
 	};
 }
@@ -901,7 +920,7 @@ void USIOJConvert::TrimValueKeyNames(const TSharedPtr<FJsonValue>& JsonValue)
 		auto JsonObject = JsonValue->AsObject();
 		for (auto Pair : JsonObject->Values)
 		{
-			const FString& Key = Pair.Key;
+			const FString Key(*Pair.Key);
 			FString TrimmedKey;
 
 			bool DidNeedTrimming = TrimKey(Key, TrimmedKey);
@@ -1061,25 +1080,26 @@ void USIOJConvert::ReplaceJsonValueNamesWithMap(TSharedPtr<FJsonValue>& JsonValu
 
 		for (auto Pair : AllValues)
 		{
+			const FString Key(*Pair.Key);
 			if (SubMap.Contains(TMAP_STRING))
 			{
 				FString TMapString = FString(TMAP_STRING);
 				//If we found a tmap, replace each sub key with list of keys
 				ReplaceJsonValueNamesWithMap(Pair.Value, SubMap[TMapString]);
 			}
-			else if (SubMap.Num() > 0 && SubMap.Contains(Pair.Key))
+			else if (SubMap.Num() > 0 && SubMap.Contains(Key))
 			{
 				//Get the long key for entry
-				const FString& LongKey = SubMap[Pair.Key]->LongKey;
+				const FString& LongKey = SubMap[Key]->LongKey;
 
 				//loop nested structures
-				ReplaceJsonValueNamesWithMap(Pair.Value, SubMap[Pair.Key]);
+				ReplaceJsonValueNamesWithMap(Pair.Value, SubMap[Key]);
 
-				if (Pair.Key != LongKey)
+				if (Key != LongKey)
 				{
 					//finally set the field and remove the old field
 					Object->SetField(LongKey, Pair.Value);
-					Object->RemoveField(Pair.Key);
+					Object->RemoveField(Key);
 				}
 			}
 		}

@@ -96,7 +96,7 @@ UTexture2D* UCUBlueprintLibrary::Conv_BytesToTexture(const TArray<uint8>& InByte
 				ENQUEUE_RENDER_COMMAND(BytesToTextureCommand)(
 					[UpdateData](FRHICommandList& CommandList)
 				{
-					RHIUpdateTexture2D(
+					CommandList.UpdateTexture2D(
 						((FTextureResource*)UpdateData->Texture2D->GetResource())->GetTextureRHI()->GetTexture2D(),
 						0,
 						UpdateData->Region,
@@ -472,7 +472,7 @@ TFuture<UTexture2D*> UCUBlueprintLibrary::Conv_BytesToTexture_Async(const TArray
 		ENQUEUE_RENDER_COMMAND(BytesToTextureAsyncCommand)(
 			[UpdateData](FRHICommandList& CommandList)
 		{
-			RHIUpdateTexture2D(
+			CommandList.UpdateTexture2D(
 				((FTextureResource*)UpdateData->Texture2D->GetResource())->GetTextureRHI()->GetTexture2D(),
 				0,
 				UpdateData->Region,
