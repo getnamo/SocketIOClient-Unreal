@@ -441,6 +441,11 @@ void USocketIOClientComponent::Connect(const FString& InAddressAndPort, const FS
 		URLParams.AuthToken = InAuthToken;
 	}
 
+	ConnectWithParams(URLParams);
+}
+
+void USocketIOClientComponent::ConnectWithParams(const FSIOConnectParams& InURLParams)
+{
 	//Sync all params to native client before connecting
 	NativeClient->MaxReconnectionAttempts = MaxReconnectionAttempts;
 	NativeClient->ReconnectionDelay = ReconnectionDelayInMs;
@@ -448,11 +453,6 @@ void USocketIOClientComponent::Connect(const FString& InAddressAndPort, const FS
 	NativeClient->bUnbindEventsOnDisconnect = bUnbindEventsOnDisconnect;
 	NativeClient->bForceTLSUse = bForceTLS;
 
-	ConnectWithParams(URLParams);
-}
-
-void USocketIOClientComponent::ConnectWithParams(const FSIOConnectParams& InURLParams)
-{
 	NativeClient->Connect(InURLParams);
 
 	OnErrorEvent([this](const FString& Error)
