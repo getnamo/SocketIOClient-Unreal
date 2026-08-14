@@ -39,7 +39,7 @@ struct FSIOBoundEvent
 	}
 };
 
-class SOCKETIOCLIENT_API FSocketIONative
+class SOCKETIOCLIENT_API FSocketIONative : public TSharedFromThis<FSocketIONative>
 {
 public:
 	/** By default TLS verification is off. TLS mode will be set by URL on connect.*/
