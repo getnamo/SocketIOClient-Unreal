@@ -270,7 +270,7 @@ void USIOJRequestJSON::ProcessRequest()
 		// Loop through all the values and prepare additional url part
 		for (auto RequestIt = RequestJsonObj->GetRootObject()->Values.CreateIterator(); RequestIt; ++RequestIt)
 		{
-			FString Key = RequestIt.Key();
+			FString Key(*RequestIt.Key());
 			FString Value = RequestIt.Value().Get()->AsString();
 
 			if (!Key.IsEmpty() && !Value.IsEmpty())
@@ -299,7 +299,7 @@ void USIOJRequestJSON::ProcessRequest()
 		// Loop through all the values and prepare additional url part
 		for (auto RequestIt = RequestJsonObj->GetRootObject()->Values.CreateIterator(); RequestIt; ++RequestIt)
 		{
-			FString Key = RequestIt.Key();
+			FString Key(*RequestIt.Key());
 			FString Value = RequestIt.Value().Get()->AsString();
 
 			if (!Key.IsEmpty() && !Value.IsEmpty())

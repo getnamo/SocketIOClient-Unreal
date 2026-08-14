@@ -141,7 +141,7 @@ sio::message::ptr USIOMessageConvert::ToSIOMessage(const TSharedPtr<FJsonValue>&
 		for (auto ItemPair : ValueTmap)
 		{
 			//important to use get_map() directly to insert the key in the correct map and not a pointer copy
-			ObjectMessage->get_map()[StdString(ItemPair.Key)] = ToSIOMessage(ItemPair.Value);
+			ObjectMessage->get_map()[StdString(FString(*ItemPair.Key))] = ToSIOMessage(ItemPair.Value);
 		}
 
 		return ObjectMessage;
@@ -176,7 +176,7 @@ std::map<std::string, std::string> USIOMessageConvert::JsonObjectToStdStringMap(
 			//If it's a string value, add it to the std map
 			if (Value->Type == EJson::String)
 			{
-				ParamMap[USIOMessageConvert::StdString(Pair.Key)] = USIOMessageConvert::StdString(Value->AsString());
+				ParamMap[USIOMessageConvert::StdString(FString(*Pair.Key))] = USIOMessageConvert::StdString(Value->AsString());
 			}
 		}
 	}
@@ -197,7 +197,7 @@ TMap<FString, FString> USIOMessageConvert::JsonObjectToFStringMap(TSharedPtr<FJs
 			//If it's a string value, add it to the std map
 			if (Value->Type == EJson::String)
 			{
-				ParamMap.Add(Pair.Key, Value->AsString());
+				ParamMap.Add(FString(*Pair.Key), Value->AsString());
 			}
 		}
 	}

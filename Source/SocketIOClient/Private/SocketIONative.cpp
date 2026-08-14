@@ -489,7 +489,9 @@ void FSocketIONative::SetupInternalCallbacks()
 		bIsConnected = false;
 
 		ESIOConnectionCloseReason DisconnectReason = (ESIOConnectionCloseReason)reason;
-		FString DisconnectReasonString = UEnum::GetValueAsString<ESIOConnectionCloseReason>(DisconnectReason);
+		//UE 5.8: StaticEnum<>() is deleted for this namespaced UENUM, so map the close
+		//reason to a string directly for the diagnostic log below.
+		FString DisconnectReasonString = (DisconnectReason == CLOSE_REASON_NORMAL) ? TEXT("CLOSE_REASON_NORMAL") : TEXT("CLOSE_REASON_DROP");
 		if (VerboseLog)
 		{
 			UE_LOG(SocketIO, Log, TEXT("SocketIO Disconnected %s reason: %s"), *SessionId, *DisconnectReasonString);
