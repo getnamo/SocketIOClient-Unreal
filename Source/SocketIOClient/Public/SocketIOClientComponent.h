@@ -185,6 +185,18 @@ public:
 	void ConnectWithParams(const FSIOConnectParams& InURLParams);
 
 	/**
+	* Replace the auth sent with every later connection attempt, including automatic reconnections.
+	* Call it as soon as your token refreshes, so a dropped connection comes back with valid credentials.
+	* Waiting until OnConnectionProblems can lose the race with the retry: a namespace connect the server
+	* rejects is not retried. An open connection is unaffected.
+	*
+	* @param AuthToken sent as auth:{token:""}, omitted if empty
+	* @param ExtraAuth custom auth key:value pairs sent alongside the token
+	*/
+	UFUNCTION(BlueprintCallable, Category = "SocketIO Functions", meta = (AutoCreateRefTerm = "ExtraAuth"))
+	void SetAuth(const FString& AuthToken, const TMap<FString, FString>& ExtraAuth);
+
+	/**
 	* Disconnect from current socket.io server. This is an asynchronous action,
 	* subscribe to OnDisconnected to know when you can safely continue from a 
 	* disconnected state.

@@ -306,7 +306,7 @@ namespace sio
     void socket::impl::send_connect()
     {
         NULL_GUARD(m_client);
-        packet p(packet::type_connect, m_nsp, m_auth);
+        packet p(packet::type_connect, m_nsp, m_client->resolve_auth(m_auth));
         m_client->send(p);
         m_connection_timer.reset(new asio_sockio::system_timer(m_client->get_io_service()));
         lib::error_code ec;
