@@ -201,6 +201,9 @@ namespace sio
         sio::client_impl_base *m_client;
         
         bool m_connected;
+        // Namespace connect was rejected by the server (connect error). Like the JS client, don't
+        // re-send it on transport (re)open until connect() is called explicitly.
+        std::atomic<bool> m_rejected;
 		std::string m_nsp;
 		message::ptr m_auth;
 
@@ -268,6 +271,7 @@ namespace sio
     socket::impl::impl(client_impl_base *client,std::string const& nsp, message::ptr const& auth):
         m_client(client),
         m_connected(false),
+        m_rejected(false),
         m_nsp(nsp),
         m_auth(auth),
         m_close_invoked(false)
@@ -358,6 +362,7 @@ namespace sio
     void socket::impl::connect()
     {
         NULL_GUARD(m_client);
+        m_rejected = false;
         // An armed connection timer means a connect is already in flight
         if(!m_connected && !m_connection_timer && m_client->opened())
         {
@@ -423,6 +428,10 @@ namespace sio
     
     void socket::impl::on_open()
     {
+        if(m_rejected)
+        {
+            return;
+        }
         send_connect();
     }
     
@@ -514,11 +523,15 @@ namespace sio
             {
                 LOG("Received Message type (ERROR)"<<std::endl);
                 // Connect error (e.g. auth rejected): keep the socket and its bindings instead of letting the
-                // connection timeout remove it. It retries on the next transport (re)open or on connect().
-                if(!m_connected && m_connection_timer)
+                // connection timeout remove it, but don't retry until connect() is called (JS client behavior).
+                if(!m_connected)
                 {
-                    m_connection_timer->cancel();
-                    m_connection_timer.reset();
+                    m_rejected = true;
+                    if(m_connection_timer)
+                    {
+                        m_connection_timer->cancel();
+                        m_connection_timer.reset();
+                    }
                 }
                 this->on_socketio_error(p.get_message());
                 break;

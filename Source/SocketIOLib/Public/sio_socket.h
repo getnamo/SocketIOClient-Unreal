@@ -69,7 +69,8 @@ namespace sio
         
         void close();
 
-        // Re-sends the namespace connect if not connected, e.g. after the server rejected it (connect error).
+        // Re-sends the namespace connect if not connected. A connect the server rejected (connect error)
+        // is not retried automatically, call this to retry it (like socket.connect() in the JS client).
         void connect();
 
         void on_error(error_listener const& l);

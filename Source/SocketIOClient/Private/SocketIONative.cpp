@@ -451,7 +451,7 @@ void FSocketIONative::OnError(TFunction< void(const FString&)> CallbackFunction,
 	OnErrorCallback = CallbackFunction;
 
 	OnRawError([CallbackFunction, Namespace](const sio::message::ptr& ErrorRaw) {
-		//Connect errors arrive as {message: "..."}, other errors may be plain strings or arbitrary json
+		//Connect errors arrive as {message: "...", data?: any} (JS err.message/err.data), other errors may be plain strings or arbitrary json
 		FString Error;
 		if (ErrorRaw && ErrorRaw->get_flag() == sio::message::flag_string)
 		{
@@ -460,7 +460,14 @@ void FSocketIONative::OnError(TFunction< void(const FString&)> CallbackFunction,
 		else if (ErrorRaw && ErrorRaw->get_flag() == sio::message::flag_object && ErrorRaw->get_map().count("message") &&
 			ErrorRaw->get_map().at("message")->get_flag() == sio::message::flag_string)
 		{
-			Error = USIOMessageConvert::FStringFromStd(ErrorRaw->get_map().at("message")->get_string());
+			const auto& ErrorMap = ErrorRaw->get_map();
+			Error = USIOMessageConvert::FStringFromStd(ErrorMap.at("message")->get_string());
+
+			auto DataIt = ErrorMap.find("data");
+			if (DataIt != ErrorMap.end() && DataIt->second && DataIt->second->get_flag() != sio::message::flag_null)
+			{
+				Error += FString::Printf(TEXT(" (data: %s)"), *USIOJConvert::ToJsonString(USIOMessageConvert::ToJsonValue(DataIt->second)));
+			}
 		}
 		else
 		{

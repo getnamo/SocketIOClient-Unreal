@@ -126,7 +126,10 @@ namespace sio
         m_http_headers = headers;
 		m_auth = auth;
         for (std::map<const std::string, socket::ptr>::iterator it = m_sockets.begin(); it != m_sockets.end(); ++it)
+        {
             it->second.get()->set_auth(m_auth);
+            it->second->connect();  //explicit connect clears a previous rejection, sent once the transport opens
+        }
 
         if (path != ""){
             m_path = path;
