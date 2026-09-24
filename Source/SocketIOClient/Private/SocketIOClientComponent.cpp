@@ -542,9 +542,13 @@ void USocketIOClientComponent::EmitWithCallBack(const FString& EventName, USIOJs
 			JsonMessage = MakeShareable(new FJsonValueNull);
 		}
 
-		EmitNative(EventName, JsonMessage, [&, Target, CallbackFunctionName, this](const TArray<TSharedPtr<FJsonValue>>& Response)
+		TWeakObjectPtr<USocketIOClientComponent> WeakThis(this);
+		EmitNative(EventName, JsonMessage, [WeakThis, Target, CallbackFunctionName](const TArray<TSharedPtr<FJsonValue>>& Response)
 		{
-			CallBPFunctionWithResponse(Target, CallbackFunctionName, Response);
+			if (USocketIOClientComponent* Self = WeakThis.Get())
+			{
+				Self->CallBPFunctionWithResponse(Target, CallbackFunctionName, Response);
+			}
 		}, Namespace);
 	}
 	else 
@@ -637,12 +641,22 @@ void USocketIOClientComponent::EmitNative(const FString& EventName, const SIO_TE
 
 void USocketIOClientComponent::BindEventToGenericEvent(const FString& EventName, const FString& Namespace)
 {
-	NativeClient->OnEvent(EventName, [&](const FString& Event, const TSharedPtr<FJsonValue>& EventValue)
+	//Weak, not raw `this` — same reason SetupCallbacks does it: this runs from a callback that
+	//may be marshalled to the game thread, and the component can be destroyed with the world
+	//before it gets there. Broadcasting OnGenericEvent off a freed component is the bug.
+	TWeakObjectPtr<USocketIOClientComponent> WeakThis(this);
+	NativeClient->OnEvent(EventName, [WeakThis](const FString& Event, const TSharedPtr<FJsonValue>& EventValue)
 	{
+		USocketIOClientComponent* Self = WeakThis.Get();
+		if (!Self)
+		{
+			return;
+		}
+
 		USIOJsonValue* NewValue = NewObject<USIOJsonValue>();
 		TSharedPtr<FJsonValue> NonConstValue = EventValue;
 		NewValue->SetRootValue(NonConstValue);
-		OnGenericEvent.Broadcast(Event, NewValue);
+		Self->OnGenericEvent.Broadcast(Event, NewValue);
 	}, Namespace);
 }
 
@@ -677,9 +691,13 @@ void USocketIOClientComponent::BindEventToFunction(const FString& EventName,
 		{
 			Target = WorldContextObject;
 		}
-		OnNativeEvent(EventName, [&, FunctionName, Target](const FString& Event, const TSharedPtr<FJsonValue>& Message)
+		TWeakObjectPtr<USocketIOClientComponent> WeakThis(this);
+		OnNativeEvent(EventName, [WeakThis, FunctionName, Target](const FString& Event, const TSharedPtr<FJsonValue>& Message)
 		{
-			CallBPFunctionWithMessage(Target, FunctionName, Message);
+			if (USocketIOClientComponent* Self = WeakThis.Get())
+			{
+				Self->CallBPFunctionWithMessage(Target, FunctionName, Message);
+			}
 		}, Namespace, ThreadOverride);
 	}
 	else

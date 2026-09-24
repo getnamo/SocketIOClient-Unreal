@@ -46,6 +46,14 @@ void FSocketIONative::Connect(const FSIOConnectParams& InConnectParams)
 	}
 
 	SyncPrivateClientToTLSMode(URLParams.AddressAndPort);
+
+	//Belt and braces for the listener install. The client is normally handed out by
+	//FSocketIOClientModule::NewValidNativePointer(), which sets the listeners up once the shared
+	//pointer exists — but FSocketIONative is public API, so a caller can own one it built itself
+	//and never go through the factory. Redoing it here costs a few assignments and makes the
+	//object correct however it was created. Idempotent: sio just overwrites each listener slot,
+	//and this touches none of the user callbacks or the event map.
+	SetupInternalCallbacks();
 	
 	//Fill std types before going to background thread.
 
@@ -74,20 +82,30 @@ void FSocketIONative::Connect(const FSIOConnectParams& InConnectParams)
 	QueryMap = USIOMessageConvert::FStringMapToStdStringMap(URLParams.Query);
 	HeadersMap = USIOMessageConvert::FStringMapToStdStringMap(URLParams.Headers);
 
-	//Connect to the server on a background thread so it never blocks
-	FCULambdaRunnable::RunLambdaOnBackGroundThread([&, StdAddressString, StdPathString, QueryMap, HeadersMap, AuthMessage]
+	//Connect to the server on a background thread so it never blocks. Weak self rather than
+	//a captured `this`: connect() can block for the length of a TCP timeout, and a caller that
+	//connects and then tears down (a level transition is the usual way) releases this object
+	//while the pool thread is still inside the body.
+	TWeakPtr<FSocketIONative> WeakSelf = AsShared();
+	FCULambdaRunnable::RunLambdaOnBackGroundThread([WeakSelf, StdAddressString, StdPathString, QueryMap, HeadersMap, AuthMessage]
 	{
-		PrivateClient->set_reconnect_attempts(MaxReconnectionAttempts);
-		PrivateClient->set_reconnect_delay(ReconnectionDelay);
-		PrivateClient->set_path(StdPathString);
+		TSharedPtr<FSocketIONative> Self = WeakSelf.Pin();
+		if (!Self.IsValid() || !Self->PrivateClient.IsValid())
+		{
+			return;
+		}
+
+		Self->PrivateClient->set_reconnect_attempts(Self->MaxReconnectionAttempts);
+		Self->PrivateClient->set_reconnect_delay(Self->ReconnectionDelay);
+		Self->PrivateClient->set_path(StdPathString);
 
 		//close and reconnect if different url
-		if(PrivateClient->opened())
+		if(Self->PrivateClient->opened())
 		{
-			if (PrivateClient->get_url() != StdAddressString)
+			if (Self->PrivateClient->get_url() != StdAddressString)
 			{
 				//sync close to re-open
-				PrivateClient->sync_close();
+				Self->PrivateClient->sync_close();
 			}
 			else
 			{
@@ -96,7 +114,7 @@ void FSocketIONative::Connect(const FSIOConnectParams& InConnectParams)
 				return;
 			}
 		}
-		PrivateClient->connect(StdAddressString, QueryMap, HeadersMap, AuthMessage);
+		Self->PrivateClient->connect(StdAddressString, QueryMap, HeadersMap, AuthMessage);
 	});
 }
 
@@ -265,12 +283,21 @@ void FSocketIONative::EmitRaw(const FString& EventName, const sio::message::list
 	//Only have non-null raw callback if we pass in a callback function
 	if (CallbackFunction)
 	{
-		RawCallback = [&, CallbackFunction](const sio::message::list& response)
+		//Weak self: the ack arrives on the asio thread, and reading bCallbackOnGameThread off
+		//a captured `this` is a read of freed memory if the socket was released meanwhile.
+		TWeakPtr<FSocketIONative> WeakSelf = AsShared();
+		RawCallback = [WeakSelf, CallbackFunction](const sio::message::list& response)
 		{
+			TSharedPtr<FSocketIONative> Self = WeakSelf.Pin();
+			if (!Self.IsValid())
+			{
+				return;
+			}
+
 			if (CallbackFunction != nullptr)
 			{
 				//Callback on game thread
-				if (bCallbackOnGameThread)
+				if (Self->bCallbackOnGameThread)
 				{
 					FCULambdaRunnable::RunShortLambdaOnGameThread([CallbackFunction, response]
 					{
@@ -436,11 +463,21 @@ void FSocketIONative::OnRawBinaryEvent(const FString& EventName, TFunction< void
 {
 	const TFunction< void(const FString&, const TArray<uint8>&)> SafeFunction = CallbackFunction;	//copy the function so it remains in context
 
+	//Weak self for the same reason as the other listeners: the body reads
+	//bCallbackOnGameThread on the asio thread, before any hop to the game thread.
+	TWeakPtr<FSocketIONative> WeakSelf = AsShared();
+
 	PrivateClient->socket(USIOMessageConvert::StdString(Namespace))->on(
 		USIOMessageConvert::StdString(EventName),
 		sio::socket::event_listener_aux(
-			[&, SafeFunction](std::string const& name, sio::message::ptr const& data, bool isAck, sio::message::list &ack_resp)
+			[WeakSelf, SafeFunction](std::string const& name, sio::message::ptr const& data, bool isAck, sio::message::list &ack_resp)
 	{
+		TSharedPtr<FSocketIONative> Self = WeakSelf.Pin();
+		if (!Self.IsValid())
+		{
+			return;
+		}
+
 		const FString SafeName = USIOMessageConvert::FStringFromStd(name);
 
 		//Construct raw buffer
@@ -451,7 +488,7 @@ void FSocketIONative::OnRawBinaryEvent(const FString& EventName, TFunction< void
 			auto MessageBuffer = data->get_binary();
 			Buffer.Append((uint8*)(MessageBuffer->data()), BufferSize);
 
-			if (bCallbackOnGameThread)
+			if (Self->bCallbackOnGameThread)
 			{
 				FCULambdaRunnable::RunShortLambdaOnGameThread([SafeFunction, SafeName, Buffer]
 				{
@@ -483,212 +520,257 @@ void FSocketIONative::ClearInternalCallbacks()
 
 void FSocketIONative::SetupInternalCallbacks()
 {
-	PrivateClient->set_open_listener(sio::client::con_listener([&]() 
+	//These listeners are invoked from the asio network thread and outlive nothing: sio holds
+	//them for as long as the client exists, and the client is destroyed from whichever thread
+	//releases the FSocketIONative. So the listener body itself — not just the game-thread hop
+	//inside it — can be running while this object is going away.
+	//
+	//The hops were already fixed to Pin a weak self; the code that ran BEFORE them still read
+	//members off a captured `this`. One weak ref taken here, pinned at the top of each body,
+	//covers both: nothing in the listener touches a member until Pin() has succeeded, and the
+	//pin then keeps the object alive for the rest of the body.
+	//
+	//AsShared() needs this object to already be owned by a TSharedPtr, and one caller runs
+	//before that is true: the constructor calls ClearAllCallbacks(), which lands here while
+	//MakeShareable() has not yet wrapped the object — AsShared() would assert on
+	//DoesSharedInstanceExist(). Bail out on that pass; FSocketIOClientModule::NewValidNativePointer()
+	//calls ClearAllCallbacks() again the moment the shared pointer exists, which installs the
+	//listeners for real. Every other caller (ClearAllCallbacks and RebindCurrentEventMap after
+	//construction) proceeds normally.
+	if (!DoesSharedInstanceExist())
+	{
+		return;
+	}
+
+	TWeakPtr<FSocketIONative> WeakSelf = AsShared();
+
+	PrivateClient->set_open_listener(sio::client::con_listener([]()
 	{
 		//too early to get session id here so we defer the connection event until we connect to a namespace
 	}));
 
-	PrivateClient->set_close_listener(sio::client::close_listener([&](sio::client::close_reason const& reason)
+	PrivateClient->set_close_listener(sio::client::close_listener([WeakSelf](sio::client::close_reason const& reason)
 	{
-		bIsConnected = false;
+		TSharedPtr<FSocketIONative> Self = WeakSelf.Pin();
+		if (!Self.IsValid())
+		{
+			return;
+		}
+
+		Self->bIsConnected = false;
 
 		const ESIOConnectionCloseReason DisconnectReason = static_cast<ESIOConnectionCloseReason>(reason);
 		//UE 5.8: StaticEnum<>() is deleted for this namespaced UENUM, so map the close
 		//reason to a string directly for the diagnostic log below.
 		FString DisconnectReasonString = (DisconnectReason == CLOSE_REASON_NORMAL) ? TEXT("CLOSE_REASON_NORMAL") : TEXT("CLOSE_REASON_DROP");
-		if (VerboseLog)
+		if (Self->VerboseLog)
 		{
-			UE_LOG(SocketIO, Log, TEXT("SocketIO Disconnected %s reason: %s"), *SessionId, *DisconnectReasonString);
+			UE_LOG(SocketIO, Log, TEXT("SocketIO Disconnected %s reason: %s"), *Self->SessionId, *DisconnectReasonString);
 		}
-		LastSessionId = SessionId;
-		SessionId = TEXT("Invalid");
+		Self->LastSessionId = Self->SessionId;
+		Self->SessionId = TEXT("Invalid");
 
-		if (OnDisconnectedCallback)
+		if (Self->OnDisconnectedCallback)
 		{
-			if (bCallbackOnGameThread)
+			if (Self->bCallbackOnGameThread)
 			{
-				// Capture a weak ref to self instead of `this`: this lambda runs later on the
-				// game thread, by which point the FSocketIONative may have been released (e.g.
-				// during a level transition). Pin() safely no-ops if it's gone.
-				TWeakPtr<FSocketIONative> WeakSelf = AsShared();
 				FCULambdaRunnable::RunShortLambdaOnGameThread([WeakSelf, DisconnectReason]
 				{
-					if (TSharedPtr<FSocketIONative> Self = WeakSelf.Pin())
+					if (TSharedPtr<FSocketIONative> HopSelf = WeakSelf.Pin())
 					{
-						if (Self->OnDisconnectedCallback)
+						if (HopSelf->OnDisconnectedCallback)
 						{
-							Self->OnDisconnectedCallback(DisconnectReason);
+							HopSelf->OnDisconnectedCallback(DisconnectReason);
 						}
 					}
 				});
 			}
 			else
 			{
-				OnDisconnectedCallback(DisconnectReason);
+				Self->OnDisconnectedCallback(DisconnectReason);
 			}
 		}
 	}));
 
-	PrivateClient->set_socket_open_listener(sio::client::socket_listener([&](std::string const& nsp)
+	PrivateClient->set_socket_open_listener(sio::client::socket_listener([WeakSelf](std::string const& nsp)
 	{
-		//Special case, we have a latent connection after already having been disconnected
-		if (!PrivateClient.IsValid())
+		TSharedPtr<FSocketIONative> Self = WeakSelf.Pin();
+		if (!Self.IsValid())
 		{
 			return;
 		}
-		if (!bIsConnected)
-		{
-			bIsConnected = true;
-			SessionId = USIOMessageConvert::FStringFromStd(PrivateClient->get_sessionid());
-			SocketId = USIOMessageConvert::FStringFromStd(PrivateClient->socket(nsp)->get_socket_id());
 
-			if (VerboseLog)
+		//Special case, we have a latent connection after already having been disconnected
+		if (!Self->PrivateClient.IsValid())
+		{
+			return;
+		}
+		if (!Self->bIsConnected)
+		{
+			Self->bIsConnected = true;
+			Self->SessionId = USIOMessageConvert::FStringFromStd(Self->PrivateClient->get_sessionid());
+			Self->SocketId = USIOMessageConvert::FStringFromStd(Self->PrivateClient->socket(nsp)->get_socket_id());
+
+			if (Self->VerboseLog)
 			{
-				UE_LOG(SocketIO, Log, TEXT("SocketIO Connected with session: %s"), *SessionId);
+				UE_LOG(SocketIO, Log, TEXT("SocketIO Connected with session: %s"), *Self->SessionId);
 			}
-			if (OnConnectedCallback)
+			if (Self->OnConnectedCallback)
 			{
-				if (bCallbackOnGameThread)
+				if (Self->bCallbackOnGameThread)
 				{
-					TWeakPtr<FSocketIONative> WeakSelf = AsShared();
 					FCULambdaRunnable::RunShortLambdaOnGameThread([WeakSelf]
 					{
-						if (TSharedPtr<FSocketIONative> Self = WeakSelf.Pin())
+						if (TSharedPtr<FSocketIONative> HopSelf = WeakSelf.Pin())
 						{
-							if (Self->OnConnectedCallback)
+							if (HopSelf->OnConnectedCallback)
 							{
-								Self->OnConnectedCallback(Self->SocketId, Self->SessionId);
+								HopSelf->OnConnectedCallback(HopSelf->SocketId, HopSelf->SessionId);
 							}
 						}
 					});
 				}
 				else
 				{
-					OnConnectedCallback(SocketId, SessionId);
+					Self->OnConnectedCallback(Self->SocketId, Self->SessionId);
 				}
 			}
 		}
 
 		const FString Namespace = USIOMessageConvert::FStringFromStd(nsp);
 
-		if (VerboseLog)
+		if (Self->VerboseLog)
 		{
-			UE_LOG(SocketIO, Log, TEXT("SocketIO %s connected to namespace: %s"), *SessionId, *Namespace);
+			UE_LOG(SocketIO, Log, TEXT("SocketIO %s connected to namespace: %s"), *Self->SessionId, *Namespace);
 		}
-		if (OnNamespaceConnectedCallback)
+		if (Self->OnNamespaceConnectedCallback)
 		{
-			if (bCallbackOnGameThread)
+			if (Self->bCallbackOnGameThread)
 			{
-				TWeakPtr<FSocketIONative> WeakSelf = AsShared();
 				FCULambdaRunnable::RunShortLambdaOnGameThread([WeakSelf, Namespace]
 				{
-					if (TSharedPtr<FSocketIONative> Self = WeakSelf.Pin())
+					if (TSharedPtr<FSocketIONative> HopSelf = WeakSelf.Pin())
 					{
-						if (Self->OnNamespaceConnectedCallback)
+						if (HopSelf->OnNamespaceConnectedCallback)
 						{
-							Self->OnNamespaceConnectedCallback(Namespace);
+							HopSelf->OnNamespaceConnectedCallback(Namespace);
 						}
 					}
 				});
 			}
 			else
 			{
-				OnNamespaceConnectedCallback(Namespace);
+				Self->OnNamespaceConnectedCallback(Namespace);
 			}
 		}
 	}));
 
-	PrivateClient->set_socket_close_listener(sio::client::socket_listener([&](std::string const& nsp)
+	PrivateClient->set_socket_close_listener(sio::client::socket_listener([WeakSelf](std::string const& nsp)
 	{
+		TSharedPtr<FSocketIONative> Self = WeakSelf.Pin();
+		if (!Self.IsValid())
+		{
+			return;
+		}
+
 		const FString Namespace = USIOMessageConvert::FStringFromStd(nsp);
-		FString NamespaceSession = SessionId;
+		FString NamespaceSession = Self->SessionId;
 		if (NamespaceSession.Equals(TEXT("Invalid")))
 		{
-			NamespaceSession = LastSessionId;
+			NamespaceSession = Self->LastSessionId;
 		}
-		if (VerboseLog)
+		if (Self->VerboseLog)
 		{
 			UE_LOG(SocketIO, Log, TEXT("SocketIO %s disconnected from namespace: %s"), *NamespaceSession, *Namespace);
 		}
-		if (OnNamespaceDisconnectedCallback)
+		if (Self->OnNamespaceDisconnectedCallback)
 		{
-			if (bCallbackOnGameThread)
+			if (Self->bCallbackOnGameThread)
 			{
-				TWeakPtr<FSocketIONative> WeakSelf = AsShared();
 				FCULambdaRunnable::RunShortLambdaOnGameThread([WeakSelf, Namespace]
 				{
-					if (TSharedPtr<FSocketIONative> Self = WeakSelf.Pin())
+					if (TSharedPtr<FSocketIONative> HopSelf = WeakSelf.Pin())
 					{
-						if (Self->OnNamespaceDisconnectedCallback)
+						if (HopSelf->OnNamespaceDisconnectedCallback)
 						{
-							Self->OnNamespaceDisconnectedCallback(Namespace);
+							HopSelf->OnNamespaceDisconnectedCallback(Namespace);
 						}
 					}
 				});
 			}
 			else
 			{
-				OnNamespaceDisconnectedCallback(Namespace);
+				Self->OnNamespaceDisconnectedCallback(Namespace);
 			}
 		}
 	}));
 
-	PrivateClient->set_fail_listener(sio::client::con_listener([&]()
+	PrivateClient->set_fail_listener(sio::client::con_listener([WeakSelf]()
 	{
-		if (VerboseLog)
+		TSharedPtr<FSocketIONative> Self = WeakSelf.Pin();
+		if (!Self.IsValid())
+		{
+			return;
+		}
+
+		if (Self->VerboseLog)
 		{
 			UE_LOG(SocketIO, Log, TEXT("SocketIO failed to connect."));
 		}
-		if (OnFailCallback)
+		if (Self->OnFailCallback)
 		{
-			if (bCallbackOnGameThread)
+			if (Self->bCallbackOnGameThread)
 			{
-				TWeakPtr<FSocketIONative> WeakSelf = AsShared();
 				FCULambdaRunnable::RunShortLambdaOnGameThread([WeakSelf]
 				{
-					if (TSharedPtr<FSocketIONative> Self = WeakSelf.Pin())
+					if (TSharedPtr<FSocketIONative> HopSelf = WeakSelf.Pin())
 					{
-						if (Self->OnFailCallback)
+						if (HopSelf->OnFailCallback)
 						{
-							Self->OnFailCallback();
+							HopSelf->OnFailCallback();
 						}
 					}
 				});
 			}
 			else
 			{
-				OnFailCallback();
+				Self->OnFailCallback();
 			}
 		}
 	}));
 
-	PrivateClient->set_reconnect_listener(sio::client::reconnect_listener([&](unsigned num, unsigned delay)
+	PrivateClient->set_reconnect_listener(sio::client::reconnect_listener([WeakSelf](unsigned num, unsigned delay)
 	{
-		bIsConnected = false;
-
-		if (VerboseLog)
+		TSharedPtr<FSocketIONative> Self = WeakSelf.Pin();
+		if (!Self.IsValid())
 		{
-			UE_LOG(SocketIO, Log, TEXT("SocketIO %s appears to have lost connection, reconnecting attempt %d with delay %d"), *SessionId, num, delay);
+			return;
 		}
-		if (OnReconnectionCallback)
+
+		Self->bIsConnected = false;
+
+		if (Self->VerboseLog)
 		{
-			if (bCallbackOnGameThread)
+			UE_LOG(SocketIO, Log, TEXT("SocketIO %s appears to have lost connection, reconnecting attempt %d with delay %d"), *Self->SessionId, num, delay);
+		}
+		if (Self->OnReconnectionCallback)
+		{
+			if (Self->bCallbackOnGameThread)
 			{
-				TWeakPtr<FSocketIONative> WeakSelf = AsShared();
 				FCULambdaRunnable::RunShortLambdaOnGameThread([WeakSelf, num, delay]
 				{
-					if (TSharedPtr<FSocketIONative> Self = WeakSelf.Pin())
+					if (TSharedPtr<FSocketIONative> HopSelf = WeakSelf.Pin())
 					{
-						if (Self->OnReconnectionCallback)
+						if (HopSelf->OnReconnectionCallback)
 						{
-							Self->OnReconnectionCallback(num, delay);
+							HopSelf->OnReconnectionCallback(num, delay);
 						}
 					}
 				});
 			}
 			else
 			{
-				OnReconnectionCallback(num, delay);
+				Self->OnReconnectionCallback(num, delay);
 			}
 		}
 	}));

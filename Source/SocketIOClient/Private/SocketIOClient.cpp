@@ -81,7 +81,12 @@ void FSocketIOClientModule::ShutdownModule()
 TSharedPtr<FSocketIONative> FSocketIOClientModule::NewValidNativePointer(const bool bShouldUseTlsLibraries, const bool bShouldVerifyTLSCertificate)
 {
 	TSharedPtr<FSocketIONative> NewPointer = MakeShareable(new FSocketIONative(bShouldUseTlsLibraries, bShouldVerifyTLSCertificate));
-	
+
+	//The constructor's own ClearAllCallbacks() could not install the internal listeners: they
+	//capture a weak reference to the client, and there is no shared instance to take one from
+	//until MakeShareable() above has returned. Now there is, so run it again.
+	NewPointer->ClearAllCallbacks();
+
 	PluginNativePointers.Add(NewPointer);
 	
 	bHasActiveNativePointers = true;
