@@ -30,10 +30,10 @@ double FCUMeasureTimer::Tock(const FString& LogMsg /*= TEXT("TimeTaken")*/, bool
 		UE_LOG(LogTemp, Log, TEXT("%s %1.3f ms"), *LogMsg, Elapsed);
 	}
 	FPreciseTimerInternalMap.Remove(LogMsg);
+	return Elapsed;
 #else
 	return 0.0;
 #endif
-	return Elapsed;
 }
 
 FCUScopeTimer::FCUScopeTimer(const FString& LogMsg)

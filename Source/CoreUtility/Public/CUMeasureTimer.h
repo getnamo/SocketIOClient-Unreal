@@ -4,9 +4,7 @@
 #pragma once
 #include "CoreMinimal.h"
 
-//Toggle to enable/disable timing code logs. Overridable from a build script: defining it
-//unconditionally here meant Tock's #else branch could never compile, so the off mode the
-//header advertises was never actually reachable.
+//Toggle to enable/disable timing code logs, overridable via build defines
 #ifndef ENABLE_CUPRECISE_TIMER
 #define ENABLE_CUPRECISE_TIMER 1
 #endif

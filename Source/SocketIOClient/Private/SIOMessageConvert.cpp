@@ -29,8 +29,7 @@ TSharedPtr<FJsonValue> USIOMessageConvert::ToJsonValue(const sio::message::ptr& 
 	}
 	else if (flag == sio::message::flag_binary)
 	{
-		//convert sio buffer ptr into the array. The copy is required: FJsonValueBinary owns
-		//its buffer, while the sio message owns the one we are reading from.
+		//convert sio buffer ptr into the array
 		TArray<uint8> Buffer;
 		Buffer.Append((uint8*)(Message->get_binary()->data()), Message->get_binary()->size());
 		
@@ -97,7 +96,6 @@ sio::message::ptr USIOMessageConvert::ToSIOMessage(const TSharedPtr<FJsonValue>&
 		if (FJsonValueBinary::IsBinary(JsonValue))
 		{
 			const TArray<uint8> BinaryArray = FJsonValueBinary::AsBinary(JsonValue);
-			//GetData() is null for an empty array, and std::string(nullptr, 0) is undefined.
 			if (BinaryArray.Num() == 0)
 			{
 				return sio::binary_message::create(std::make_shared<std::string>());
@@ -132,8 +130,6 @@ sio::message::ptr USIOMessageConvert::ToSIOMessage(const TSharedPtr<FJsonValue>&
 	}
 	else if (JsonValue->Type == EJson::Object)
 	{
-		//by reference: AsObject()->Values is a TMap, and `auto` would copy the whole thing
-		//(plus a refcount bump per field) on every object emit.
 		const auto& ValueTmap = JsonValue->AsObject()->Values;
 
 		auto ObjectMessage = sio::object_message::create();
@@ -173,7 +169,7 @@ std::map<std::string, std::string> USIOMessageConvert::JsonObjectToStdStringMap(
 		{
 			const TSharedPtr<FJsonValue>& Value = Pair.Value;
 
-			//If it's a string value, add it to the std map. Non-string fields are dropped.
+			//If it's a string value, add it to the std map
 			if (Value->Type == EJson::String)
 			{
 				ParamMap[USIOMessageConvert::StdString(FString(*Pair.Key))] = USIOMessageConvert::StdString(Value->AsString());
@@ -194,8 +190,7 @@ TMap<FString, FString> USIOMessageConvert::JsonObjectToFStringMap(TSharedPtr<FJs
 		{
 			const TSharedPtr<FJsonValue>& Value = Pair.Value;
 
-			//If it's a string value, add it to the map. Non-string fields are dropped —
-			//this feeds the connect URL's query and headers, so only strings reach the URL.
+			//If it's a string value, add it to the map
 			if (Value->Type == EJson::String)
 			{
 				ParamMap.Add(FString(*Pair.Key), Value->AsString());

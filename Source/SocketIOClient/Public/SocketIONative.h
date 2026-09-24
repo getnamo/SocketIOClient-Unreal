@@ -60,12 +60,10 @@ public:
 	/** Address& Port, Path, Query, Headers, & Auth message */
 	FSIOConnectParams URLParams;
 
-	/** sio decides with `m_reconn_made < m_reconn_attempts` on an unsigned, so 0 means ZERO
-	 *  attempts, not infinity — the all-ones value is what never gives up. */
-	static constexpr uint32 kUnlimitedReconnectionAttempts = 0xFFFFFFFFu;
+	/** Never stop reconnecting. NB: 0 means zero attempts, not infinity. */
+	static constexpr uint32 UnlimitedReconnectionAttempts = 0xFFFFFFFFu;
 
-	/** The number of attempts before giving up, kUnlimitedReconnectionAttempts to keep
-	 *  trying (the default). Set before connecting. */
+	/** The number of attempts before giving up. Default: UnlimitedReconnectionAttempts. Set before connecting*/
 	uint32 MaxReconnectionAttempts;
 
 	/** in milliseconds, default is 5000 */
@@ -139,6 +137,9 @@ public:
 	void Disconnect();
 
 	void SyncDisconnect();
+
+	/** Blocks until the network thread has stopped, no callbacks fired. Call before releasing the last reference. */
+	void SyncShutdown();
 
 	void ClearAllCallbacks();
 

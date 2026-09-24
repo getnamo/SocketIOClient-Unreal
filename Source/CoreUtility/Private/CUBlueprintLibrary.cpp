@@ -324,9 +324,7 @@ TArray<uint8> UCUBlueprintLibrary::Conv_SoundWaveToWavBytes(USoundWave* SoundWav
 
 void UCUBlueprintLibrary::Conv_CompactBytesToTransforms(const TArray<uint8>& InCompactBytes, TArray<FTransform>& OutTransforms)
 {	
-	//Reject a length that is not a whole number of floats BEFORE copying: the view is
-	//sized Num()/4 floats but the Memcpy moves Num() bytes, so any trailing 1-3 bytes
-	//were written past the end of the array.
+	//must be a whole number of floats before we copy into the float view
 	if (InCompactBytes.Num() % 4 != 0)
 	{
 		UE_LOG(LogTemp, Log, TEXT("Conv_CompactBytesToTransforms::byte array is not divisible by 4"));
@@ -356,8 +354,7 @@ void UCUBlueprintLibrary::Conv_CompactBytesToTransforms(const TArray<uint8>& InC
 
 void UCUBlueprintLibrary::Conv_CompactPositionBytesToTransforms(const TArray<uint8>& InCompactBytes, TArray<FTransform>& OutTransforms)
 {
-	//See Conv_CompactBytesToTransforms — same out-of-bounds write on a non-multiple-of-4
-	//input, and this variant is one byte past the end for a 17-byte payload.
+	//must be a whole number of floats before we copy into the float view
 	if (InCompactBytes.Num() % 4 != 0)
 	{
 		UE_LOG(LogTemp, Log, TEXT("Conv_CompactPositionBytesToTransforms::byte array is not divisible by 4"));

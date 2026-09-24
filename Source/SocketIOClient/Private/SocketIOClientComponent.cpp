@@ -27,7 +27,7 @@ USocketIOClientComponent::USocketIOClientComponent(const FObjectInitializer &ini
 	PluginScopedId = TEXT("Default");
 	bVerboseConnectionLog = true;
 	ReconnectionTimeout = 0.f;
-	MaxReconnectionAttempts = -1;	//unlimited, see FSocketIONative::kUnlimitedReconnectionAttempts
+	MaxReconnectionAttempts = -1;	//unlimited, see FSocketIONative::UnlimitedReconnectionAttempts
 	ReconnectionDelayInMs = 5000;
 
 	bStaticallyInitialized = false;
@@ -641,9 +641,6 @@ void USocketIOClientComponent::EmitNative(const FString& EventName, const SIO_TE
 
 void USocketIOClientComponent::BindEventToGenericEvent(const FString& EventName, const FString& Namespace)
 {
-	//Weak, not raw `this` — same reason SetupCallbacks does it: this runs from a callback that
-	//may be marshalled to the game thread, and the component can be destroyed with the world
-	//before it gets there. Broadcasting OnGenericEvent off a freed component is the bug.
 	TWeakObjectPtr<USocketIOClientComponent> WeakThis(this);
 	NativeClient->OnEvent(EventName, [WeakThis](const FString& Event, const TSharedPtr<FJsonValue>& EventValue)
 	{

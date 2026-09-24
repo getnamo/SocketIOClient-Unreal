@@ -69,8 +69,6 @@ bool USocketIOFunctionLibrary::CallFunctionByName(const FString& FunctionName, U
 	}
 
 	const bool bTargetParamsZero = Properties.Num() == 0;
-	//A Blueprint can pass an unset object pin here, unlike the component's copy of this
-	//dispatcher, which builds its own value.
 	const bool bNullParamPassed = (Param == nullptr) || Param->IsNull();
 
 	//UE_LOG(SocketIO, Warning, TEXT("CallFunctionByName: Target %d, %s"), Target, *FunctionName);

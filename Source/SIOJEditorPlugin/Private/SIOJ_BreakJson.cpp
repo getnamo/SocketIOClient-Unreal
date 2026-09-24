@@ -44,10 +44,6 @@ public:
 		}
 
 		UEdGraphPin *InNet = FEdGraphUtilities::GetNetFromPin(InputPin);
-		//StaticClass() rather than loading "SIOJPlugin.SIOJJsonObject" by name: that module
-		//and class name are from before the plugin's module split, so the load returned null
-		//and Compile() dereferenced it — compiling any Blueprint containing this node took
-		//the editor down. SIOJson is already a public dependency of this module.
 		UClass *Class = USIOJsonObject::StaticClass();
 
 		FBPTerminal **SourceTerm = Context.NetMap.Find(InNet);
@@ -205,9 +201,7 @@ FLinearColor USIOJ_BreakJson::GetNodeTitleColor() const
 
 void USIOJ_BreakJson::PostEditChangeProperty(struct FPropertyChangedEvent& PropertyChangedEvent)
 {
-	//Reconstruct on any property change. This read `if (true || PropertyName ==
-	//TEXT("Outputs"))`, so the name test never ran; keeping the behaviour and dropping the
-	//dead half rather than guessing which properties were meant to be covered.
+	//Reconstruct on any property change
 	const bool bIsDirty = true;
 
 	if (bIsDirty)

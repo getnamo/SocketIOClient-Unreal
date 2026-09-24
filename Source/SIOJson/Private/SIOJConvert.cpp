@@ -647,9 +647,6 @@ USIOJsonValue* USIOJConvert::ToSIOJsonValue(const TArray<TSharedPtr<FJsonValue>>
 	return ResultValue;
 }
 
-#if PLATFORM_WINDOWS
-#endif
-
 TSharedPtr<FJsonValue> USIOJConvert::JsonStringToJsonValue(const FString& JsonString)
 {
 	//Null
@@ -725,9 +722,6 @@ TSharedPtr<FJsonValue> USIOJConvert::ToJsonValue(const TArray<TSharedPtr<FJsonVa
 {
 	return MakeShareable(new FJsonValueArray(ArrayValue));
 }
-
-#if PLATFORM_WINDOWS
-#endif
 
 TArray<TSharedPtr<FJsonValue>> USIOJConvert::JsonStringToJsonArray(const FString& JsonString)
 {
@@ -1073,7 +1067,6 @@ void USIOJConvert::ReplaceJsonValueNamesWithMap(TSharedPtr<FJsonValue>& JsonValu
 		auto SubMap = KeyMap->SubMap;
 		auto AllValues = Object->Values;
 
-
 		for (auto Pair : AllValues)
 		{
 			const FString Key(*Pair.Key);
@@ -1099,7 +1092,6 @@ void USIOJConvert::ReplaceJsonValueNamesWithMap(TSharedPtr<FJsonValue>& JsonValu
 				}
 			}
 		}
-
 	}
 	else if (JsonValue->Type == EJson::Array)
 	{

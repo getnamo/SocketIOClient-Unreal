@@ -15,11 +15,7 @@ FSocketIONative::FSocketIONative(const bool bForceTLS, const bool bShouldVerifyT
 	SessionId = TEXT("Invalid");
 	LastSessionId = TEXT("None");
 	bIsConnected = false;
-	//sio compares `m_reconn_made < m_reconn_attempts` on an unsigned, so the "unlimited"
-	//value is the all-ones one, not 0 — 0 means zero attempts. Spelled out rather than
-	//left as a -1 that happens to wrap, so nobody "corrects" it to 0 and silently turns
-	//reconnection off.
-	MaxReconnectionAttempts = kUnlimitedReconnectionAttempts;
+	MaxReconnectionAttempts = UnlimitedReconnectionAttempts;
 	ReconnectionDelay = 5000;
 	bCallbackOnGameThread = true;
 	bUnbindEventsOnDisconnect = false;
@@ -47,14 +43,6 @@ void FSocketIONative::Connect(const FSIOConnectParams& InConnectParams)
 
 	SyncPrivateClientToTLSMode(URLParams.AddressAndPort);
 
-	//Belt and braces for the listener install. The client is normally handed out by
-	//FSocketIOClientModule::NewValidNativePointer(), which sets the listeners up once the shared
-	//pointer exists — but FSocketIONative is public API, so a caller can own one it built itself
-	//and never go through the factory. Redoing it here costs a few assignments and makes the
-	//object correct however it was created. Idempotent: sio just overwrites each listener slot,
-	//and this touches none of the user callbacks or the event map.
-	SetupInternalCallbacks();
-	
 	//Fill std types before going to background thread.
 
 	std::string StdAddressString = USIOMessageConvert::StdString(URLParams.AddressAndPort);
@@ -82,10 +70,7 @@ void FSocketIONative::Connect(const FSIOConnectParams& InConnectParams)
 	QueryMap = USIOMessageConvert::FStringMapToStdStringMap(URLParams.Query);
 	HeadersMap = USIOMessageConvert::FStringMapToStdStringMap(URLParams.Headers);
 
-	//Connect to the server on a background thread so it never blocks. Weak self rather than
-	//a captured `this`: connect() can block for the length of a TCP timeout, and a caller that
-	//connects and then tears down (a level transition is the usual way) releases this object
-	//while the pool thread is still inside the body.
+	//Connect to the server on a background thread so it never blocks. Weak self: we may be released before this runs
 	TWeakPtr<FSocketIONative> WeakSelf = AsShared();
 	FCULambdaRunnable::RunLambdaOnBackGroundThread([WeakSelf, StdAddressString, StdPathString, QueryMap, HeadersMap, AuthMessage]
 	{
@@ -182,6 +167,16 @@ void FSocketIONative::SyncDisconnect()
 		ClearInternalCallbacks();
 		PrivateClient->sync_close();
 		RebindCurrentEventMap();
+	}
+}
+
+void FSocketIONative::SyncShutdown()
+{
+	bIsConnected = false;
+
+	if (PrivateClient.IsValid())
+	{
+		PrivateClient->sync_close();
 	}
 }
 
@@ -283,8 +278,7 @@ void FSocketIONative::EmitRaw(const FString& EventName, const sio::message::list
 	//Only have non-null raw callback if we pass in a callback function
 	if (CallbackFunction)
 	{
-		//Weak self: the ack arrives on the asio thread, and reading bCallbackOnGameThread off
-		//a captured `this` is a read of freed memory if the socket was released meanwhile.
+		//Weak self: ack arrives on the network thread, we may have been released
 		TWeakPtr<FSocketIONative> WeakSelf = AsShared();
 		RawCallback = [WeakSelf, CallbackFunction](const sio::message::list& response)
 		{
@@ -463,8 +457,7 @@ void FSocketIONative::OnRawBinaryEvent(const FString& EventName, TFunction< void
 {
 	const TFunction< void(const FString&, const TArray<uint8>&)> SafeFunction = CallbackFunction;	//copy the function so it remains in context
 
-	//Weak self for the same reason as the other listeners: the body reads
-	//bCallbackOnGameThread on the asio thread, before any hop to the game thread.
+	//Weak self: listener runs on the network thread, we may have been released
 	TWeakPtr<FSocketIONative> WeakSelf = AsShared();
 
 	PrivateClient->socket(USIOMessageConvert::StdString(Namespace))->on(
@@ -520,23 +513,8 @@ void FSocketIONative::ClearInternalCallbacks()
 
 void FSocketIONative::SetupInternalCallbacks()
 {
-	//These listeners are invoked from the asio network thread and outlive nothing: sio holds
-	//them for as long as the client exists, and the client is destroyed from whichever thread
-	//releases the FSocketIONative. So the listener body itself — not just the game-thread hop
-	//inside it — can be running while this object is going away.
-	//
-	//The hops were already fixed to Pin a weak self; the code that ran BEFORE them still read
-	//members off a captured `this`. One weak ref taken here, pinned at the top of each body,
-	//covers both: nothing in the listener touches a member until Pin() has succeeded, and the
-	//pin then keeps the object alive for the rest of the body.
-	//
-	//AsShared() needs this object to already be owned by a TSharedPtr, and one caller runs
-	//before that is true: the constructor calls ClearAllCallbacks(), which lands here while
-	//MakeShareable() has not yet wrapped the object — AsShared() would assert on
-	//DoesSharedInstanceExist(). Bail out on that pass; FSocketIOClientModule::NewValidNativePointer()
-	//calls ClearAllCallbacks() again the moment the shared pointer exists, which installs the
-	//listeners for real. Every other caller (ClearAllCallbacks and RebindCurrentEventMap after
-	//construction) proceeds normally.
+	//Listeners run on the network thread, each pins a weak self before touching members.
+	//Not yet owned by a shared ptr during construction; NewValidNativePointer() re-runs this after.
 	if (!DoesSharedInstanceExist())
 	{
 		return;
