@@ -31,7 +31,9 @@ namespace sio
         typedef std::function<void(unsigned, unsigned)> reconnect_listener;
         
         typedef std::function<void(std::string const& nsp)> socket_listener;
-        
+
+        typedef std::function<message::ptr()> auth_provider;
+
         client();
 
         client(const bool bShouldUseTlsLibraries, const bool bShouldVerifyTLSCertificate);
@@ -67,6 +69,13 @@ namespace sio
 
         void connect(const std::string& uri, const std::map<std::string,std::string>& query,
                      const std::map<std::string,std::string>& http_extra_headers, const message::ptr& auth);
+
+        // Supplies the auth payload for every namespace connect packet, automatic reconnections included,
+        // in place of the auth given to connect().
+        // Returning nullptr sends no auth. Called on the network thread when the connection (re)opens, and on
+        // the calling thread when socket() joins a namespace on an open connection, so it must be thread-safe
+        // and must not call back into this client. Set it before connect().
+        void set_auth_provider(auth_provider const& provider);
 
         void set_reconnect_attempts(int attempts);
 

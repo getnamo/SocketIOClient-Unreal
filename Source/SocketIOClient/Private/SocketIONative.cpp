@@ -8,6 +8,24 @@
 #include "sio_client.h"
 #include "sio_message.h"
 #include "sio_socket.h"
+#include "Misc/ScopeLock.h"
+
+namespace
+{
+	sio::message::ptr MakeSIOAuthMessage(const FString& AuthToken, const TMap<FString, FString>& ExtraAuth)
+	{
+		sio::message::ptr AuthMessage = sio::object_message::create();
+		if (!AuthToken.IsEmpty())
+		{
+			AuthMessage->get_map()["token"] = sio::string_message::create(USIOMessageConvert::StdString(AuthToken));
+		}
+		for (const TPair<FString, FString>& Pair : ExtraAuth)
+		{
+			AuthMessage->get_map()[USIOMessageConvert::StdString(Pair.Key)] = sio::string_message::create(USIOMessageConvert::StdString(Pair.Value));
+		}
+		return AuthMessage;
+	}
+}
 
 FSocketIONative::FSocketIONative(const bool bForceTLS, const bool bShouldVerifyTLSCertificate)
 {
@@ -31,6 +49,23 @@ void FSocketIONative::InitPrivateClient(const bool bShouldUseTlsLibraries /*= fa
 	bIsSetupForTLS = bShouldUseTlsLibraries;
 	bUsingTLSCertVerification = bShouldVerifyTLSCertificate;
 	PrivateClient = MakeShareable(new sio::client(bShouldUseTlsLibraries, bUsingTLSCertVerification));
+
+	//Asked on every namespace connect, so automatic reconnections send the latest auth.
+	//A custom provider is copied out and called outside the lock.
+	PrivateClient->set_auth_provider([this]
+	{
+		TFunction<TSharedPtr<FJsonObject>()> Provider;
+		{
+			FScopeLock Lock(&AuthLock);
+			if (!AuthProvider)
+			{
+				return LatestAuth;
+			}
+			Provider = AuthProvider;
+		}
+		const TSharedPtr<FJsonObject> Auth = Provider();
+		return Auth.IsValid() ? USIOMessageConvert::ToSIOMessage(MakeShared<FJsonValueObject>(Auth)) : sio::message::ptr();
+	});
 }
 
 void FSocketIONative::Connect(const FSIOConnectParams& InConnectParams)
@@ -49,30 +84,20 @@ void FSocketIONative::Connect(const FSIOConnectParams& InConnectParams)
 	std::string StdPathString = USIOMessageConvert::StdString(URLParams.Path);
 	std::map<std::string, std::string> QueryMap = {};
 	std::map<std::string, std::string> HeadersMap = {};
-	sio::message::ptr AuthMessage = sio::object_message::create();
-	if (!URLParams.AuthToken.IsEmpty())
-	{
-		AuthMessage->get_map()["token"] = sio::string_message::create(USIOMessageConvert::StdString(URLParams.AuthToken));
-	}
-	if (URLParams.ExtraAuth.Num() > 0)
-	{
-		TArray<FString> Keys;
-		URLParams.ExtraAuth.GetKeys(Keys);
-
-		for (const FString& Key : Keys)
-		{
-			std::string StdKey = USIOMessageConvert::StdString(Key);
-			std::string StdValue = USIOMessageConvert::StdString(URLParams.ExtraAuth[Key]);
-			AuthMessage->get_map()[StdKey] = sio::string_message::create(StdValue);
-		}
-	}
+	sio::message::ptr AuthMessage = MakeSIOAuthMessage(URLParams.AuthToken, URLParams.ExtraAuth);
 
 	QueryMap = USIOMessageConvert::FStringMapToStdStringMap(URLParams.Query);
 	HeadersMap = USIOMessageConvert::FStringMapToStdStringMap(URLParams.Headers);
 
+	uint32 AuthVersionAtConnect;
+	{
+		FScopeLock Lock(&AuthLock);
+		AuthVersionAtConnect = AuthVersion;
+	}
+
 	//Connect to the server on a background thread so it never blocks. Weak self: we may be released before this runs
 	TWeakPtr<FSocketIONative> WeakSelf = AsShared();
-	FCULambdaRunnable::RunLambdaOnBackGroundThread([WeakSelf, StdAddressString, StdPathString, QueryMap, HeadersMap, AuthMessage]
+	FCULambdaRunnable::RunLambdaOnBackGroundThread([WeakSelf, StdAddressString, StdPathString, QueryMap, HeadersMap, AuthMessage, AuthVersionAtConnect]
 	{
 		TSharedPtr<FSocketIONative> Self = WeakSelf.Pin();
 		if (!Self.IsValid() || !Self->PrivateClient.IsValid())
@@ -99,6 +124,15 @@ void FSocketIONative::Connect(const FSIOConnectParams& InConnectParams)
 				return;
 			}
 		}
+
+		//Only a connect that goes ahead replaces the auth, and a SetAuth made after this Connect() was queued stays
+		{
+			FScopeLock Lock(&Self->AuthLock);
+			if (Self->AuthVersion == AuthVersionAtConnect)
+			{
+				Self->LatestAuth = AuthMessage;
+			}
+		}
 		Self->PrivateClient->connect(StdAddressString, QueryMap, HeadersMap, AuthMessage);
 	});
 }
@@ -111,6 +145,23 @@ void FSocketIONative::Connect(const FString& InAddressAndPort)
 	}
 
 	Connect(URLParams);
+}
+
+void FSocketIONative::SetAuth(const FString& InAuthToken, const TMap<FString, FString>& InExtraAuth /*= TMap<FString, FString>()*/)
+{
+	URLParams.AuthToken = InAuthToken;
+	URLParams.ExtraAuth = InExtraAuth;
+
+	sio::message::ptr AuthMessage = MakeSIOAuthMessage(InAuthToken, InExtraAuth);
+	FScopeLock Lock(&AuthLock);
+	LatestAuth = MoveTemp(AuthMessage);
+	++AuthVersion;
+}
+
+void FSocketIONative::SetAuthProvider(TFunction<TSharedPtr<FJsonObject>()> Provider)
+{
+	FScopeLock Lock(&AuthLock);
+	AuthProvider = MoveTemp(Provider);
 }
 
 void FSocketIONative::JoinNamespace(const FString& Namespace)

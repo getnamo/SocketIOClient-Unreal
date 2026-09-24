@@ -9,6 +9,7 @@
 #include "SIOJConvert.h"
 #include "SIOMessageConvert.h"
 #include "CoreMinimal.h"
+#include "HAL/CriticalSection.h"
 
 UENUM(BlueprintType)
 enum ESIOConnectionCloseReason
@@ -118,6 +119,41 @@ public:
 	*
 	*/
 	void Connect(const FSIOConnectParams& ConnectParams);
+
+	/**
+	* Replace the auth sent with every later namespace connect, including automatic reconnections.
+	* Call it as soon as your token refreshes, so a dropped connection comes back with valid credentials.
+	* Waiting until the connection drops (OnReconnectionCallback) can lose the race with the retry: a namespace
+	* connect the server rejects is not retried. An open connection is unaffected.
+	* Call it on the game thread, like Connect.
+	*
+	* @param InAuthToken sent as auth:{token:""}, omitted if empty
+	* @param InExtraAuth custom auth key:value pairs sent alongside the token
+	*/
+	void SetAuth(const FString& InAuthToken, const TMap<FString, FString>& InExtraAuth = TMap<FString, FString>());
+
+	/**
+	* Ask for the auth on each namespace connect instead of using the SetAuth/Connect value.
+	* Returning an invalid pointer sends no auth. Pass nullptr to go back to the stored value.
+	* Prefer SetAuth if you only need to swap the token when it refreshes: it needs no locking on your side.
+	*
+	* SetAuthProvider itself can be called from any thread, but don't assume which thread calls the Provider you pass:
+	* usually the network thread, but also the calling thread (often the game thread) when Emit/JoinNamespace joins
+	* a new namespace while connected, and then while holding the client's socket lock.
+	* So the Provider must only read data it guards itself (e.g. a token copied under your own lock, captured by thread-safe shared pointer), never game-thread state or UObjects. It must return right away, never wait on the
+	* game thread (that deadlocks on disconnect), and must not call back into this client.
+	* After replacing it, the old Provider may still finish a call already in progress on the network thread.
+	*
+	* Example, with FTokenHolder guarding its token with an FCriticalSection (Set on the game thread, Get returns a copy):
+	*	TSharedRef<FTokenHolder, ESPMode::ThreadSafe> Holder = MakeShared<FTokenHolder, ESPMode::ThreadSafe>();
+	*	Native->SetAuthProvider([Holder]
+	*	{
+	*		TSharedPtr<FJsonObject> Auth = MakeShared<FJsonObject>();
+	*		Auth->SetStringField(TEXT("token"), Holder->Get());
+	*		return Auth;
+	*	});
+	*/
+	void SetAuthProvider(TFunction<TSharedPtr<FJsonObject>()> Provider);
 
 	/** 
 	* Join a desired namespace. Keep in mind that emitting to a namespace will auto-join it
@@ -403,6 +439,14 @@ protected:
 	void SyncPrivateClientToTLSMode(const FString& URL);
 
 	void InitPrivateClient(const bool bShouldUseTlsLibraries = false, const bool bShouldVerifyTLSCertificate = false);
+
+	/** Auth read by the network thread on every namespace connect, written by Connect and the setters.
+	Declared before PrivateClient so they outlive the network thread, which PrivateClient joins on destruction. */
+	FCriticalSection AuthLock;
+	sio::message::ptr LatestAuth;
+	TFunction<TSharedPtr<FJsonObject>()> AuthProvider;
+	/** Bumped by SetAuth, so a Connect() queued before it doesn't overwrite the newer auth */
+	uint32 AuthVersion = 0;
 
 	TSharedPtr<sio::client> PrivateClient;
 };

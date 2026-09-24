@@ -109,6 +109,7 @@
             virtual void set_close_listener(client::close_listener const&) {};
             virtual void set_socket_open_listener(client::socket_listener const&) {};
             virtual void set_socket_close_listener(client::socket_listener const&) {};
+            virtual void set_auth_provider(client::auth_provider const&) {};
 
             // used by sio::client
             virtual void clear_con_listeners() {};
@@ -133,6 +134,8 @@
             virtual asio_sockio::io_service& get_io_service() = 0;
             virtual void on_socket_closed(std::string const& nsp) {};
             virtual void on_socket_opened(std::string const& nsp) {};
+            // The auth to send in a namespace connect packet: the auth provider's, if one is set.
+            virtual message::ptr resolve_auth(message::ptr const& auth) { return auth; }
 
             virtual void set_logs_default() {};
             virtual void set_logs_quiet() {};
@@ -213,6 +216,8 @@
             SYNTHESIS_SETTER(client::socket_listener, socket_open_listener)
 
             SYNTHESIS_SETTER(client::socket_listener, socket_close_listener)
+
+            SYNTHESIS_SETTER(client::auth_provider, auth_provider)
 #undef SYNTHESIS_SETTER
 
 #if SIO_TLS
@@ -231,6 +236,8 @@
         void on_socket_closed(std::string const& nsp);
 
         void on_socket_opened(std::string const& nsp);
+
+        message::ptr resolve_auth(message::ptr const& auth) override { return m_auth_provider ? m_auth_provider() : auth; }
 
     private:
         void run_loop();
@@ -309,6 +316,8 @@
 
         client::socket_listener m_socket_open_listener;
         client::socket_listener m_socket_close_listener;
+
+        client::auth_provider m_auth_provider;
 
         std::map<const std::string, socket::ptr> m_sockets;
 

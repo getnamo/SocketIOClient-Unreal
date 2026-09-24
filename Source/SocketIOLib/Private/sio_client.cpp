@@ -136,6 +136,11 @@ namespace sio
         m_impl->connect(uri, query, http_extra_headers, auth, m_path);
     }
     
+    void client::set_auth_provider(auth_provider const& provider)
+    {
+        m_impl->set_auth_provider(provider);
+    }
+
     socket::ptr const& client::socket(const std::string& nsp)
     {
         return m_impl->socket(nsp);
