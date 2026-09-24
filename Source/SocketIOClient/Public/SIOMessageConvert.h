@@ -73,4 +73,7 @@ public:
 	static std::map<std::string, std::string> JsonObjectToStdStringMap(TSharedPtr<FJsonObject> InObject);
 	static TMap<FString, FString> JsonObjectToFStringMap(TSharedPtr<FJsonObject> InObject);
 	static std::map<std::string, std::string> FStringMapToStdStringMap(const TMap<FString, FString>& InMap);
-}; 
+
+	//Auth token + extra key:value pairs -> socket.io auth object
+	static sio::message::ptr ToSIOAuthMessage(const FString& AuthToken, const TMap<FString, FString>& ExtraAuth);
+};

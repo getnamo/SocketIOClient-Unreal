@@ -466,16 +466,15 @@ void USocketIOClientComponent::ConnectWithParams(const FSIOConnectParams& InURLP
 
 void USocketIOClientComponent::SetAuth(const FString& AuthToken, const TMap<FString, FString>& ExtraAuth)
 {
-	//Often called from an async token refresh, which can complete after the component released its client
-	if (!NativeClient.IsValid())
-	{
-		return;
-	}
-
-	//Kept in URLParams too, so a later Connect() without an address doesn't revert it
+	//Kept in URLParams too, so a later Connect() without an address (or auto-connect) uses it
 	URLParams.AuthToken = AuthToken;
 	URLParams.ExtraAuth = ExtraAuth;
-	NativeClient->SetAuth(AuthToken, ExtraAuth);
+
+	//May be called before the client is initialized or after it was released
+	if (NativeClient.IsValid())
+	{
+		NativeClient->SetAuth(AuthToken, ExtraAuth);
+	}
 }
 
 void USocketIOClientComponent::ConnectNative(const FString& InAddressAndPort, 

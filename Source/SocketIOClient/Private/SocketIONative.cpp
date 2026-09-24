@@ -10,23 +10,6 @@
 #include "sio_socket.h"
 #include "Misc/ScopeLock.h"
 
-namespace
-{
-	sio::message::ptr MakeSIOAuthMessage(const FString& AuthToken, const TMap<FString, FString>& ExtraAuth)
-	{
-		sio::message::ptr AuthMessage = sio::object_message::create();
-		if (!AuthToken.IsEmpty())
-		{
-			AuthMessage->get_map()["token"] = sio::string_message::create(USIOMessageConvert::StdString(AuthToken));
-		}
-		for (const TPair<FString, FString>& Pair : ExtraAuth)
-		{
-			AuthMessage->get_map()[USIOMessageConvert::StdString(Pair.Key)] = sio::string_message::create(USIOMessageConvert::StdString(Pair.Value));
-		}
-		return AuthMessage;
-	}
-}
-
 FSocketIONative::FSocketIONative(const bool bForceTLS, const bool bShouldVerifyTLSCertificate)
 {
 	PrivateClient = nullptr;
@@ -84,7 +67,7 @@ void FSocketIONative::Connect(const FSIOConnectParams& InConnectParams)
 	std::string StdPathString = USIOMessageConvert::StdString(URLParams.Path);
 	std::map<std::string, std::string> QueryMap = {};
 	std::map<std::string, std::string> HeadersMap = {};
-	sio::message::ptr AuthMessage = MakeSIOAuthMessage(URLParams.AuthToken, URLParams.ExtraAuth);
+	sio::message::ptr AuthMessage = USIOMessageConvert::ToSIOAuthMessage(URLParams.AuthToken, URLParams.ExtraAuth);
 
 	QueryMap = USIOMessageConvert::FStringMapToStdStringMap(URLParams.Query);
 	HeadersMap = USIOMessageConvert::FStringMapToStdStringMap(URLParams.Headers);
@@ -152,7 +135,7 @@ void FSocketIONative::SetAuth(const FString& InAuthToken, const TMap<FString, FS
 	URLParams.AuthToken = InAuthToken;
 	URLParams.ExtraAuth = InExtraAuth;
 
-	sio::message::ptr AuthMessage = MakeSIOAuthMessage(InAuthToken, InExtraAuth);
+	sio::message::ptr AuthMessage = USIOMessageConvert::ToSIOAuthMessage(InAuthToken, InExtraAuth);
 	FScopeLock Lock(&AuthLock);
 	LatestAuth = MoveTemp(AuthMessage);
 	++AuthVersion;

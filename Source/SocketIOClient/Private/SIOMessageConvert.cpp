@@ -212,3 +212,17 @@ std::map<std::string, std::string> USIOMessageConvert::FStringMapToStdStringMap(
 
 	return ParamMap;
 }
+
+sio::message::ptr USIOMessageConvert::ToSIOAuthMessage(const FString& AuthToken, const TMap<FString, FString>& ExtraAuth)
+{
+	sio::message::ptr AuthMessage = sio::object_message::create();
+	if (!AuthToken.IsEmpty())
+	{
+		AuthMessage->get_map()["token"] = sio::string_message::create(StdString(AuthToken));
+	}
+	for (const TPair<FString, FString>& Pair : ExtraAuth)
+	{
+		AuthMessage->get_map()[StdString(Pair.Key)] = sio::string_message::create(StdString(Pair.Value));
+	}
+	return AuthMessage;
+}

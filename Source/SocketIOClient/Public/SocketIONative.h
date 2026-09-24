@@ -134,24 +134,11 @@ public:
 
 	/**
 	* Ask for the auth on each namespace connect instead of using the SetAuth/Connect value.
-	* Returning an invalid pointer sends no auth. Pass nullptr to go back to the stored value.
-	* Prefer SetAuth if you only need to swap the token when it refreshes: it needs no locking on your side.
+	* Returning an invalid pointer sends no auth, pass nullptr to go back to the stored value. Prefer SetAuth for simple token swaps.
 	*
-	* SetAuthProvider itself can be called from any thread, but don't assume which thread calls the Provider you pass:
-	* usually the network thread, but also the calling thread (often the game thread) when Emit/JoinNamespace joins
-	* a new namespace while connected, and then while holding the client's socket lock.
-	* So the Provider must only read data it guards itself (e.g. a token copied under your own lock, captured by thread-safe shared pointer), never game-thread state or UObjects. It must return right away, never wait on the
-	* game thread (that deadlocks on disconnect), and must not call back into this client.
-	* After replacing it, the old Provider may still finish a call already in progress on the network thread.
-	*
-	* Example, with FTokenHolder guarding its token with an FCriticalSection (Set on the game thread, Get returns a copy):
-	*	TSharedRef<FTokenHolder, ESPMode::ThreadSafe> Holder = MakeShared<FTokenHolder, ESPMode::ThreadSafe>();
-	*	Native->SetAuthProvider([Holder]
-	*	{
-	*		TSharedPtr<FJsonObject> Auth = MakeShared<FJsonObject>();
-	*		Auth->SetStringField(TEXT("token"), Holder->Get());
-	*		return Auth;
-	*	});
+	* Thread safety: the Provider is usually called on the network thread, but may also run on the calling thread
+	* (while holding the client's socket lock) when joining a namespace. It must only read self-guarded data
+	* (no UObjects/game-thread state), return immediately, and never call back into this client.
 	*/
 	void SetAuthProvider(TFunction<TSharedPtr<FJsonObject>()> Provider);
 
