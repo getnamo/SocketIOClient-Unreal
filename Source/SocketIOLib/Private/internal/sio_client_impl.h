@@ -110,6 +110,7 @@
             virtual void set_socket_open_listener(client::socket_listener const&) {};
             virtual void set_socket_close_listener(client::socket_listener const&) {};
             virtual void set_auth_provider(client::auth_provider const&) {};
+            virtual void set_query(const map<string, string>& query) {};
 
             // used by sio::client
             virtual void clear_con_listeners() {};
@@ -239,7 +240,12 @@
 
         message::ptr resolve_auth(message::ptr const& auth) override { return m_auth_provider ? m_auth_provider() : auth; }
 
+        // Query used by the next connect and automatic reconnects
+        void set_query(const std::map<std::string, std::string>& query) override;
+
     private:
+        std::string get_query_string();
+
         void run_loop();
 
         void connect_impl(const std::string& uri, const std::string& query);
@@ -292,6 +298,7 @@
         std::string m_sid;
         std::string m_base_url;
         std::string m_query_string;
+        std::mutex m_query_mutex;
         std::map<std::string, std::string> m_http_headers;
 		message::ptr m_auth;
 

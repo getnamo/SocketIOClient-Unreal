@@ -141,6 +141,11 @@ namespace sio
         m_impl->set_auth_provider(provider);
     }
 
+    void client::set_query(const std::map<std::string, std::string>& query)
+    {
+        m_impl->set_query(query);
+    }
+
     socket::ptr const& client::socket(const std::string& nsp)
     {
         return m_impl->socket(nsp);

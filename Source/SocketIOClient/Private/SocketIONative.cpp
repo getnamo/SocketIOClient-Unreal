@@ -92,6 +92,16 @@ void FSocketIONative::Connect(const FSIOConnectParams& InConnectParams)
 		Self->PrivateClient->set_reconnect_delay(Self->ReconnectionDelay);
 		Self->PrivateClient->set_path(StdPathString);
 
+		//Only a connect that goes ahead replaces the auth, and a SetAuth made after this Connect() was queued stays
+		auto UpdateLatestAuth = [&Self, &AuthMessage, AuthVersionAtConnect]
+		{
+			FScopeLock Lock(&Self->AuthLock);
+			if (Self->AuthVersion == AuthVersionAtConnect)
+			{
+				Self->LatestAuth = AuthMessage;
+			}
+		};
+
 		//close and reconnect if different url
 		if(Self->PrivateClient->opened())
 		{
@@ -99,6 +109,15 @@ void FSocketIONative::Connect(const FSIOConnectParams& InConnectParams)
 			{
 				//sync close to re-open
 				Self->PrivateClient->sync_close();
+			}
+			else if (!Self->bIsConnected)
+			{
+				//transport is up but the default namespace isn't, e.g. the server rejected its auth. Retry it.
+				UE_LOG(SocketIO, Log, TEXT("SocketIO retrying namespace connect to %s"), UTF8_TO_TCHAR(StdAddressString.c_str()));
+				UpdateLatestAuth();
+				Self->PrivateClient->set_query(QueryMap);
+				Self->PrivateClient->socket("/")->connect();
+				return;
 			}
 			else
 			{
@@ -108,14 +127,7 @@ void FSocketIONative::Connect(const FSIOConnectParams& InConnectParams)
 			}
 		}
 
-		//Only a connect that goes ahead replaces the auth, and a SetAuth made after this Connect() was queued stays
-		{
-			FScopeLock Lock(&Self->AuthLock);
-			if (Self->AuthVersion == AuthVersionAtConnect)
-			{
-				Self->LatestAuth = AuthMessage;
-			}
-		}
+		UpdateLatestAuth();
 		Self->PrivateClient->connect(StdAddressString, QueryMap, HeadersMap, AuthMessage);
 	});
 }
@@ -147,10 +159,16 @@ void FSocketIONative::SetAuthProvider(TFunction<TSharedPtr<FJsonObject>()> Provi
 	AuthProvider = MoveTemp(Provider);
 }
 
+void FSocketIONative::SetQuery(const TMap<FString, FString>& InQuery)
+{
+	URLParams.Query = InQuery;
+	PrivateClient->set_query(USIOMessageConvert::FStringMapToStdStringMap(InQuery));
+}
+
 void FSocketIONative::JoinNamespace(const FString& Namespace)
 {
-	//just referencing the namespace will join it
-	PrivateClient->socket(USIOMessageConvert::StdString(Namespace));
+	//just referencing the namespace will join it, connect() retries it if it was rejected
+	PrivateClient->socket(USIOMessageConvert::StdString(Namespace))->connect();
 }
 
 void FSocketIONative::LeaveNamespace(const FString& Namespace)
@@ -432,8 +450,24 @@ void FSocketIONative::OnError(TFunction< void(const FString&)> CallbackFunction,
 	//Keep track of all the bound native JsonValue functions
 	OnErrorCallback = CallbackFunction;
 
-	OnRawError([CallbackFunction](const sio::message::ptr& ErrorRaw) {
-		CallbackFunction(USIOMessageConvert::FStringFromStd(ErrorRaw.get()->get_string()));
+	OnRawError([CallbackFunction, Namespace](const sio::message::ptr& ErrorRaw) {
+		//Connect errors arrive as {message: "..."}, other errors may be plain strings or arbitrary json
+		FString Error;
+		if (ErrorRaw && ErrorRaw->get_flag() == sio::message::flag_string)
+		{
+			Error = USIOMessageConvert::FStringFromStd(ErrorRaw->get_string());
+		}
+		else if (ErrorRaw && ErrorRaw->get_flag() == sio::message::flag_object && ErrorRaw->get_map().count("message") &&
+			ErrorRaw->get_map().at("message")->get_flag() == sio::message::flag_string)
+		{
+			Error = USIOMessageConvert::FStringFromStd(ErrorRaw->get_map().at("message")->get_string());
+		}
+		else
+		{
+			Error = USIOJConvert::ToJsonString(USIOMessageConvert::ToJsonValue(ErrorRaw));
+		}
+		UE_LOG(SocketIO, Warning, TEXT("SocketIO error on namespace %s: %s"), *Namespace, *Error);
+		CallbackFunction(Error);
 		}, Namespace, CallbackThread);
 }
 

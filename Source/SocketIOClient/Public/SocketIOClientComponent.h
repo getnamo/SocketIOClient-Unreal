@@ -187,14 +187,21 @@ public:
 	/**
 	* Replace the auth sent with every later connection attempt, including automatic reconnections.
 	* Call it as soon as your token refreshes, so a dropped connection comes back with valid credentials.
-	* Waiting until OnConnectionProblems can lose the race with the retry: a namespace connect the server
-	* rejects is not retried. An open connection is unaffected.
+	* If the server already rejected the auth (OnError), call Connect afterwards to retry. An open connection is unaffected.
 	*
 	* @param AuthToken sent as auth:{token:""}, omitted if empty
 	* @param ExtraAuth custom auth key:value pairs sent alongside the token
 	*/
 	UFUNCTION(BlueprintCallable, Category = "SocketIO Functions", meta = (AutoCreateRefTerm = "ExtraAuth"))
 	void SetAuth(const FString& AuthToken, const TMap<FString, FString>& ExtraAuth);
+
+	/**
+	* Replace the URL query sent with the next connect and automatic reconnections. An open connection is unaffected.
+	*
+	* @param Query key:value pairs, sent as url query params
+	*/
+	UFUNCTION(BlueprintCallable, Category = "SocketIO Functions")
+	void SetQuery(const TMap<FString, FString>& Query);
 
 	/**
 	* Disconnect from current socket.io server. This is an asynchronous action,

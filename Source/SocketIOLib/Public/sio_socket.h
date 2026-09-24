@@ -68,7 +68,10 @@ namespace sio
         void off_all();
         
         void close();
-        
+
+        // Re-sends the namespace connect if not connected, e.g. after the server rejected it (connect error).
+        void connect();
+
         void on_error(error_listener const& l);
         
         void off_error();

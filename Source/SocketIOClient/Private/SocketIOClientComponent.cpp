@@ -455,12 +455,14 @@ void USocketIOClientComponent::ConnectWithParams(const FSIOConnectParams& InURLP
 
 	NativeClient->Connect(InURLParams);
 
-	OnErrorEvent([this](const FString& Error)
+	TWeakObjectPtr<USocketIOClientComponent> WeakThis(this);
+	OnErrorEvent([WeakThis](const FString& Error)
 	{
-		if (NativeClient.IsValid())
+		USocketIOClientComponent* Self = WeakThis.Get();
+		if (Self && Self->NativeClient.IsValid())
 		{
-			OnError.Broadcast(Error);
-		};
+			Self->OnError.Broadcast(Error);
+		}
 	});
 }
 
@@ -474,6 +476,16 @@ void USocketIOClientComponent::SetAuth(const FString& AuthToken, const TMap<FStr
 	if (NativeClient.IsValid())
 	{
 		NativeClient->SetAuth(AuthToken, ExtraAuth);
+	}
+}
+
+void USocketIOClientComponent::SetQuery(const TMap<FString, FString>& Query)
+{
+	URLParams.Query = Query;
+
+	if (NativeClient.IsValid())
+	{
+		NativeClient->SetQuery(Query);
 	}
 }
 

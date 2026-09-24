@@ -123,9 +123,8 @@ public:
 	/**
 	* Replace the auth sent with every later namespace connect, including automatic reconnections.
 	* Call it as soon as your token refreshes, so a dropped connection comes back with valid credentials.
-	* Waiting until the connection drops (OnReconnectionCallback) can lose the race with the retry: a namespace
-	* connect the server rejects is not retried. An open connection is unaffected.
-	* Call it on the game thread, like Connect.
+	* If a namespace connect was already rejected (OnError), call Connect/JoinNamespace afterwards to retry it.
+	* An open connection is unaffected. Call it on the game thread, like Connect.
 	*
 	* @param InAuthToken sent as auth:{token:""}, omitted if empty
 	* @param InExtraAuth custom auth key:value pairs sent alongside the token
@@ -142,8 +141,14 @@ public:
 	*/
 	void SetAuthProvider(TFunction<TSharedPtr<FJsonObject>()> Provider);
 
-	/** 
-	* Join a desired namespace. Keep in mind that emitting to a namespace will auto-join it
+	/**
+	* Replace the URL query sent with the next connect and automatic reconnections. An open connection is unaffected.
+	*/
+	void SetQuery(const TMap<FString, FString>& InQuery);
+
+	/**
+	* Join a desired namespace. Keep in mind that emitting to a namespace will auto-join it.
+	* Also retries the namespace connect if the server rejected it earlier.
 	*/
 	void JoinNamespace(const FString& Namespace);
 

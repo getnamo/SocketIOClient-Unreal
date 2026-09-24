@@ -77,6 +77,9 @@ namespace sio
         // and must not call back into this client. Set it before connect().
         void set_auth_provider(auth_provider const& provider);
 
+        // Replaces the query sent with the next connect and automatic reconnections. Thread-safe.
+        void set_query(const std::map<std::string, std::string>& query);
+
         void set_reconnect_attempts(int attempts);
 
         void set_reconnect_delay(unsigned millis);

@@ -156,7 +156,9 @@ namespace sio
         void off_error();
         
         void close();
-        
+
+        void connect();
+
         void emit(std::string const& name, message::list const& msglist, std::function<void (message::list const&)> const& ack);
         
         std::string const& get_namespace() const {return m_nsp;}
@@ -353,6 +355,16 @@ namespace sio
         }
     }
     
+    void socket::impl::connect()
+    {
+        NULL_GUARD(m_client);
+        // An armed connection timer means a connect is already in flight
+        if(!m_connected && !m_connection_timer && m_client->opened())
+        {
+            send_connect();
+        }
+    }
+
     void socket::impl::on_connected()
     {
         if(m_connection_timer)
@@ -501,6 +513,13 @@ namespace sio
             case packet::type_error:
             {
                 LOG("Received Message type (ERROR)"<<std::endl);
+                // Connect error (e.g. auth rejected): keep the socket and its bindings instead of letting the
+                // connection timeout remove it. It retries on the next transport (re)open or on connect().
+                if(!m_connected && m_connection_timer)
+                {
+                    m_connection_timer->cancel();
+                    m_connection_timer.reset();
+                }
                 this->on_socketio_error(p.get_message());
                 break;
             }
@@ -635,7 +654,12 @@ namespace sio
     {
         m_impl->close();
     }
-    
+
+    void socket::connect()
+    {
+        m_impl->connect();
+    }
+
     void socket::on_error(error_listener const& l)
     {
         m_impl->on_error(l);
