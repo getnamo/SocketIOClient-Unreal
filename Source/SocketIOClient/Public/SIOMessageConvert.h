@@ -67,8 +67,8 @@ public:
 	static sio::message::ptr ToSIOMessage(const TSharedPtr<FJsonValue>& JsonValue);
 
 	//std::string <-> FString
-	static std::string StdString(FString UEString);
-	static FString FStringFromStd(std::string StdString);
+	static std::string StdString(const FString& UEString);
+	static FString FStringFromStd(const std::string& StdString);
 
 	static std::map<std::string, std::string> JsonObjectToStdStringMap(TSharedPtr<FJsonObject> InObject);
 	static TMap<FString, FString> JsonObjectToFStringMap(TSharedPtr<FJsonObject> InObject);

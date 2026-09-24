@@ -60,7 +60,12 @@ public:
 	/** Address& Port, Path, Query, Headers, & Auth message */
 	FSIOConnectParams URLParams;
 
-	/** The number of attempts before giving up. 0 = infinity. Set before connecting*/
+	/** sio decides with `m_reconn_made < m_reconn_attempts` on an unsigned, so 0 means ZERO
+	 *  attempts, not infinity — the all-ones value is what never gives up. */
+	static constexpr uint32 kUnlimitedReconnectionAttempts = 0xFFFFFFFFu;
+
+	/** The number of attempts before giving up, kUnlimitedReconnectionAttempts to keep
+	 *  trying (the default). Set before connecting. */
 	uint32 MaxReconnectionAttempts;
 
 	/** in milliseconds, default is 5000 */

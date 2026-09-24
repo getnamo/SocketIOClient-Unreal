@@ -324,9 +324,17 @@ TArray<uint8> UCUBlueprintLibrary::Conv_SoundWaveToWavBytes(USoundWave* SoundWav
 
 void UCUBlueprintLibrary::Conv_CompactBytesToTransforms(const TArray<uint8>& InCompactBytes, TArray<FTransform>& OutTransforms)
 {	
+	//Reject a length that is not a whole number of floats BEFORE copying: the view is
+	//sized Num()/4 floats but the Memcpy moves Num() bytes, so any trailing 1-3 bytes
+	//were written past the end of the array.
+	if (InCompactBytes.Num() % 4 != 0)
+	{
+		UE_LOG(LogTemp, Log, TEXT("Conv_CompactBytesToTransforms::byte array is not divisible by 4"));
+		return;
+	}
+
 	TArray<float> FloatView;
 	FloatView.SetNumUninitialized(InCompactBytes.Num() / 4);
-	FPlatformMemory::Memcpy(FloatView.GetData(), InCompactBytes.GetData(), InCompactBytes.Num());
 
 	//is our float array exactly divisible by 9?
 	if (FloatView.Num() % 9 != 0)
@@ -334,6 +342,8 @@ void UCUBlueprintLibrary::Conv_CompactBytesToTransforms(const TArray<uint8>& InC
 		UE_LOG(LogTemp, Log, TEXT("Conv_CompactBytesToTransforms::float array is not divisible by 9"));
 		return;
 	}
+
+	FPlatformMemory::Memcpy(FloatView.GetData(), InCompactBytes.GetData(), InCompactBytes.Num());
 
 	int32 TransformNum = FloatView.Num() / 9;
 	OutTransforms.SetNumUninitialized(TransformNum);
@@ -346,9 +356,16 @@ void UCUBlueprintLibrary::Conv_CompactBytesToTransforms(const TArray<uint8>& InC
 
 void UCUBlueprintLibrary::Conv_CompactPositionBytesToTransforms(const TArray<uint8>& InCompactBytes, TArray<FTransform>& OutTransforms)
 {
+	//See Conv_CompactBytesToTransforms — same out-of-bounds write on a non-multiple-of-4
+	//input, and this variant is one byte past the end for a 17-byte payload.
+	if (InCompactBytes.Num() % 4 != 0)
+	{
+		UE_LOG(LogTemp, Log, TEXT("Conv_CompactPositionBytesToTransforms::byte array is not divisible by 4"));
+		return;
+	}
+
 	TArray<float> FloatView;
 	FloatView.SetNumUninitialized(InCompactBytes.Num() / 4);
-	FPlatformMemory::Memcpy(FloatView.GetData(), InCompactBytes.GetData(), InCompactBytes.Num());
 
 	//is our float array exactly divisible by 3?
 	if (FloatView.Num() % 3 != 0)
@@ -356,6 +373,8 @@ void UCUBlueprintLibrary::Conv_CompactPositionBytesToTransforms(const TArray<uin
 		UE_LOG(LogTemp, Log, TEXT("Conv_CompactPositionBytesToTransforms::float array is not divisible by 3"));
 		return;
 	}
+
+	FPlatformMemory::Memcpy(FloatView.GetData(), InCompactBytes.GetData(), InCompactBytes.Num());
 
 	int32 TransformNum = FloatView.Num() / 3;
 	OutTransforms.SetNumUninitialized(TransformNum);

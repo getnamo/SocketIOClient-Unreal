@@ -648,7 +648,6 @@ USIOJsonValue* USIOJConvert::ToSIOJsonValue(const TArray<TSharedPtr<FJsonValue>>
 }
 
 #if PLATFORM_WINDOWS
-#pragma endregion ToJsonValue
 #endif
 
 TSharedPtr<FJsonValue> USIOJConvert::JsonStringToJsonValue(const FString& JsonString)
@@ -728,7 +727,6 @@ TSharedPtr<FJsonValue> USIOJConvert::ToJsonValue(const TArray<TSharedPtr<FJsonVa
 }
 
 #if PLATFORM_WINDOWS
-#pragma endregion ToJsonValue
 #endif
 
 TArray<TSharedPtr<FJsonValue>> USIOJConvert::JsonStringToJsonArray(const FString& JsonString)
@@ -1075,8 +1073,6 @@ void USIOJConvert::ReplaceJsonValueNamesWithMap(TSharedPtr<FJsonValue>& JsonValu
 		auto SubMap = KeyMap->SubMap;
 		auto AllValues = Object->Values;
 
-		FString PreviewPreValue = USIOJConvert::ToJsonString(Object);
-		//UE_LOG(LogTemp, Log, TEXT("Rep::PreObject: <%s>"), *PreviewPreValue);
 
 		for (auto Pair : AllValues)
 		{
@@ -1104,8 +1100,6 @@ void USIOJConvert::ReplaceJsonValueNamesWithMap(TSharedPtr<FJsonValue>& JsonValu
 			}
 		}
 
-		FString PreviewPostValue = USIOJConvert::ToJsonString(Object);
-		//UE_LOG(LogTemp, Log, TEXT("Rep::PostObject: <%s>"), *PreviewPostValue);
 	}
 	else if (JsonValue->Type == EJson::Array)
 	{

@@ -68,9 +68,10 @@ bool USocketIOFunctionLibrary::CallFunctionByName(const FString& FunctionName, U
 		++Iterator;
 	}
 
-	//bool bTargetParamsNonZero = Properties.Num() > 0;
-	bool bTargetParamsZero = Properties.Num() == 0;
-	bool bNullParamPassed = Param->IsNull();
+	const bool bTargetParamsZero = Properties.Num() == 0;
+	//A Blueprint can pass an unset object pin here, unlike the component's copy of this
+	//dispatcher, which builds its own value.
+	const bool bNullParamPassed = (Param == nullptr) || Param->IsNull();
 
 	//UE_LOG(SocketIO, Warning, TEXT("CallFunctionByName: Target %d, %s"), Target, *FunctionName);
 
@@ -95,12 +96,6 @@ bool USocketIOFunctionLibrary::CallFunctionByName(const FString& FunctionName, U
 
 		//add the full response array as second param
 		const FString& FirstParam = Properties[0]->GetCPPType();
-
-		FStructProperty* StructProperty = CastField<FStructProperty>(Properties[0]);
-		if (StructProperty)
-		{
-			//StructProperty->getcon
-		}
 
 		//Is first param...
 		//SIOJsonValue?

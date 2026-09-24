@@ -15,7 +15,11 @@ FSocketIONative::FSocketIONative(const bool bForceTLS, const bool bShouldVerifyT
 	SessionId = TEXT("Invalid");
 	LastSessionId = TEXT("None");
 	bIsConnected = false;
-	MaxReconnectionAttempts = -1;
+	//sio compares `m_reconn_made < m_reconn_attempts` on an unsigned, so the "unlimited"
+	//value is the all-ones one, not 0 — 0 means zero attempts. Spelled out rather than
+	//left as a -1 that happens to wrap, so nobody "corrects" it to 0 and silently turns
+	//reconnection off.
+	MaxReconnectionAttempts = kUnlimitedReconnectionAttempts;
 	ReconnectionDelay = 5000;
 	bCallbackOnGameThread = true;
 	bUnbindEventsOnDisconnect = false;
@@ -185,7 +189,7 @@ void FSocketIONative::Emit(const FString& EventName, const TSharedPtr<FJsonValue
 	//Only bind the raw callback if we pass in a callback ourselves;
 	if (CallbackFunction)
 	{
-		RawCallback = [&, CallbackFunction](const sio::message::list& MessageList)
+		RawCallback = [CallbackFunction](const sio::message::list& MessageList)
 		{
 			TArray<TSharedPtr<FJsonValue>> ValueArray;
 
@@ -268,7 +272,7 @@ void FSocketIONative::EmitRaw(const FString& EventName, const sio::message::list
 				//Callback on game thread
 				if (bCallbackOnGameThread)
 				{
-					FCULambdaRunnable::RunShortLambdaOnGameThread([&, CallbackFunction, response]
+					FCULambdaRunnable::RunShortLambdaOnGameThread([CallbackFunction, response]
 					{
 						if (CallbackFunction)
 						{
@@ -307,7 +311,7 @@ void FSocketIONative::OnEvent(const FString& EventName,
 	BoundEvent.ThreadOption = CallbackThread;
 	EventFunctionMap.Add(EventName, BoundEvent);
 
-	OnRawEvent(EventName, [&, CallbackFunction](const FString& Event, const sio::message::ptr& RawMessage) {
+	OnRawEvent(EventName, [CallbackFunction](const FString& Event, const sio::message::ptr& RawMessage) {
 		CallbackFunction(Event, USIOMessageConvert::ToJsonValue(RawMessage));
 	}, Namespace, CallbackThread);
 }
@@ -344,7 +348,7 @@ void FSocketIONative::OnRawEvent(const FString& EventName,
 		PrivateClient->socket(USIOMessageConvert::StdString(Namespace))->on(
 			USIOMessageConvert::StdString(EventName),
 			sio::socket::event_listener_aux(
-			[&, SafeFunction, bCallbackThisEventOnGameThread](std::string const& name, sio::message::ptr const& data, bool isAck, sio::message::list &ack_resp)
+			[SafeFunction, bCallbackThisEventOnGameThread](std::string const& name, sio::message::ptr const& data, bool isAck, sio::message::list &ack_resp)
 			{
 				if (SafeFunction != nullptr)
 				{
@@ -352,7 +356,7 @@ void FSocketIONative::OnRawEvent(const FString& EventName,
 
 					if (bCallbackThisEventOnGameThread)
 					{
-						FCULambdaRunnable::RunShortLambdaOnGameThread([&, SafeFunction, SafeName, data]
+						FCULambdaRunnable::RunShortLambdaOnGameThread([SafeFunction, SafeName, data]
 							{
 								SafeFunction(SafeName, data);
 							});
@@ -373,7 +377,7 @@ void FSocketIONative::OnError(TFunction< void(const FString&)> CallbackFunction,
 	//Keep track of all the bound native JsonValue functions
 	OnErrorCallback = CallbackFunction;
 
-	OnRawError([&, CallbackFunction](const sio::message::ptr& ErrorRaw) {
+	OnRawError([CallbackFunction](const sio::message::ptr& ErrorRaw) {
 		CallbackFunction(USIOMessageConvert::FStringFromStd(ErrorRaw.get()->get_string()));
 		}, Namespace, CallbackThread);
 }
@@ -408,13 +412,13 @@ void FSocketIONative::OnRawError(TFunction< void(const sio::message::ptr&)> Call
 
 		PrivateClient->socket(USIOMessageConvert::StdString(Namespace))->on_error(
 			sio::socket::error_listener(
-				[&, SafeFunction, bCallbackThisEventOnGameThread](sio::message::ptr const& error)
+				[SafeFunction, bCallbackThisEventOnGameThread](sio::message::ptr const& error)
 				{
 					if (SafeFunction != nullptr)
 					{
 						if (bCallbackThisEventOnGameThread)
 						{
-							FCULambdaRunnable::RunShortLambdaOnGameThread([&, SafeFunction, error]
+							FCULambdaRunnable::RunShortLambdaOnGameThread([SafeFunction, error]
 								{
 									SafeFunction(error);
 								});
@@ -449,7 +453,7 @@ void FSocketIONative::OnRawBinaryEvent(const FString& EventName, TFunction< void
 
 			if (bCallbackOnGameThread)
 			{
-				FCULambdaRunnable::RunShortLambdaOnGameThread([&, SafeFunction, SafeName, Buffer]
+				FCULambdaRunnable::RunShortLambdaOnGameThread([SafeFunction, SafeName, Buffer]
 				{
 					SafeFunction(SafeName, Buffer);
 				});
@@ -488,7 +492,7 @@ void FSocketIONative::SetupInternalCallbacks()
 	{
 		bIsConnected = false;
 
-		ESIOConnectionCloseReason DisconnectReason = (ESIOConnectionCloseReason)reason;
+		const ESIOConnectionCloseReason DisconnectReason = static_cast<ESIOConnectionCloseReason>(reason);
 		//UE 5.8: StaticEnum<>() is deleted for this namespaced UENUM, so map the close
 		//reason to a string directly for the diagnostic log below.
 		FString DisconnectReasonString = (DisconnectReason == CLOSE_REASON_NORMAL) ? TEXT("CLOSE_REASON_NORMAL") : TEXT("CLOSE_REASON_DROP");
@@ -699,7 +703,7 @@ void FSocketIONative::RebindCurrentEventMap()
 		const FString& EventName = EventPair.Key;
 		const FSIOBoundEvent EventBind = EventPair.Value;
 
-		OnRawEvent(EventName, [&, EventBind](const FString& Event, const sio::message::ptr& RawMessage) {
+		OnRawEvent(EventName, [EventBind](const FString& Event, const sio::message::ptr& RawMessage) {
 			EventBind.Function(Event, USIOMessageConvert::ToJsonValue(RawMessage));
 		}, EventBind.Namespace, EventBind.ThreadOption);
 	}

@@ -67,11 +67,12 @@ FString USIOJsonObject::EncodeJsonToSingleString() const
 {
 	FString OutputString = EncodeJson();
 
-	// Remove line terminators
-	(void)OutputString.Replace(LINE_TERMINATOR, TEXT(""));
+	//Replace returns a new string rather than mutating, so both of these discarded their
+	//result and did nothing. The second also searched for LINE_TERMINATOR, so once assigned
+	//it would have INSERTED a tab per line break instead of removing tabs.
+	OutputString = OutputString.Replace(LINE_TERMINATOR, TEXT(""));
 	
-	// Remove tabs
-	(void)OutputString.Replace(LINE_TERMINATOR, TEXT("\t"));
+	OutputString = OutputString.Replace(TEXT("\t"), TEXT(""));
 
 	return OutputString;
 }
@@ -386,9 +387,19 @@ void USIOJsonObject::SetObjectField(const FString& FieldName, USIOJsonObject* Js
 void USIOJsonObject::GetBinaryField(const FString& FieldName, TArray<uint8>& OutBinary) const
 {
 	
+	//Guard the root like every other accessor in this file does.
+	if (!JsonObj.IsValid())
+	{
+		return;
+	}
+
+	//and RETURN on a type mismatch: FJsonValueBinary::IsBinary below is also true for
+	//array, object and null values, and its unchecked downcast then reads a TArray member
+	//that is not there — for a null-typed field, past the end of the object.
 	if (!JsonObj->HasTypedField<EJson::String>(FieldName))
 	{
 		UE_LOG(LogSIOJ, Warning, TEXT("No field with name %s of type String"), *FieldName);
+		return;
 	}
 	TSharedPtr<FJsonValue> JsonValue = JsonObj->TryGetField(FieldName);
 

@@ -46,8 +46,9 @@ void UCUFileComponent::SplitFullPath(const FString& InFullPath, FString& OutDire
 
 	if (!bDidSplit) 
 	{
-		//search by backslash
-		InFullPath.Split(TEXT("\\\\"), &OutDirectory, &OutFileName, ESearchCase::CaseSensitive, ESearchDir::FromEnd);
+		//search by backslash. TEXT("\\\\") is a two-character string, which no path contains —
+		//a Windows-style path never split and both out params were left as the caller had them.
+		InFullPath.Split(TEXT("\\"), &OutDirectory, &OutFileName, ESearchCase::CaseSensitive, ESearchDir::FromEnd);
 	}
 }
 

@@ -2,14 +2,9 @@
 
 
 #include "SIOMessageConvert.h"
-#include "Runtime/Json/Public/Serialization/JsonWriter.h"
-#include "Runtime/Json/Public/Policies/CondensedJsonPrintPolicy.h"
 #include "SIOJsonValue.h"
 
 DEFINE_LOG_CATEGORY(SocketIO);
-
-typedef TJsonWriterFactory< TCHAR, TCondensedJsonPrintPolicy<TCHAR> > FCondensedJsonStringWriterFactory;
-typedef TJsonWriter< TCHAR, TCondensedJsonPrintPolicy<TCHAR> > FCondensedJsonStringWriter;
 
 TSharedPtr<FJsonValue> USIOMessageConvert::ToJsonValue(const sio::message::ptr& Message)
 {
@@ -34,12 +29,10 @@ TSharedPtr<FJsonValue> USIOMessageConvert::ToJsonValue(const sio::message::ptr& 
 	}
 	else if (flag == sio::message::flag_binary)
 	{
-		//FString WarningString = FString::Printf(TEXT("<binary (size %d bytes) not supported in FJsonValue, use raw sio::message methods>"), Binary->length());
-
-		//convert sio buffer ptr into the array
+		//convert sio buffer ptr into the array. The copy is required: FJsonValueBinary owns
+		//its buffer, while the sio message owns the one we are reading from.
 		TArray<uint8> Buffer;
 		Buffer.Append((uint8*)(Message->get_binary()->data()), Message->get_binary()->size());
-		//todo: investigate if binary optimization is possible? Do we copy?
 		
 		return MakeShareable(new FJsonValueBinary(Buffer));
 	}
@@ -103,7 +96,12 @@ sio::message::ptr USIOMessageConvert::ToSIOMessage(const TSharedPtr<FJsonValue>&
 	{
 		if (FJsonValueBinary::IsBinary(JsonValue))
 		{
-			auto BinaryArray = FJsonValueBinary::AsBinary(JsonValue);
+			const TArray<uint8> BinaryArray = FJsonValueBinary::AsBinary(JsonValue);
+			//GetData() is null for an empty array, and std::string(nullptr, 0) is undefined.
+			if (BinaryArray.Num() == 0)
+			{
+				return sio::binary_message::create(std::make_shared<std::string>());
+			}
 			return sio::binary_message::create(std::make_shared<std::string>((char*)BinaryArray.GetData(), BinaryArray.Num()));
 		}
 		else
@@ -134,11 +132,13 @@ sio::message::ptr USIOMessageConvert::ToSIOMessage(const TSharedPtr<FJsonValue>&
 	}
 	else if (JsonValue->Type == EJson::Object)
 	{
-		auto ValueTmap = JsonValue->AsObject()->Values;
+		//by reference: AsObject()->Values is a TMap, and `auto` would copy the whole thing
+		//(plus a refcount bump per field) on every object emit.
+		const auto& ValueTmap = JsonValue->AsObject()->Values;
 
 		auto ObjectMessage = sio::object_message::create();
 
-		for (auto ItemPair : ValueTmap)
+		for (const auto& ItemPair : ValueTmap)
 		{
 			//important to use get_map() directly to insert the key in the correct map and not a pointer copy
 			ObjectMessage->get_map()[StdString(FString(*ItemPair.Key))] = ToSIOMessage(ItemPair.Value);
@@ -153,12 +153,12 @@ sio::message::ptr USIOMessageConvert::ToSIOMessage(const TSharedPtr<FJsonValue>&
 }
 
 //We assume utf8 in transport
-std::string USIOMessageConvert::StdString(FString UEString)
+std::string USIOMessageConvert::StdString(const FString& UEString)
 {
 	return std::string(TCHAR_TO_UTF8(*UEString));
 }
 
-FString USIOMessageConvert::FStringFromStd(std::string StdString)
+FString USIOMessageConvert::FStringFromStd(const std::string& StdString)
 {
 	return FString(UTF8_TO_TCHAR(StdString.c_str()));
 }
@@ -169,11 +169,11 @@ std::map<std::string, std::string> USIOMessageConvert::JsonObjectToStdStringMap(
 
 	if (InObject.IsValid())
 	{
-		for (auto Pair : InObject->Values)
+		for (const auto& Pair : InObject->Values)
 		{
-			TSharedPtr<FJsonValue> Value = Pair.Value;
+			const TSharedPtr<FJsonValue>& Value = Pair.Value;
 
-			//If it's a string value, add it to the std map
+			//If it's a string value, add it to the std map. Non-string fields are dropped.
 			if (Value->Type == EJson::String)
 			{
 				ParamMap[USIOMessageConvert::StdString(FString(*Pair.Key))] = USIOMessageConvert::StdString(Value->AsString());
@@ -190,11 +190,12 @@ TMap<FString, FString> USIOMessageConvert::JsonObjectToFStringMap(TSharedPtr<FJs
 
 	if (InObject.IsValid())
 	{
-		for (auto Pair : InObject->Values)
+		for (const auto& Pair : InObject->Values)
 		{
-			TSharedPtr<FJsonValue> Value = Pair.Value;
+			const TSharedPtr<FJsonValue>& Value = Pair.Value;
 
-			//If it's a string value, add it to the std map
+			//If it's a string value, add it to the map. Non-string fields are dropped —
+			//this feeds the connect URL's query and headers, so only strings reach the URL.
 			if (Value->Type == EJson::String)
 			{
 				ParamMap.Add(FString(*Pair.Key), Value->AsString());
@@ -209,7 +210,7 @@ std::map<std::string, std::string> USIOMessageConvert::FStringMapToStdStringMap(
 {
 	std::map<std::string, std::string> ParamMap;
 
-	for (auto Pair : InMap)
+	for (const auto& Pair : InMap)
 	{
 		ParamMap[USIOMessageConvert::StdString(Pair.Key)] = USIOMessageConvert::StdString(Pair.Value);
 	}

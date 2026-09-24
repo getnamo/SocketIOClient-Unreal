@@ -4,8 +4,12 @@
 #pragma once
 #include "CoreMinimal.h"
 
-//Toggle to enable/disable timing code logs
+//Toggle to enable/disable timing code logs. Overridable from a build script: defining it
+//unconditionally here meant Tock's #else branch could never compile, so the off mode the
+//header advertises was never actually reachable.
+#ifndef ENABLE_CUPRECISE_TIMER
 #define ENABLE_CUPRECISE_TIMER 1
+#endif
 
 /** 
 *	C++ Utility Timer class. Multiple categories can be used simultaneously.

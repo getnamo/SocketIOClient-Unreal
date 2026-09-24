@@ -14,7 +14,6 @@
 class FSocketIOClientModule : public ISocketIOClientModule
 {
 public:
-	//virtual TSharedPtr<FSocketIONative> NewValidNativePointer() override;
 	virtual TSharedPtr<FSocketIONative> NewValidNativePointer(const bool bShouldUseTlsLibraries, const bool bShouldVerifyTLSCertificate) override;
 	virtual TSharedPtr<FSocketIONative> ValidSharedNativePointer(FString SharedId, const bool bShouldUseTlsLibraries, const bool bShouldVerifyTLSCertificate) override;
 	void ReleaseNativePointer(TSharedPtr<FSocketIONative> PointerToRelease) override;

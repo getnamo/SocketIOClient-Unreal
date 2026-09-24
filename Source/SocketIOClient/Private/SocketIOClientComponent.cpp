@@ -27,7 +27,7 @@ USocketIOClientComponent::USocketIOClientComponent(const FObjectInitializer &ini
 	PluginScopedId = TEXT("Default");
 	bVerboseConnectionLog = true;
 	ReconnectionTimeout = 0.f;
-	MaxReconnectionAttempts = -1.f;
+	MaxReconnectionAttempts = -1;	//unlimited, see FSocketIONative::kUnlimitedReconnectionAttempts
 	ReconnectionDelayInMs = 5000;
 
 	bStaticallyInitialized = false;
@@ -570,7 +570,7 @@ void USocketIOClientComponent::EmitWithGraphCallBack(const FString& EventName, s
 	if (LatentAction)
 	{
 		//emit the message and pass the LatentAction, we also pass the result reference through lambda capture
-		NativeClient->Emit(EventName, JsonMessage, [this, LatentAction, &Result](const TArray<TSharedPtr<FJsonValue>>& Response)
+		NativeClient->Emit(EventName, JsonMessage, [LatentAction, &Result](const TArray<TSharedPtr<FJsonValue>>& Response)
 		{
 			// Finish the latent action
 			if (LatentAction)
@@ -652,7 +652,7 @@ void USocketIOClientComponent::BindEventToDelegate(const FString& EventName,
 	ESIOThreadOverrideOption ThreadOverride /*= USE_DEFAULT*/)
 {
 	const FSIOJsonValueSignature SafeCallback = CallbackDelegate;	//copy for lambda ref
-	OnNativeEvent(EventName, [&, SafeCallback](const FString& Event, const TSharedPtr<FJsonValue>& Message)
+	OnNativeEvent(EventName, [SafeCallback](const FString& Event, const TSharedPtr<FJsonValue>& Message)
 	{
 		USIOJsonValue* Value = NewObject<USIOJsonValue>();
 		TSharedPtr<FJsonValue> NonConstValue = Message;
