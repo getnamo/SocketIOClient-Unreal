@@ -142,9 +142,8 @@ public:
 	void SetAuthProvider(TFunction<TSharedPtr<FJsonObject>()> Provider);
 
 	/**
-	* Replace the URL query sent with the next connect and automatic reconnections, even when a Connect() is already
-	* queued. An open connection is unaffected, as the query is only sent with the handshake. Call it on the game
-	* thread, like Connect.
+	* Replace the URL query sent with the next connect and automatic reconnections, also if a Connect() is already queued.
+	* An open connection is unaffected. Call it on the game thread, like Connect.
 	*/
 	void SetQuery(const TMap<FString, FString>& InQuery);
 
@@ -442,8 +441,8 @@ protected:
 	/** Bumped by SetAuth, so a Connect() queued before it doesn't overwrite the newer auth */
 	uint32 AuthVersion = 0;
 
-	/** Query read by the network thread before each connection attempt dials, written by Connect and SetQuery.
-	Declared before PrivateClient so they outlive the network thread, which PrivateClient joins on destruction. */
+	/** Query read by the network thread before each connection attempt, written by Connect and SetQuery.
+	Declared before PrivateClient so they outlive the network thread (same as the auth members above). */
 	FCriticalSection QueryLock;
 	std::map<std::string, std::string> LatestQuery;
 	/** Bumped by SetQuery, so a Connect() queued before it doesn't overwrite the newer query */

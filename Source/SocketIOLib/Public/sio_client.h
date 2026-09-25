@@ -83,10 +83,8 @@ namespace sio
         // Ignored while a query provider is set.
         void set_query(const std::map<std::string, std::string>& query);
 
-        // Supplies the URL query for every connection attempt, automatic reconnections included, in place of
-        // the query given to connect() or set_query().
-        // Called on the network thread right before each attempt dials, so it must be thread-safe and must not
-        // call back into this client. An open connection is unaffected. Set it before connect().
+        // Supplies the URL query for every connection attempt (reconnections included), instead of connect()/set_query().
+        // Called on the network thread: must be thread-safe and not call back into this client. Set it before connect().
         void set_query_provider(query_provider const& provider);
 
         void set_reconnect_attempts(int attempts);
