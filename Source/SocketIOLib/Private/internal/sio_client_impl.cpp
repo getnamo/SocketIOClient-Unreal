@@ -136,7 +136,7 @@ namespace sio
         }
 
         this->reset_states();
-        m_client.get_io_service().dispatch(std::bind(&client_impl<client_type>::connect_impl, this, m_base_url, get_query_string()));
+        m_client.get_io_service().dispatch(std::bind(&client_impl<client_type>::connect_impl, this, m_base_url));
         m_network_thread.reset(new thread(std::bind(&client_impl<client_type>::run_loop, this)));//uri lifecycle?
 
     }
@@ -262,7 +262,7 @@ namespace sio
     }
 
     template<typename client_type>
-    void client_impl<client_type>::connect_impl(const string& uri, const string& queryString)
+    void client_impl<client_type>::connect_impl(const string& uri)
     {
         do {
             websocketpp::uri uo(uri);
@@ -302,7 +302,8 @@ namespace sio
             if (m_sid.size() > 0) {
                 ss << "&sid=" << m_sid;
             }
-            ss << "&t=" << time(NULL) << queryString;
+            // Read right before each attempt dials, so a query replaced after connect() reaches reconnections too
+            ss << "&t=" << time(NULL) << get_query_string();
             lib::error_code ec;
             typename client_type::connection_ptr con = m_client.get_connection(ss.str(), ec);
             if (ec) {
@@ -407,12 +408,31 @@ namespace sio
             this->reset_states();
             LOG("Reconnecting..." << endl);
             if (m_reconnecting_listener) m_reconnecting_listener();
-            m_client.get_io_service().dispatch(std::bind(&client_impl<client_type>::connect_impl, this, m_base_url, get_query_string()));
+            m_client.get_io_service().dispatch(std::bind(&client_impl<client_type>::connect_impl, this, m_base_url));
         }
     }
 
     template<typename client_type>
     void client_impl<client_type>::set_query(const map<string, string>& query)
+    {
+        string query_str = build_query_string(query);
+        lock_guard<mutex> guard(m_query_mutex);
+        m_query_string = std::move(query_str);
+    }
+
+    template<typename client_type>
+    string client_impl<client_type>::get_query_string()
+    {
+        if (m_query_provider)
+        {
+            return build_query_string(m_query_provider());
+        }
+        lock_guard<mutex> guard(m_query_mutex);
+        return m_query_string;
+    }
+
+    template<typename client_type>
+    string client_impl<client_type>::build_query_string(const map<string, string>& query)
     {
         string query_str;
         for (map<string, string>::const_iterator it = query.begin(); it != query.end(); ++it) {
@@ -422,15 +442,7 @@ namespace sio
             string query_str_value = encode_query_string(it->second);
             query_str.append(query_str_value);
         }
-        lock_guard<mutex> guard(m_query_mutex);
-        m_query_string = std::move(query_str);
-    }
-
-    template<typename client_type>
-    string client_impl<client_type>::get_query_string()
-    {
-        lock_guard<mutex> guard(m_query_mutex);
-        return m_query_string;
+        return query_str;
     }
 
     template<typename client_type>

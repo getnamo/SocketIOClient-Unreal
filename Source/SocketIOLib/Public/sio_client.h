@@ -34,6 +34,8 @@ namespace sio
 
         typedef std::function<message::ptr()> auth_provider;
 
+        typedef std::function<std::map<std::string, std::string>()> query_provider;
+
         client();
 
         client(const bool bShouldUseTlsLibraries, const bool bShouldVerifyTLSCertificate);
@@ -78,7 +80,14 @@ namespace sio
         void set_auth_provider(auth_provider const& provider);
 
         // Replaces the query sent with the next connect and automatic reconnections. Thread-safe.
+        // Ignored while a query provider is set.
         void set_query(const std::map<std::string, std::string>& query);
+
+        // Supplies the URL query for every connection attempt, automatic reconnections included, in place of
+        // the query given to connect() or set_query().
+        // Called on the network thread right before each attempt dials, so it must be thread-safe and must not
+        // call back into this client. An open connection is unaffected. Set it before connect().
+        void set_query_provider(query_provider const& provider);
 
         void set_reconnect_attempts(int attempts);
 
