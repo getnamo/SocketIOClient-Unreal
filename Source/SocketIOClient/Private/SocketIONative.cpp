@@ -49,6 +49,13 @@ void FSocketIONative::InitPrivateClient(const bool bShouldUseTlsLibraries /*= fa
 		const TSharedPtr<FJsonObject> Auth = Provider();
 		return Auth.IsValid() ? USIOMessageConvert::ToSIOMessage(MakeShared<FJsonValueObject>(Auth)) : sio::message::ptr();
 	});
+
+	//Asked before every connection attempt dials, so automatic reconnections send the latest query
+	PrivateClient->set_query_provider([this]
+	{
+		FScopeLock Lock(&QueryLock);
+		return LatestQuery;
+	});
 }
 
 void FSocketIONative::Connect(const FSIOConnectParams& InConnectParams)
@@ -78,9 +85,15 @@ void FSocketIONative::Connect(const FSIOConnectParams& InConnectParams)
 		AuthVersionAtConnect = AuthVersion;
 	}
 
+	uint32 QueryVersionAtConnect;
+	{
+		FScopeLock Lock(&QueryLock);
+		QueryVersionAtConnect = QueryVersion;
+	}
+
 	//Connect to the server on a background thread so it never blocks. Weak self: we may be released before this runs
 	TWeakPtr<FSocketIONative> WeakSelf = AsShared();
-	FCULambdaRunnable::RunLambdaOnBackGroundThread([WeakSelf, StdAddressString, StdPathString, QueryMap, HeadersMap, AuthMessage, AuthVersionAtConnect]
+	FCULambdaRunnable::RunLambdaOnBackGroundThread([WeakSelf, StdAddressString, StdPathString, QueryMap, HeadersMap, AuthMessage, AuthVersionAtConnect, QueryVersionAtConnect]
 	{
 		TSharedPtr<FSocketIONative> Self = WeakSelf.Pin();
 		if (!Self.IsValid() || !Self->PrivateClient.IsValid())
@@ -102,6 +115,16 @@ void FSocketIONative::Connect(const FSIOConnectParams& InConnectParams)
 			}
 		};
 
+		//Same for the query, and a SetQuery made after this Connect() was queued stays
+		auto UpdateLatestQuery = [&Self, &QueryMap, QueryVersionAtConnect]
+		{
+			FScopeLock Lock(&Self->QueryLock);
+			if (Self->QueryVersion == QueryVersionAtConnect)
+			{
+				Self->LatestQuery = QueryMap;
+			}
+		};
+
 		//close and reconnect if different url
 		if(Self->PrivateClient->opened())
 		{
@@ -115,7 +138,7 @@ void FSocketIONative::Connect(const FSIOConnectParams& InConnectParams)
 				//transport is up but the default namespace isn't, e.g. the server rejected its auth. Retry it.
 				UE_LOG(SocketIO, Log, TEXT("SocketIO retrying namespace connect to %s"), UTF8_TO_TCHAR(StdAddressString.c_str()));
 				UpdateLatestAuth();
-				Self->PrivateClient->set_query(QueryMap);
+				UpdateLatestQuery();
 				Self->PrivateClient->socket("/")->connect();
 				return;
 			}
@@ -128,6 +151,7 @@ void FSocketIONative::Connect(const FSIOConnectParams& InConnectParams)
 		}
 
 		UpdateLatestAuth();
+		UpdateLatestQuery();
 		Self->PrivateClient->connect(StdAddressString, QueryMap, HeadersMap, AuthMessage);
 	});
 }
@@ -162,7 +186,11 @@ void FSocketIONative::SetAuthProvider(TFunction<TSharedPtr<FJsonObject>()> Provi
 void FSocketIONative::SetQuery(const TMap<FString, FString>& InQuery)
 {
 	URLParams.Query = InQuery;
-	PrivateClient->set_query(USIOMessageConvert::FStringMapToStdStringMap(InQuery));
+
+	std::map<std::string, std::string> Query = USIOMessageConvert::FStringMapToStdStringMap(InQuery);
+	FScopeLock Lock(&QueryLock);
+	LatestQuery = MoveTemp(Query);
+	++QueryVersion;
 }
 
 void FSocketIONative::JoinNamespace(const FString& Namespace)

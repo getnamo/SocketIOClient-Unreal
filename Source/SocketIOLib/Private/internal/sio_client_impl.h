@@ -111,6 +111,7 @@
             virtual void set_socket_close_listener(client::socket_listener const&) {};
             virtual void set_auth_provider(client::auth_provider const&) {};
             virtual void set_query(const map<string, string>& query) {};
+            virtual void set_query_provider(client::query_provider const&) {};
 
             // used by sio::client
             virtual void clear_con_listeners() {};
@@ -219,6 +220,8 @@
             SYNTHESIS_SETTER(client::socket_listener, socket_close_listener)
 
             SYNTHESIS_SETTER(client::auth_provider, auth_provider)
+
+            SYNTHESIS_SETTER(client::query_provider, query_provider)
 #undef SYNTHESIS_SETTER
 
 #if SIO_TLS
@@ -240,15 +243,16 @@
 
         message::ptr resolve_auth(message::ptr const& auth) override { return m_auth_provider ? m_auth_provider() : auth; }
 
-        // Query used by the next connect and automatic reconnects
+        // Query used by the next connect and automatic reconnects, unless a query provider is set
         void set_query(const std::map<std::string, std::string>& query) override;
 
     private:
+        // The query provider's query if one is set, otherwise the one from set_query/connect
         std::string get_query_string();
 
         void run_loop();
 
-        void connect_impl(const std::string& uri, const std::string& query);
+        void connect_impl(const std::string& uri);
 
         void close_impl(close::status::value const& code, std::string const& reason);
 
@@ -290,6 +294,9 @@
         // Percent encode query string
         std::string encode_query_string(const std::string& query);
 
+        // Builds the "&key=value" suffix appended to the handshake URL
+        std::string build_query_string(const std::map<std::string, std::string>& query);
+
         // Connection pointer for client functions.
         connection_hdl m_con;
         client_type m_client;
@@ -325,6 +332,8 @@
         client::socket_listener m_socket_close_listener;
 
         client::auth_provider m_auth_provider;
+
+        client::query_provider m_query_provider;
 
         std::map<const std::string, socket::ptr> m_sockets;
 

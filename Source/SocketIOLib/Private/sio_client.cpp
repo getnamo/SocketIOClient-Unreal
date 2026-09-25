@@ -146,6 +146,11 @@ namespace sio
         m_impl->set_query(query);
     }
 
+    void client::set_query_provider(query_provider const& provider)
+    {
+        m_impl->set_query_provider(provider);
+    }
+
     socket::ptr const& client::socket(const std::string& nsp)
     {
         return m_impl->socket(nsp);
