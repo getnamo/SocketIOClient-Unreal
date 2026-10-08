@@ -269,7 +269,7 @@ bool FCUOpusCoder::InitEncoderIfNeeded()
 			}
 
 			//Turn on some settings
-			//opus_encoder_ctl(Encoder, OPUS_SET_BITRATE(BitRate));
+			opus_encoder_ctl(Encoder, OPUS_SET_BITRATE(BitRate));
 			/*opus_encoder_ctl(Encoder, OPUS_SET_VBR(1));				//variable bit rate encoding
 			opus_encoder_ctl(Encoder, OPUS_SET_VBR_CONSTRAINT(0));	//constrained VBR
 			opus_encoder_ctl(Encoder, OPUS_SET_COMPLEXITY(1));		//complexity
