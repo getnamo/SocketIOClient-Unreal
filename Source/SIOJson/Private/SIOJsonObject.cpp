@@ -315,6 +315,10 @@ void USIOJsonObject::SetArrayField(const FString& FieldName, const TArray<USIOJs
 			ValArray.Add(MakeShareable(new FJsonValueObject(JsonVal->AsObject())));
 			break;
 
+		case ESIOJson::Binary:
+			ValArray.Add(MakeShareable(new FJsonValueBinary(FJsonValueBinary::AsBinary(JsonVal))));
+			break;
+
 		default:
 			break;
 		}
@@ -390,7 +394,7 @@ void USIOJsonObject::GetBinaryField(const FString& FieldName, TArray<uint8>& Out
 		return;
 	}
 
-	//Binary values are String typed; IsBinary() below is also true for other types, so bail early
+	//Binary values are String typed, bail early on anything else
 	if (!JsonObj->HasTypedField<EJson::String>(FieldName))
 	{
 		UE_LOG(LogSIOJ, Warning, TEXT("No field with name %s of type String"), *FieldName);
