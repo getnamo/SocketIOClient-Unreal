@@ -119,6 +119,9 @@ UTexture2D* UCUBlueprintLibrary::Conv_BytesToTexture(const TArray<uint8>& InByte
 //one static coder, created based on need
 TSharedPtr<FCUOpusCoder> OpusCoder;
 
+//the coder is stateful and shared, one conversion at a time
+FCriticalSection OpusCoderSection;
+
 TArray<uint8> UCUBlueprintLibrary::Conv_OpusBytesToWav(const TArray<uint8>& InBytes)
 {
 	//FCUScopeTimer Timer(TEXT("Conv_OpusBytesToWav"));
@@ -129,6 +132,7 @@ TArray<uint8> UCUBlueprintLibrary::Conv_OpusBytesToWav(const TArray<uint8>& InBy
 	{
 		return WavBytes;
 	}
+	FScopeLock Lock(&OpusCoderSection);
 	if (!OpusCoder)
 	{
 		OpusCoder = MakeShareable(new FCUOpusCoder());
@@ -136,7 +140,11 @@ TArray<uint8> UCUBlueprintLibrary::Conv_OpusBytesToWav(const TArray<uint8>& InBy
 
 	TArray<uint8> PCMBytes;
 	FCUOpusMinimalStream OpusStream;
-	OpusCoder->DeserializeMinimal(InBytes, OpusStream);
+	if (!OpusCoder->DeserializeMinimal(InBytes, OpusStream))
+	{
+		UE_LOG(LogTemp, Warning, TEXT("OpusMinimal to Wave Failed. DeserializeMinimal returned false"));
+		return WavBytes;
+	}
 	if (OpusCoder->DecodeStream(OpusStream, PCMBytes))
 	{
 		SerializeWaveFile(WavBytes, PCMBytes.GetData(), PCMBytes.Num(), OpusCoder->Channels, OpusCoder->SampleRate);
@@ -255,9 +263,19 @@ TArray<uint8> UCUBlueprintLibrary::Conv_WavBytesToOpus(const TArray<uint8>& InBy
 		return OpusBytes;
 	}
 
+	FScopeLock Lock(&OpusCoderSection);
 	if (!OpusCoder)
 	{
 		OpusCoder = MakeShareable(new FCUOpusCoder());
+	}
+
+	//The stream doesn't carry rate or channels, so a wav that doesn't match the coder
+	//would decode back at the wrong speed
+	if ((int32)*WaveInfo.pSamplesPerSec != OpusCoder->SampleRate || (int32)*WaveInfo.pChannels != OpusCoder->Channels)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("Conv_WavBytesToOpus: wav is %d Hz, %d ch but the coder is %d Hz, %d ch. Resample it first."),
+			(int32)*WaveInfo.pSamplesPerSec, (int32)*WaveInfo.pChannels, OpusCoder->SampleRate, OpusCoder->Channels);
+		return OpusBytes;
 	}
 
 	TArray<uint8> PCMBytes = TArray<uint8>(WaveInfo.SampleDataStart, WaveInfo.SampleDataSize);
