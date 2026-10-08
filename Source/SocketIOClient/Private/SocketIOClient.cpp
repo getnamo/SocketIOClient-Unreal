@@ -23,7 +23,8 @@ public:
 	virtual void ShutdownModule() override;
 
 private:
-	FCriticalSection DeleteSection;
+	//Guards PluginNativePointers, it's touched from the game thread and the release threads
+	FCriticalSection PointerSection;
 
 	//All native pointers manages by the plugin
 	TArray<TSharedPtr<FSocketIONative>> PluginNativePointers;
@@ -52,7 +53,11 @@ void FSocketIOClientModule::ShutdownModule()
 	Ensure we call release pointers, this will catch all the plugin scoped 
 	connections pointers which don't get auto-released between game worlds.
 	*/
-	auto AllActivePointers = PluginNativePointers;
+	TArray<TSharedPtr<FSocketIONative>> AllActivePointers;
+	{
+		FScopeLock Lock(&PointerSection);
+		AllActivePointers = PluginNativePointers;
+	}
 	for (auto& Pointer : AllActivePointers)
 	{
 		ReleaseNativePointer(Pointer);
@@ -75,7 +80,10 @@ void FSocketIOClientModule::ShutdownModule()
 	}
 
 	//Native pointers will be automatically released by uninitialize components
-	PluginNativePointers.Empty();
+	{
+		FScopeLock Lock(&PointerSection);
+		PluginNativePointers.Empty();
+	}
 }
 
 TSharedPtr<FSocketIONative> FSocketIOClientModule::NewValidNativePointer(const bool bShouldUseTlsLibraries, const bool bShouldVerifyTLSCertificate)
@@ -85,7 +93,10 @@ TSharedPtr<FSocketIONative> FSocketIOClientModule::NewValidNativePointer(const b
 	//Internal listeners need a shared instance to take a weak ref from, install them now
 	NewPointer->ClearAllCallbacks();
 
-	PluginNativePointers.Add(NewPointer);
+	{
+		FScopeLock Lock(&PointerSection);
+		PluginNativePointers.Add(NewPointer);
+	}
 	
 	bHasActiveNativePointers = true;
 
@@ -132,7 +143,7 @@ void FSocketIOClientModule::ReleaseNativePointer(TSharedPtr<FSocketIONative> Poi
 		{
 			//Ensure only one thread at a time removes from array 
 			{
-				FScopeLock Lock(&DeleteSection);
+				FScopeLock Lock(&PointerSection);
 				PluginNativePointers.Remove(PointerToRelease);
 			}
 
@@ -149,7 +160,10 @@ void FSocketIOClientModule::ReleaseNativePointer(TSharedPtr<FSocketIONative> Poi
 			}
 
 			//Update our active status
-			bHasActiveNativePointers = PluginNativePointers.Num() > 0;
+			{
+				FScopeLock Lock(&PointerSection);
+				bHasActiveNativePointers = PluginNativePointers.Num() > 0;
+			}
 		}
 	});
 }
