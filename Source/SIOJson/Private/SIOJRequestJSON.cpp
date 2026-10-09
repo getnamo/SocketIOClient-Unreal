@@ -392,6 +392,15 @@ void USIOJRequestJSON::OnProcessRequestComplete(FHttpRequestPtr Request, FHttpRe
 		OnRequestFail.Broadcast(this);
 		OnStaticRequestFail.Broadcast(this);
 
+		// Finish the latent action here too, or ApplyURL never returns for a failed request
+		if (ContinueAction)
+		{
+			FSIOJLatentAction<USIOJsonObject*> *K = ContinueAction;
+			ContinueAction = nullptr;
+
+			K->Call(ResponseJsonObj);
+		}
+
 		return;
 	}
 
