@@ -150,11 +150,28 @@ bool FCUOpusCoder::DecodeStream(const FCUOpusMinimalStream& InStream, TArray<uin
 
 	for (int FrameIndex = 0; CompressedOffset < InStream.CompressedBytes.Num(); FrameIndex++)
 	{
+		//Sizes and bytes come off the wire and may not agree, don't run past either
+		if (!InStream.PacketSizes.IsValidIndex(FrameIndex))
+		{
+			UE_LOG(LogTemp, Warning,
+				TEXT("DecodeStream: ran out of packet sizes after %d frames with %d bytes left."),
+				FrameIndex, InStream.CompressedBytes.Num() - CompressedOffset);
+			break;
+		}
 
-		int32 DecodedSamples = opus_decode(Decoder, InStream.CompressedBytes.GetData() + CompressedOffset, InStream.PacketSizes[FrameIndex], (opus_int16*)TempBuffer.GetData(), FrameSize, 0);
+		const int32 PacketSize = InStream.PacketSizes[FrameIndex];
+		if (PacketSize <= 0 || CompressedOffset + PacketSize > InStream.CompressedBytes.Num())
+		{
+			UE_LOG(LogTemp, Warning,
+				TEXT("DecodeStream: packet %d claims %d bytes, past the end of the stream."),
+				FrameIndex, PacketSize);
+			return false;
+		}
+
+		int32 DecodedSamples = opus_decode(Decoder, InStream.CompressedBytes.GetData() + CompressedOffset, PacketSize, (opus_int16*)TempBuffer.GetData(), FrameSize, 0);
 
 #if DEBUG_OPUS_LOG
-		DebugLogFrame(InStream.CompressedBytes.GetData(), InStream.PacketSizes[FrameIndex], SampleRate, false);
+		DebugLogFrame(InStream.CompressedBytes.GetData(), PacketSize, SampleRate, false);
 		UE_LOG(LogTemp, Log, TEXT("Decoded Samples: %d"), DecodedSamples);
 #endif
 
@@ -168,7 +185,7 @@ bool FCUOpusCoder::DecodeStream(const FCUOpusMinimalStream& InStream, TArray<uin
 			return false;
 		}
 
-		CompressedOffset += InStream.PacketSizes[FrameIndex];
+		CompressedOffset += PacketSize;
 	}
 
 #if DEBUG_OPUS_LOG
@@ -209,18 +226,45 @@ bool FCUOpusCoder::SerializeMinimal(const FCUOpusMinimalStream& InStream, TArray
 
 bool FCUOpusCoder::DeserializeMinimal(const TArray<uint8>& InSerializedMinimalBytes, FCUOpusMinimalStream& OutStream)
 {
-	int32 PacketCount = InSerializedMinimalBytes[0];
+	//Receive path, don't trust the payload
+	if (InSerializedMinimalBytes.Num() < (int32)sizeof(int32))
+	{
+		UE_LOG(LogTemp, Warning, TEXT("DeserializeMinimal: payload is too short to hold a packet count."));
+		return false;
+	}
+
+	//SerializeMinimal writes the count as a 4 byte little endian int
+	const int32 PacketCount =
+		  (int32)InSerializedMinimalBytes[0]
+		| ((int32)InSerializedMinimalBytes[1] << 8)
+		| ((int32)InSerializedMinimalBytes[2] << 16)
+		| ((int32)InSerializedMinimalBytes[3] << 24);
+
+	int32 Offset = sizeof(int32);
+	const int64 SizesBytes = (int64)PacketCount * sizeof(int16);
+	if (PacketCount < 0 || SizesBytes > (int64)(InSerializedMinimalBytes.Num() - Offset))
+	{
+		UE_LOG(LogTemp, Warning,
+			TEXT("DeserializeMinimal: packet count %d does not fit in a %d byte payload."),
+			PacketCount, InSerializedMinimalBytes.Num());
+		return false;
+	}
 
 	//get our packet info
 	OutStream.PacketSizes.SetNumUninitialized(PacketCount);
-	int32 Offset = sizeof(int32);
-	FMemory::Memcpy(OutStream.PacketSizes.GetData(), &InSerializedMinimalBytes[Offset], PacketCount*sizeof(int16));
+	if (PacketCount > 0)
+	{
+		FMemory::Memcpy(OutStream.PacketSizes.GetData(), &InSerializedMinimalBytes[Offset], SizesBytes);
+	}
 
 	//get our compressed data
-	Offset += ((PacketCount) * sizeof(int16));
-	int32 RemainingBytes = InSerializedMinimalBytes.Num() - Offset;
-	OutStream.CompressedBytes.Append(&InSerializedMinimalBytes[Offset], RemainingBytes);
-	
+	Offset += (int32)SizesBytes;
+	const int32 RemainingBytes = InSerializedMinimalBytes.Num() - Offset;
+	if (RemainingBytes > 0)
+	{
+		OutStream.CompressedBytes.Append(&InSerializedMinimalBytes[Offset], RemainingBytes);
+	}
+
 	return true;
 }
 
