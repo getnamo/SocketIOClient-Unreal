@@ -156,7 +156,7 @@ bool FCUOpusCoder::DecodeStream(const FCUOpusMinimalStream& InStream, TArray<uin
 			UE_LOG(LogTemp, Warning,
 				TEXT("DecodeStream: ran out of packet sizes after %d frames with %d bytes left."),
 				FrameIndex, InStream.CompressedBytes.Num() - CompressedOffset);
-			break;
+			return false;
 		}
 
 		const int32 PacketSize = InStream.PacketSizes[FrameIndex];

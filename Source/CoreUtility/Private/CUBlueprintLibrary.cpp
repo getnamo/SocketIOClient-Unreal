@@ -147,7 +147,11 @@ TArray<uint8> UCUBlueprintLibrary::Conv_OpusBytesToWav(const TArray<uint8>& InBy
 	}
 	if (OpusCoder->DecodeStream(OpusStream, PCMBytes))
 	{
-		SerializeWaveFile(WavBytes, PCMBytes.GetData(), PCMBytes.Num(), OpusCoder->Channels, OpusCoder->SampleRate);
+		//SerializeWaveFile asserts on an empty buffer, e.g. a stream with no packets
+		if (PCMBytes.Num() > 0)
+		{
+			SerializeWaveFile(WavBytes, PCMBytes.GetData(), PCMBytes.Num(), OpusCoder->Channels, OpusCoder->SampleRate);
+		}
 	}
 	else
 	{
