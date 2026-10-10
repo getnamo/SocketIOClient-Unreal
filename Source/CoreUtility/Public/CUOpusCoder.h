@@ -34,6 +34,8 @@ public:
 	/** Set Encoder and Decoder Samples per sec */
 	void SetSampleRate(int32 InSampleRate);
 	void SetChannels(int32 Channels);
+
+	/** Bits per second, defaults to OPUS_AUTO which lets libopus pick based on rate, channels and frame size */
 	void SetBitrate(int32 Bitrate);
 	void SetFrameSizeMs(int32 FrameSizeInMs);
 

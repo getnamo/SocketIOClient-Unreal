@@ -8,10 +8,12 @@ FCUOpusCoder::FCUOpusCoder()
 #if WITH_OPUS
 	Encoder = nullptr;
 	Decoder = nullptr;
+	BitRate = OPUS_AUTO;	//libopus picks (~17kbps at the defaults below), SetBitrate overrides
+#else
+	BitRate = 0;
 #endif
 	SampleRate = 16000;
 	Channels = 1;
-	BitRate = 24000;
 	MaxPacketSize = (3 * 1276);
 	SetFrameSizeMs(60);
 	bResetBetweenEncoding = true;
