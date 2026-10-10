@@ -47,6 +47,12 @@ bool FJsonValueBinary::IsBinary(const TSharedPtr<FJsonValue>& InJsonValue)
 	{
 		return false;
 	}
+	//Binary is disguised as a string. Arrays, objects and null fail TryGetBool below too
+	if (InJsonValue->Type != EJson::String)
+	{
+		return false;
+	}
+
 	//use our hackery to determine if we got a binary string
 	bool IgnoreBool;
 	return !InJsonValue->TryGetBool(IgnoreBool);
@@ -351,22 +357,10 @@ TArray<uint8> USIOJsonValue::AsBinary()
 			return FJsonValueBinary::AsBinary(JsonVal);
 		}
 
-		//It's a string, decode as if hex encoded binary
+		//It's a string, decode as base64 like FJsonValueBinary::AsBinary and GetBinaryField do
 		else
 		{
-			const FString& HexString = JsonVal->AsString();
-
-			TArray<uint8> ByteArray;
-			ByteArray.AddUninitialized(HexString.Len() / 2);
-
-			bool DidConvert = FString::ToHexBlob(HexString, ByteArray.GetData(), ByteArray.Num());
-
-			//Empty our array if conversion failed
-			if (!DidConvert)
-			{
-				ByteArray.Empty();
-			}
-			return ByteArray;
+			return FJsonValueBinary::AsBinary(JsonVal);
 		}
 	}
 	//Not a binary nor binary string, return empty array
