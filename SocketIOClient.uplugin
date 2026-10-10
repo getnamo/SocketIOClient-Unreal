@@ -97,6 +97,16 @@
 				"Linux",
 				"Mac"
 			]
+		},
+		{
+			"Name": "WebSocketClientTests",
+			"Type": "Editor",
+			"LoadingPhase": "Default",
+			"WhitelistPlatforms": [
+				"Win64",
+				"Linux",
+				"Mac"
+			]
 		}
 	]
 }
