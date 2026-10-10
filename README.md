@@ -8,6 +8,8 @@ Socket.IO client plugin for the Unreal Engine.
 
 Socket.IO Lib uses _asio_, _rapidjson_, and _websocketpp_. SIOJson is originally forked from ufna's [VaRest](https://github.com/ufna/VaRest)
 
+Need plain websockets instead of socket.io? See [Plain WebSocket Client](#plain-websocket-client).
+
 [Unreal Forum Thread](https://forums.unrealengine.com/showthread.php?110680-Plugin-Socket-io-Client)
 
 [Discord Server](https://discord.gg/qfJUyxaW4s)
@@ -381,6 +383,67 @@ TLS is supported for both C++ and BP if your platform supports OpenSSL (see http
 Gist with example node.js TLS server and instructions for self signing certificate for testing purposes: https://gist.github.com/getnamo/fe6c9574dc971066813fd291c363ee04
 
 *NB: Certificate verification is currently not implemented; `bShouldVerifyTLSCertificate` is set to false by default, setting it to true will currently cause connections to fail. See [issue 303](https://github.com/getnamo/SocketIOClient-Unreal/issues/303).*
+
+## Plain WebSocket Client
+
+Since v2.13.0 the plugin also has a plain websocket client, for servers that don't speak the socket.io protocol (e.g. a node.js `ws` server, or any other websocket API). It lives in its own modules (`WebSocketLib`, `WebSocketClient`) and only shares the json utilities (SIOJson) and CoreUtility with the socket.io side. See [issue 115](https://github.com/getnamo/SocketIOClient-Unreal/issues/115).
+
+### Blueprint
+
+Add a `WebSocketClientComponent` to an actor.
+
+| | |
+|---|---|
+| Properties | `Url` (`ws://` or `wss://`), `Headers` (e.g. Authorization), `Protocols` (requested subprotocols), `bVerifyTLSCertificate`, `bShouldAutoConnect`, read-only `bIsConnected` and `ConnectedProtocol` |
+| Functions | `Connect(Url)`, `Disconnect(StatusCode, Reason)`, `Send(String)`, `SendBinary(Bytes)`, `SendJson(SIOJsonValue)` |
+| Events | `OnConnected(Protocol)`, `OnDisconnected(StatusCode, Reason, bWasClean)`, `OnConnectionError(Error)`, `OnMessage(String)`, `OnBinaryMessage(Bytes)`, `OnJsonMessage(SIOJsonValue)` |
+
+- With `bShouldAutoConnect` (default true) it connects to `Url` on BeginPlay, default `ws://localhost:3000`.
+- `OnJsonMessage` fires after `OnMessage` for text messages that are a JSON object or array. Messages are only parsed while it's bound. Use the usual SIOJson nodes to read the value.
+- Status codes for `Disconnect` are `1000` (normal) or your own from `3000` to `4999`. A connection that drops without a close handshake reports `1006` with `bWasClean` false.
+- Connecting again closes the previous connection without firing its events. Destroying the component closes it in the background.
+
+### TLS
+
+`wss://` urls use TLS 1.2+. With `bVerifyTLSCertificate` (default true) the server certificate is checked against the engine's CA bundle and the url's host name, and the engine's certificate pinning rules apply. A failed check reports the reason through `OnConnectionError`, e.g. `TLS handshake failed: certificate has expired`. Turn it off for self-signed development servers, or in C++ trust your own CA with `AdditionalCACertificatesPEM`.
+
+### C++
+
+Add `WebSocketClient` to your module's dependencies, then use the component's functions or the `FWebSocketNative` behind it (`Component->NativeClient`). It can also be used on its own:
+
+```c++
+#include "WebSocketNative.h"
+
+TSharedPtr<FWebSocketNative> WebSocket = MakeShared<FWebSocketNative>();
+WebSocket->Headers.Add(TEXT("Authorization"), TEXT("Bearer token"));
+
+WebSocket->OnConnectedCallback = [](const FString& Protocol)
+{
+	UE_LOG(LogTemp, Log, TEXT("Connected"));
+};
+WebSocket->OnMessageCallback = [](const FString& Message)
+{
+	UE_LOG(LogTemp, Log, TEXT("Received: %s"), *Message);
+};
+WebSocket->OnJsonMessageCallback = [](const TSharedPtr<FJsonValue>& JsonValue)
+{
+	//text messages that are a JSON object or array
+};
+WebSocket->OnDisconnectedCallback = [](int32 StatusCode, const FString& Reason, bool bWasClean)
+{
+	UE_LOG(LogTemp, Log, TEXT("Disconnected: %d %s"), StatusCode, *Reason);
+};
+
+WebSocket->Connect(TEXT("wss://example.com/socket"));
+
+//once connected
+WebSocket->SendText(TEXT("hello"));
+WebSocket->SendBinary(Bytes);
+WebSocket->SendJson(JsonObject);
+WebSocket->SendStruct(MyStruct);	//any USTRUCT, sent as a JSON object
+```
+
+Callbacks run on the game thread by default. Set `bCallbackOnGameThread = false` (before connecting) to get them on the network thread instead, e.g. for streaming data you process off the game thread.
 
 ## CoreUtility
 
