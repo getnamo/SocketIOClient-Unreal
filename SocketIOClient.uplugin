@@ -65,6 +65,30 @@
 			]
 		},
 		{
+			"Name": "WebSocketLib",
+			"Type": "Runtime",
+			"LoadingPhase": "PreDefault",
+			"WhitelistPlatforms": [
+				"Win64",
+				"Linux",
+				"Mac",
+				"Android",
+				"IOS"
+			]
+		},
+		{
+			"Name": "WebSocketClient",
+			"Type": "Runtime",
+			"LoadingPhase": "PreDefault",
+			"WhitelistPlatforms": [
+				"Win64",
+				"Linux",
+				"Mac",
+				"Android",
+				"IOS"
+			]
+		},
+		{
 			"Name": "SIOJEditorPlugin",
 			"Type": "Editor",
 			"LoadingPhase": "Default",
