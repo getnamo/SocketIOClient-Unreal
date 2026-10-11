@@ -30,6 +30,19 @@
 #include <mutex>
 #include <cmath>
 
+#if SIO_TLS
+#include "Modules/ModuleManager.h"
+#include "SslModule.h"
+#include "Interfaces/ISslCertificateManager.h"
+
+THIRD_PARTY_INCLUDES_START
+#define UI UI_ST
+#include <asio/ssl/rfc2818_verification.hpp>
+#include <openssl/x509.h>
+#undef UI
+THIRD_PARTY_INCLUDES_END
+#endif
+
 // Comment this out to disable handshake logging to stdout
 #define SIO_LIB_DEBUG 0
 
@@ -115,6 +128,17 @@ namespace sio
         }
         m_con_state = con_opening;
         m_reconn_made = 0;
+
+#if SIO_TLS && WITH_SSL
+        //The handshake runs on the network thread, look the module up here
+        if (!m_certificate_manager)
+        {
+            if (FSslModule* SslModule = FModuleManager::GetModulePtr<FSslModule>(TEXT("SSL")))
+            {
+                m_certificate_manager = &SslModule->GetCertificateManager();
+            }
+        }
+#endif
 
         if (!uri.empty())
         {
@@ -304,6 +328,13 @@ namespace sio
             }
             // Read right before each attempt dials, so a query replaced after connect() reaches reconnections too
             ss << "&t=" << time(NULL) << get_query_string();
+
+#if SIO_TLS
+            //get_connection already runs on_tls_init, which needs the host
+            m_tls_host = host;
+            m_tls_verify_error.clear();
+#endif
+
             lib::error_code ec;
             typename client_type::connection_ptr con = m_client.get_connection(ss.str(), ec);
             if (ec) {
@@ -489,6 +520,13 @@ namespace sio
             this->close();
             return;
         }
+
+#if SIO_TLS
+        if (!m_tls_verify_error.empty() && m_tls_error_listener)
+        {
+            m_tls_error_listener(m_tls_verify_error);
+        }
+#endif
 
         m_con.reset();
         m_con_state = con_closed;
@@ -718,23 +756,86 @@ namespace sio
 
 #if SIO_TLS
     typedef websocketpp::lib::shared_ptr<asio_sockio::ssl::context> context_ptr;
-    static context_ptr on_tls_init(int verify_mode, connection_hdl conn)
+
+    /** The chain against the trusted roots, then the server's own certificate against the host and the engine's pinning */
+    struct certificate_verifier
     {
-        context_ptr ctx = context_ptr(new  asio_sockio::ssl::context(asio_sockio::ssl::context::tlsv12));
+        asio_sockio::ssl::rfc2818_verification host_check;
+        std::string host;
+        const ISslCertificateManager* certificate_manager;
+        std::string* out_error;
+
+        bool operator()(bool preverified, asio_sockio::ssl::verify_context& ctx)
+        {
+            X509_STORE_CTX* store = ctx.native_handle();
+            if (!preverified)
+            {
+                if (out_error->empty())
+                {
+                    *out_error = X509_verify_cert_error_string(X509_STORE_CTX_get_error(store));
+                }
+                return false;
+            }
+
+            //The rest only applies to the server's own certificate
+            if (X509_STORE_CTX_get_error_depth(store) > 0)
+            {
+                return true;
+            }
+
+            if (!host_check(preverified, ctx))
+            {
+                *out_error = "certificate does not match host " + host;
+                return false;
+            }
+
+#if WITH_SSL
+            if (certificate_manager && !certificate_manager->VerifySslCertificates(store, FString(UTF8_TO_TCHAR(host.c_str()))))
+            {
+                *out_error = "certificate rejected by the engine's certificate pinning";
+                return false;
+            }
+#endif
+            return true;
+        }
+    };
+
+    template<typename client_type>
+    context_ptr client_impl<client_type>::on_tls_init(connection_hdl)
+    {
+        context_ptr ctx = context_ptr(new asio_sockio::ssl::context(asio_sockio::ssl::context::sslv23_client));
         asio_sockio::error_code ec;
+
+        //TLS 1.2 and up
         ctx->set_options(asio_sockio::ssl::context::default_workarounds |
             asio_sockio::ssl::context::no_sslv2 |
-            asio_sockio::ssl::context::single_dh_use, ec);
+            asio_sockio::ssl::context::no_sslv3 |
+            asio_sockio::ssl::context::no_tlsv1 |
+            asio_sockio::ssl::context::no_tlsv1_1, ec);
         if (ec)
         {
-            cerr << "Init tls failed,reason:" << ec.message() << endl;
+            UE_LOG(LogTemp, Warning, TEXT("SocketIO TLS init failed: %s"), UTF8_TO_TCHAR(ec.message().c_str()));
         }
 
-        if (verify_mode >= 0)
+        if (verify_mode != asio_sockio::ssl::verify_peer)
         {
-            ctx->set_verify_mode(verify_mode);
+            ctx->set_verify_mode(asio_sockio::ssl::verify_none, ec);
+            return ctx;
         }
 
+#if WITH_SSL
+        if (m_certificate_manager)
+        {
+            m_certificate_manager->AddCertificatesToSslContext(ctx->native_handle());
+        }
+        else
+#endif
+        {
+            UE_LOG(LogTemp, Warning, TEXT("SocketIO: SSL module isn't loaded, no trusted certificates to verify the server with"));
+        }
+
+        ctx->set_verify_mode(asio_sockio::ssl::verify_peer, ec);
+        ctx->set_verify_callback(certificate_verifier{ asio_sockio::ssl::rfc2818_verification(m_tls_host), m_tls_host, m_certificate_manager, &m_tls_verify_error }, ec);
         return ctx;
     }
 
@@ -747,7 +848,8 @@ namespace sio
     template<>
     void client_impl<client_type_tls>::template_init()
     {
-        m_client.set_tls_init_handler(std::bind(&on_tls_init, verify_mode, std::placeholders::_1));
+        //on_tls_init reads verify_mode when each connection is created
+        m_client.set_tls_init_handler(std::bind(&client_impl<client_type_tls>::on_tls_init, this, std::placeholders::_1));
     }
 #endif
 

@@ -45,8 +45,8 @@ namespace sio
 
             if (bShouldVerifyTLSCertificate)
             {
+                //Checked against the engine's CA bundle and the host, see on_tls_init
                 m_impl->set_verify_mode(asio_sockio::ssl::verify_peer);
-                // TODO: add verify CA chain file
             }
             else
             {
@@ -104,6 +104,11 @@ namespace sio
         m_impl->set_socket_close_listener(l);
     }
     
+    void client::set_tls_error_listener(tls_error_listener const& l)
+    {
+        m_impl->set_tls_error_listener(l);
+    }
+
     void client::clear_con_listeners()
     {
         m_impl->clear_con_listeners();

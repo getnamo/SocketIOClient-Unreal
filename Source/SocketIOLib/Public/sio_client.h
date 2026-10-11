@@ -36,6 +36,9 @@ namespace sio
 
         typedef std::function<std::map<std::string, std::string>()> query_provider;
 
+        // Reason a connection attempt failed the TLS certificate check, e.g. "certificate has expired"
+        typedef std::function<void(std::string const& reason)> tls_error_listener;
+
         client();
 
         client(const bool bShouldUseTlsLibraries, const bool bShouldVerifyTLSCertificate);
@@ -56,7 +59,10 @@ namespace sio
         void set_socket_open_listener(socket_listener const& l);
         
         void set_socket_close_listener(socket_listener const& l);
-        
+
+        // Called on the network thread before the reconnect/fail listeners of that attempt
+        void set_tls_error_listener(tls_error_listener const& l);
+
         void clear_con_listeners();
         
         void clear_socket_listeners();

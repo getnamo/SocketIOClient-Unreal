@@ -820,6 +820,40 @@ void FSocketIONative::SetupInternalCallbacks()
 		}
 	}));
 
+	//Runs before the reconnect/fail listener of the same attempt
+	PrivateClient->set_tls_error_listener(sio::client::tls_error_listener([WeakSelf](std::string const& Reason)
+	{
+		TSharedPtr<FSocketIONative> Self = WeakSelf.Pin();
+		if (!Self.IsValid())
+		{
+			return;
+		}
+
+		const FString Error = FString::Printf(TEXT("TLS certificate verification failed: %s"), *USIOMessageConvert::FStringFromStd(Reason));
+		UE_LOG(SocketIO, Warning, TEXT("%s"), *Error);
+
+		if (Self->OnErrorCallback)
+		{
+			if (Self->bCallbackOnGameThread)
+			{
+				FCULambdaRunnable::RunShortLambdaOnGameThread([WeakSelf, Error]
+				{
+					if (TSharedPtr<FSocketIONative> HopSelf = WeakSelf.Pin())
+					{
+						if (HopSelf->OnErrorCallback)
+						{
+							HopSelf->OnErrorCallback(Error);
+						}
+					}
+				});
+			}
+			else
+			{
+				Self->OnErrorCallback(Error);
+			}
+		}
+	}));
+
 	PrivateClient->set_reconnect_listener(sio::client::reconnect_listener([WeakSelf](unsigned num, unsigned delay)
 	{
 		TSharedPtr<FSocketIONative> Self = WeakSelf.Pin();

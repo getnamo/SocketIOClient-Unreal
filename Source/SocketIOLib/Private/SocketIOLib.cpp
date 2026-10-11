@@ -8,6 +8,12 @@
 
 class FSocketIOLibModule : public ISocketIOLibModule
 {
+public:
+	virtual void StartupModule() override
+	{
+		//TLS certificate verification uses the SSL module's certificate manager
+		FModuleManager::Get().LoadModule(TEXT("SSL"));
+	}
 };
 
 
