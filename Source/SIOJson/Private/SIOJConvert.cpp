@@ -422,8 +422,9 @@ namespace
 			if (bArrayOrSetProperty)
 			{
 				//Begin custom workaround - support string -> binary array conversion
+				//Null for a TSet, which falls through to the error below
 				FArrayProperty* ArrayProperty = CastField<FArrayProperty>(Property);
-				if (ArrayProperty->Inner->IsA<FByteProperty>())
+				if (ArrayProperty && ArrayProperty->Inner->IsA<FByteProperty>())
 				{
 					//Did we get a direct binary?
 					TArray<uint8> ByteArray;
