@@ -24,10 +24,6 @@ Current platform issues:
 
 * Xbox/PS platforms untested - see [issue 117](https://github.com/getnamo/SocketIOClient-Unreal/issues/117)
 
-Current TLS/SSL issues:
-
-* Certificate verification is not implemented; setting `bShouldVerifyTLSCertificate` will always fail - see [issue 303](https://github.com/getnamo/SocketIOClient-Unreal/issues/303)
-
 ## Socket.IO Server Compatibility
 
 Some features in later versions of this plugin are not supported by earlier versions of the Socket.IO server API. See the compatibility table below for more details
@@ -382,7 +378,13 @@ TLS is supported for both C++ and BP if your platform supports OpenSSL (see http
 
 Gist with example node.js TLS server and instructions for self signing certificate for testing purposes: https://gist.github.com/getnamo/fe6c9574dc971066813fd291c363ee04
 
-*NB: Certificate verification is currently not implemented; `bShouldVerifyTLSCertificate` is set to false by default, setting it to true will currently cause connections to fail. See [issue 303](https://github.com/getnamo/SocketIOClient-Unreal/issues/303).*
+Connections use TLS 1.2 or newer.
+
+#### Certificate verification
+
+Set `bShouldVerifyTLSCertificate` to true to verify the server's certificate (false by default). The certificate chain is checked against the engine's CA bundle (`Engine/Content/Certificates`, a project can override it), the certificate has to match the url's host, and the engine's certificate pinning rules apply. A failed check is reported through `OnError` with the reason, e.g. `TLS certificate verification failed: certificate has expired`, and retried like any other failed connection attempt.
+
+For a self-signed development server, leave verification off, or trust your test CA by pointing `DebuggingCertificatePath` under `[SSL]` in your Engine.ini to its PEM file.
 
 ## Plain WebSocket Client
 

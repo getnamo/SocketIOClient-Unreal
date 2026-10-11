@@ -76,6 +76,8 @@
 #include "Windows/HideWindowsPlatformAtomics.h"
 #endif
 
+class ISslCertificateManager;
+
     namespace sio
     {
         using namespace websocketpp;
@@ -112,6 +114,7 @@
             virtual void set_auth_provider(client::auth_provider const&) {};
             virtual void set_query(const map<string, string>& query) {};
             virtual void set_query_provider(client::query_provider const&) {};
+            virtual void set_tls_error_listener(client::tls_error_listener const&) {};
 
             // used by sio::client
             virtual void clear_con_listeners() {};
@@ -222,10 +225,15 @@
             SYNTHESIS_SETTER(client::auth_provider, auth_provider)
 
             SYNTHESIS_SETTER(client::query_provider, query_provider)
+
+            SYNTHESIS_SETTER(client::tls_error_listener, tls_error_listener)
 #undef SYNTHESIS_SETTER
 
 #if SIO_TLS
         void set_verify_mode(int mode) override;
+
+        // Called by websocketpp while each connection is created
+        std::shared_ptr<asio_sockio::ssl::context> on_tls_init(connection_hdl con);
 #endif
 
     public:
@@ -335,6 +343,8 @@
 
         client::query_provider m_query_provider;
 
+        client::tls_error_listener m_tls_error_listener;
+
         std::map<const std::string, socket::ptr> m_sockets;
 
         std::mutex m_socket_mutex;
@@ -352,6 +362,15 @@
 
 #if SIO_TLS
         int verify_mode = -1;
+
+        // Host of the current attempt, for the certificate check (network thread)
+        std::string m_tls_host;
+
+        // Why the current attempt failed the certificate check, empty if it didn't (network thread)
+        std::string m_tls_verify_error;
+
+        // Engine CA bundle and pinning, looked up by connect() on the caller's thread
+        const ISslCertificateManager* m_certificate_manager = nullptr;
 #endif
 
         friend class sio::client;

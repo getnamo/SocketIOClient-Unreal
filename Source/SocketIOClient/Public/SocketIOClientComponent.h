@@ -89,11 +89,10 @@ public:
 	bool bUnbindEventsOnDisconnect;
 
 	/**
-	* If using a TLS url (or if forced) and setting this to false will not verify 
-	* the authenticity of the SSL certificate (i.e. asio::ssl::verify_none).
-	* 
-	* NOTE: Certification verification is currently not implemented; setting to true will
-	* always fail verification.
+	* If using a TLS url (or if forced), verify the server certificate against the engine's CA bundle
+	* and the url's host, plus the engine's certificate pinning. A failed check is reported through
+	* OnError with the reason. False accepts any certificate (i.e. asio::ssl::verify_none), e.g. for
+	* self-signed development servers.
 	*/
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "SocketIO Connection Properties")
 	bool bShouldVerifyTLSCertificate;
