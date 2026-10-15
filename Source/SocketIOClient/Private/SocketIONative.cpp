@@ -893,8 +893,7 @@ void FSocketIONative::SetupInternalCallbacks()
 
 void FSocketIONative::RebindCurrentEventMap()
 {
-	ClearInternalCallbacks();
-
+	//The internal listeners are left alone here, nothing clears them
 	for (auto& EventPair : EventFunctionMap)
 	{
 		const FString& EventName = EventPair.Key;
@@ -904,8 +903,6 @@ void FSocketIONative::RebindCurrentEventMap()
 			EventBind.Function(Event, USIOMessageConvert::ToJsonValue(RawMessage));
 		}, EventBind.Namespace, EventBind.ThreadOption);
 	}
-
-	SetupInternalCallbacks();
 }
 
 bool FSocketIONative::IsTLSURL(const FString& URL)
@@ -927,6 +924,7 @@ void FSocketIONative::SyncPrivateClientToTLSMode(const FString& URL)
 			}
 			ClearInternalCallbacks();
 			InitPrivateClient(true, bUsingTLSCertVerification);
+			SetupInternalCallbacks();
 			RebindCurrentEventMap();
 		}
 	}
@@ -942,6 +940,7 @@ void FSocketIONative::SyncPrivateClientToTLSMode(const FString& URL)
 			}
 			ClearInternalCallbacks();
 			InitPrivateClient(false, bUsingTLSCertVerification);
+			SetupInternalCallbacks();
 			RebindCurrentEventMap();
 		}
 	}
