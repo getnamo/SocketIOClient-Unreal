@@ -646,7 +646,7 @@ namespace sio
             const object_message* obj_ptr = static_cast<object_message*>(message.get());
             const map<string, message::ptr>* values = &(obj_ptr->get_map());
             auto it = values->find("sid");
-            if (it != values->end()) {
+            if (it != values->end() && it->second && it->second->get_flag() == message::flag_string) {
                 m_sid = static_pointer_cast<string_message>(it->second)->get_string();
             }
             else
@@ -654,7 +654,7 @@ namespace sio
                 goto failed;
             }
             it = values->find("pingInterval");
-            if (it != values->end() && it->second->get_flag() == message::flag_integer) {
+            if (it != values->end() && it->second && it->second->get_flag() == message::flag_integer) {
                 m_ping_interval = (unsigned)static_pointer_cast<int_message>(it->second)->get_int();
             }
             else
@@ -663,7 +663,7 @@ namespace sio
             }
             it = values->find("pingTimeout");
 
-            if (it != values->end() && it->second->get_flag() == message::flag_integer) {
+            if (it != values->end() && it->second && it->second->get_flag() == message::flag_integer) {
                 m_ping_timeout = (unsigned)static_pointer_cast<int_message>(it->second)->get_int();
             }
             else
