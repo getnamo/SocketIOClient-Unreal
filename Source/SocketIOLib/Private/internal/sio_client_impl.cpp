@@ -290,6 +290,12 @@ namespace sio
     {
         do {
             websocketpp::uri uo(uri);
+            if (!uo.get_valid())
+            {
+                // is_tls() throws on an unknown scheme, and nothing catches on this thread
+                m_client.get_alog().write(websocketpp::log::alevel::app, "Invalid uri: " + uri);
+                break;
+            }
             ostringstream ss;
 
             if (is_tls(uri))
@@ -350,6 +356,7 @@ namespace sio
             m_client.connect(con);
             return;
         }         while (0);
+        m_con_state = con_closed;   // left at con_opening, every later connect() would be ignored
         if (m_fail_listener)
         {
             m_fail_listener();
