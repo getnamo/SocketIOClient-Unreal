@@ -553,6 +553,7 @@ namespace sio
     {
         if (m_con_state == con_closing) {
             LOG("Connection opened while closing." << endl);
+            m_con = con;    // close_impl() only closes m_con, without this the connection stays open
             this->close();
             return;
         }
