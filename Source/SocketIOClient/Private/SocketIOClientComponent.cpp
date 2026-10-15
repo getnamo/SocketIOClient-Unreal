@@ -239,7 +239,7 @@ void USocketIOClientComponent::ClearCallbacks()
 
 bool USocketIOClientComponent::CallBPFunctionWithResponse(UObject* Target, const FString& FunctionName, TArray<TSharedPtr<FJsonValue>> Response)
 {
-	if (!Target->IsValidLowLevel())
+	if (!Target || !Target->IsValidLowLevel())
 	{
 		UE_LOG(SocketIO, Warning, TEXT("CallFunctionByNameWithArguments: Target not found for '%s'"), *FunctionName);
 		return false;
@@ -568,11 +568,13 @@ void USocketIOClientComponent::EmitWithCallBack(const FString& EventName, USIOJs
 		}
 
 		TWeakObjectPtr<USocketIOClientComponent> WeakThis(this);
-		EmitNative(EventName, JsonMessage, [WeakThis, Target, CallbackFunctionName](const TArray<TSharedPtr<FJsonValue>>& Response)
+		//Weak target too, the ack can arrive after it was destroyed
+		TWeakObjectPtr<UObject> WeakTarget(Target);
+		EmitNative(EventName, JsonMessage, [WeakThis, WeakTarget, CallbackFunctionName](const TArray<TSharedPtr<FJsonValue>>& Response)
 		{
 			if (USocketIOClientComponent* Self = WeakThis.Get())
 			{
-				Self->CallBPFunctionWithResponse(Target, CallbackFunctionName, Response);
+				Self->CallBPFunctionWithResponse(WeakTarget.Get(), CallbackFunctionName, Response);
 			}
 		}, Namespace);
 	}
@@ -714,11 +716,13 @@ void USocketIOClientComponent::BindEventToFunction(const FString& EventName,
 			Target = WorldContextObject;
 		}
 		TWeakObjectPtr<USocketIOClientComponent> WeakThis(this);
-		OnNativeEvent(EventName, [WeakThis, FunctionName, Target](const FString& Event, const TSharedPtr<FJsonValue>& Message)
+		//Weak target too, it is called on every later event
+		TWeakObjectPtr<UObject> WeakTarget(Target);
+		OnNativeEvent(EventName, [WeakThis, FunctionName, WeakTarget](const FString& Event, const TSharedPtr<FJsonValue>& Message)
 		{
 			if (USocketIOClientComponent* Self = WeakThis.Get())
 			{
-				Self->CallBPFunctionWithMessage(Target, FunctionName, Message);
+				Self->CallBPFunctionWithMessage(WeakTarget.Get(), FunctionName, Message);
 			}
 		}, Namespace, ThreadOverride);
 	}
