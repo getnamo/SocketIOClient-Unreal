@@ -604,7 +604,8 @@ void USocketIOClientComponent::EmitWithGraphCallBack(const FString& EventName, s
 			// Finish the latent action
 			if (LatentAction)
 			{
-				TSharedPtr<FJsonValue> FirstResponseValue = Response[0];
+				//an ack sent without arguments arrives as an empty array
+				TSharedPtr<FJsonValue> FirstResponseValue = Response.Num() > 0 ? Response[0] : TSharedPtr<FJsonValue>(MakeShared<FJsonValueNull>());
 				USIOJsonValue* ResultObj = NewObject<USIOJsonValue>();
 				ResultObj->SetRootValue(FirstResponseValue);
 				Result = ResultObj;		//update the output value

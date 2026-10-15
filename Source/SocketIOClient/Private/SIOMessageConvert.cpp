@@ -130,7 +130,13 @@ sio::message::ptr USIOMessageConvert::ToSIOMessage(const TSharedPtr<FJsonValue>&
 	}
 	else if (JsonValue->Type == EJson::Object)
 	{
-		const auto& ValueTmap = JsonValue->AsObject()->Values;
+		//FJsonValueObject(nullptr) is legal and would fail the TSharedPtr check
+		const TSharedPtr<FJsonObject>& JsonObject = JsonValue->AsObject();
+		if (!JsonObject.IsValid())
+		{
+			return sio::null_message::create();
+		}
+		const auto& ValueTmap = JsonObject->Values;
 
 		auto ObjectMessage = sio::object_message::create();
 
