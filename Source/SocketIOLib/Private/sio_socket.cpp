@@ -217,6 +217,9 @@ namespace sio
         
         std::unique_ptr<asio_sockio::system_timer> m_connection_timer;
 
+        // close() is waiting on m_connection_timer for a reply, to its DISCONNECT or to a CONNECT still in flight
+        std::atomic<bool> m_close_pending{false};
+
         // on_close() can be reached from two threads at once: the io thread
         // (close-timer callback) and the client's teardown thread
         // (~client_impl invokes it directly). Only one may run the teardown.
@@ -312,6 +315,7 @@ namespace sio
     void socket::impl::send_connect()
     {
         NULL_GUARD(m_client);
+        m_close_pending = false;    // a new CONNECT replaces any earlier close
         packet p(packet::type_connect, m_nsp, m_client->resolve_auth(m_auth));
         m_client->send(p);
         m_connection_timer.reset(new asio_sockio::system_timer(m_client->get_io_service()));
@@ -356,6 +360,12 @@ namespace sio
                 }
                 on_close();
             });
+            m_close_pending = true;
+        }
+        else if(!m_rejected && !m_client->opened())
+        {
+            // The whole client is closing, so a CONNECT still in flight won't be answered either
+            m_close_pending = true;
         }
     }
     
@@ -444,6 +454,24 @@ namespace sio
 			std::lock_guard<std::mutex> guard(m_packet_mutex);
             while (!m_packet_queue.empty()) {
                 m_packet_queue.pop();
+            }
+        }
+
+        // The reply close() waits for can't arrive without a transport, finish now instead of when the timer runs out
+        if(m_close_pending && m_connection_timer)
+        {
+            sio::socket::ptr self = m_client->find_socket(m_nsp);
+            if(self)
+            {
+                lib::error_code ec;
+                m_connection_timer->expires_from_now(std::chrono::milliseconds(0), ec);
+                m_connection_timer->async_wait([this, self](const asio_sockio::error_code& timer_ec)
+                {
+                    if(!timer_ec)
+                    {
+                        on_close();
+                    }
+                });
             }
         }
     }
