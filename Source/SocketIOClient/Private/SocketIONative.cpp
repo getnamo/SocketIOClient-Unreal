@@ -577,7 +577,7 @@ void FSocketIONative::OnRawBinaryEvent(const FString& EventName, TFunction< void
 		const FString SafeName = USIOMessageConvert::FStringFromStd(name);
 
 		//Construct raw buffer
-		if (data->get_flag() == sio::message::flag_binary)
+		if (data && data->get_flag() == sio::message::flag_binary)
 		{
 			TArray<uint8> Buffer;
 			int32 BufferSize = data->get_binary()->size();
