@@ -217,7 +217,7 @@ namespace sio
         
         std::unique_ptr<asio_sockio::system_timer> m_connection_timer;
 
-        // close() armed m_connection_timer to wait for the server's reply
+        // close() is waiting on m_connection_timer for a reply, to its DISCONNECT or to a CONNECT still in flight
         std::atomic<bool> m_close_pending{false};
 
         // on_close() can be reached from two threads at once: the io thread
@@ -315,6 +315,7 @@ namespace sio
     void socket::impl::send_connect()
     {
         NULL_GUARD(m_client);
+        m_close_pending = false;    // a new CONNECT replaces any earlier close
         packet p(packet::type_connect, m_nsp, m_client->resolve_auth(m_auth));
         m_client->send(p);
         m_connection_timer.reset(new asio_sockio::system_timer(m_client->get_io_service()));
@@ -359,6 +360,11 @@ namespace sio
                 }
                 on_close();
             });
+            m_close_pending = true;
+        }
+        else if(!m_rejected && !m_client->opened())
+        {
+            // The whole client is closing, so a CONNECT still in flight won't be answered either
             m_close_pending = true;
         }
     }
@@ -451,7 +457,7 @@ namespace sio
             }
         }
 
-        // The reply close() waits for can't arrive without a transport, finish now instead of in 3 s
+        // The reply close() waits for can't arrive without a transport, finish now instead of when the timer runs out
         if(m_close_pending && m_connection_timer)
         {
             sio::socket::ptr self = m_client->find_socket(m_nsp);
