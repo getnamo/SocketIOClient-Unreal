@@ -488,12 +488,12 @@ namespace sio
             {
                 LOG("Received Message type (Connect)"<<std::endl);
 
-				const object_message* obj_ptr = static_cast<const object_message*>(p.get_message().get());
+				const object_message* obj_ptr = (p.get_message() && p.get_message()->get_flag() == message::flag_object) ? static_cast<const object_message*>(p.get_message().get()) : nullptr;
 				if(obj_ptr)
                 {
                     const map<string, message::ptr>* values = &(obj_ptr->get_map());
                     auto it = values->find("sid");
-                    if (it != values->end()) {
+                    if (it != values->end() && it->second && it->second->get_flag() == message::flag_string) {
                         m_socket_id = static_pointer_cast<string_message>(it->second)->get_string();
                     }
                 }
@@ -512,10 +512,11 @@ namespace sio
             {
                 LOG("Received Message type (Event)"<<std::endl);
                 const message::ptr ptr = p.get_message();
-                if(ptr->get_flag() == message::flag_array)
+                // Null when the packet carries no JSON (e.g. "42") or a number outside int64
+                if(ptr && ptr->get_flag() == message::flag_array)
                 {
                     const array_message* array_ptr = static_cast<const array_message*>(ptr.get());
-                    if(array_ptr->get_vector().size() >= 1&&array_ptr->get_vector()[0]->get_flag() == message::flag_string)
+                    if(array_ptr->get_vector().size() >= 1&&array_ptr->get_vector()[0]&&array_ptr->get_vector()[0]->get_flag() == message::flag_string)
                     {
                         const string_message* name_ptr = static_cast<const string_message*>(array_ptr->get_vector()[0].get());
                         message::list mlist;
@@ -535,7 +536,7 @@ namespace sio
             {
                 LOG("Received Message type (ACK)"<<std::endl);
                 const message::ptr ptr = p.get_message();
-                if(ptr->get_flag() == message::flag_array)
+                if(ptr && ptr->get_flag() == message::flag_array)
                 {
 					message::list msglist(ptr->get_vector());
 					this->on_socketio_ack(p.get_pack_id(),msglist);
