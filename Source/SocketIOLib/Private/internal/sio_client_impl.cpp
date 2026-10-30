@@ -169,6 +169,21 @@ namespace sio
     socket::ptr const& client_impl<client_type>::socket(string const& nsp)
     {
         lock_guard<mutex> guard(m_socket_mutex);
+        return find_or_create_socket(nsp);
+    }
+
+    template<typename client_type>
+    socket::ptr client_impl<client_type>::socket_shared(string const& nsp)
+    {
+        // Copied under the lock, the network thread can erase the map entry socket() refers to
+        lock_guard<mutex> guard(m_socket_mutex);
+        return find_or_create_socket(nsp);
+    }
+
+    // Caller holds m_socket_mutex
+    template<typename client_type>
+    socket::ptr const& client_impl<client_type>::find_or_create_socket(string const& nsp)
+    {
         string aux;
         if (nsp == "")
         {

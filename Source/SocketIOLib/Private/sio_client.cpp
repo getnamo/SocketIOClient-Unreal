@@ -160,6 +160,11 @@ namespace sio
     {
         return m_impl->socket(nsp);
     }
+
+    socket::ptr client::socket_shared(const std::string& nsp)
+    {
+        return m_impl->socket_shared(nsp);
+    }
     
     // Closes the connection
     void client::close()

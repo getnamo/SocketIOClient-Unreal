@@ -122,6 +122,7 @@ class ISslCertificateManager;
             virtual void connect(const string& uri, const map<string, string>& query, const map<string, string>& headers, const message::ptr& auth, const std::string& path = "socket.io") {};
 
             virtual sio::socket::ptr const& socket(const std::string& nsp) = 0;
+            virtual sio::socket::ptr socket_shared(const std::string& nsp) = 0;
             virtual void close() {};
             virtual void sync_close() {};
             virtual bool opened() const { return false; };
@@ -180,6 +181,8 @@ class ISslCertificateManager;
             const std::map<std::string, std::string>& httpExtraHeaders, const message::ptr& auth, const std::string& path = "socket.io");
 
         sio::socket::ptr const& socket(const std::string& nsp);
+
+        sio::socket::ptr socket_shared(const std::string& nsp) override;
 
         // Closes the connection
         void close();
@@ -275,6 +278,8 @@ class ISslCertificateManager;
         unsigned next_delay() const;
 
         socket::ptr get_socket_locked(std::string const& nsp);
+
+        socket::ptr const& find_or_create_socket(std::string const& nsp);
 
         void sockets_invoke_void(void (sio::socket::* fn)(void));
 

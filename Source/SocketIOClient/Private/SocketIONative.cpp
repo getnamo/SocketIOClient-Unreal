@@ -139,7 +139,7 @@ void FSocketIONative::Connect(const FSIOConnectParams& InConnectParams)
 				UE_LOG(SocketIO, Log, TEXT("SocketIO retrying namespace connect to %s"), UTF8_TO_TCHAR(StdAddressString.c_str()));
 				UpdateLatestAuth();
 				UpdateLatestQuery();
-				Self->PrivateClient->socket("/")->connect();
+				Self->PrivateClient->socket_shared("/")->connect();
 				return;
 			}
 			else
@@ -196,12 +196,12 @@ void FSocketIONative::SetQuery(const TMap<FString, FString>& InQuery)
 void FSocketIONative::JoinNamespace(const FString& Namespace)
 {
 	//just referencing the namespace will join it, connect() retries it if it was rejected
-	PrivateClient->socket(USIOMessageConvert::StdString(Namespace))->connect();
+	PrivateClient->socket_shared(USIOMessageConvert::StdString(Namespace))->connect();
 }
 
 void FSocketIONative::LeaveNamespace(const FString& Namespace)
 {
-	PrivateClient->socket(USIOMessageConvert::StdString(Namespace))->close();
+	PrivateClient->socket_shared(USIOMessageConvert::StdString(Namespace))->close();
 }
 
 void FSocketIONative::Disconnect()
@@ -389,7 +389,7 @@ void FSocketIONative::EmitRaw(const FString& EventName, const sio::message::list
 		};
 	}
 
-	PrivateClient->socket(USIOMessageConvert::StdString(Namespace))->emit(
+	PrivateClient->socket_shared(USIOMessageConvert::StdString(Namespace))->emit(
 		USIOMessageConvert::StdString(EventName),
 		MessageList,
 		RawCallback);
@@ -397,7 +397,7 @@ void FSocketIONative::EmitRaw(const FString& EventName, const sio::message::list
 
 void FSocketIONative::EmitRawBinary(const FString& EventName, uint8* Data, int32 DataLength, const FString& Namespace /*= FString(TEXT("/"))*/)
 {
-	PrivateClient->socket(USIOMessageConvert::StdString(Namespace))->emit(USIOMessageConvert::StdString(EventName), std::make_shared<std::string>((char*)Data, DataLength));
+	PrivateClient->socket_shared(USIOMessageConvert::StdString(Namespace))->emit(USIOMessageConvert::StdString(EventName), std::make_shared<std::string>((char*)Data, DataLength));
 }
 
 void FSocketIONative::OnEvent(const FString& EventName, 
@@ -424,7 +424,7 @@ void FSocketIONative::OnRawEvent(const FString& EventName,
 {
 	if (CallbackFunction == nullptr)
 	{
-		PrivateClient->socket(USIOMessageConvert::StdString(Namespace))->off(USIOMessageConvert::StdString(EventName));
+		PrivateClient->socket_shared(USIOMessageConvert::StdString(Namespace))->off(USIOMessageConvert::StdString(EventName));
 	}
 	else
 	{
@@ -446,7 +446,7 @@ void FSocketIONative::OnRawEvent(const FString& EventName,
 
 		const TFunction< void(const FString&, const sio::message::ptr&)> SafeFunction = CallbackFunction;	//copy the function so it remains in context
 
-		PrivateClient->socket(USIOMessageConvert::StdString(Namespace))->on(
+		PrivateClient->socket_shared(USIOMessageConvert::StdString(Namespace))->on(
 			USIOMessageConvert::StdString(EventName),
 			sio::socket::event_listener_aux(
 			[SafeFunction, bCallbackThisEventOnGameThread](std::string const& name, sio::message::ptr const& data, bool isAck, sio::message::list &ack_resp)
@@ -512,7 +512,7 @@ void FSocketIONative::OnRawError(TFunction< void(const sio::message::ptr&)> Call
 {
 	if (CallbackFunction == nullptr)
 	{
-		PrivateClient->socket(USIOMessageConvert::StdString(Namespace))->off_error();
+		PrivateClient->socket_shared(USIOMessageConvert::StdString(Namespace))->off_error();
 	}
 	else
 	{
@@ -534,7 +534,7 @@ void FSocketIONative::OnRawError(TFunction< void(const sio::message::ptr&)> Call
 
 		const TFunction< void(const sio::message::ptr&)> SafeFunction = CallbackFunction;	//copy the function so it remains in context
 
-		PrivateClient->socket(USIOMessageConvert::StdString(Namespace))->on_error(
+		PrivateClient->socket_shared(USIOMessageConvert::StdString(Namespace))->on_error(
 			sio::socket::error_listener(
 				[SafeFunction, bCallbackThisEventOnGameThread](sio::message::ptr const& error)
 				{
@@ -563,7 +563,7 @@ void FSocketIONative::OnRawBinaryEvent(const FString& EventName, TFunction< void
 	//Weak self: listener runs on the network thread, we may have been released
 	TWeakPtr<FSocketIONative> WeakSelf = AsShared();
 
-	PrivateClient->socket(USIOMessageConvert::StdString(Namespace))->on(
+	PrivateClient->socket_shared(USIOMessageConvert::StdString(Namespace))->on(
 		USIOMessageConvert::StdString(EventName),
 		sio::socket::event_listener_aux(
 			[WeakSelf, SafeFunction](std::string const& name, sio::message::ptr const& data, bool isAck, sio::message::list &ack_resp)
@@ -690,7 +690,7 @@ void FSocketIONative::SetupInternalCallbacks()
 		{
 			Self->bIsConnected = true;
 			Self->SessionId = USIOMessageConvert::FStringFromStd(Self->PrivateClient->get_sessionid());
-			Self->SocketId = USIOMessageConvert::FStringFromStd(Self->PrivateClient->socket(nsp)->get_socket_id());
+			Self->SocketId = USIOMessageConvert::FStringFromStd(Self->PrivateClient->socket_shared(nsp)->get_socket_id());
 
 			if (Self->VerboseLog)
 			{

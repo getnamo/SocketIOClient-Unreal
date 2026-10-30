@@ -108,6 +108,9 @@ namespace sio
         void set_logs_verbose();
 
         sio::socket::ptr const& socket(const std::string& nsp = "");
+
+        // Like socket(), but returns a copy. socket()'s reference points into the socket map, which the network thread erases from when a namespace closes.
+        sio::socket::ptr socket_shared(const std::string& nsp = "");
         
         // Closes the connection
         void close();
