@@ -413,7 +413,7 @@ public:
 
 protected:
 
-	/** On disconnect or mode change bound events become invalid */
+	/** Currently a no-op: sio's client_impl never overrides clear_socket_listeners(), so no listener is cleared */
 	void ClearInternalCallbacks();
 
 	/** Linkup PrivateClient callbacks to FSocketIONative */
